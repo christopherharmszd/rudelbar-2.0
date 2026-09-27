@@ -48,3 +48,26 @@ html[data-theme] footer span:first-child{color:var(--ink)}
 html[data-theme="dusk"]{--cream:#17201f;--paper:#23302d;--field:#192220;--ink:#f7f2e7;--muted:#c3c9bd;--line:#48524d;--moss:#a6ad92}
 html[data-theme="evening"]{--cream:#181411;--paper:#29231d;--field:#1e1915;--ink:#f6efe4;--muted:#cfc1ae;--line:#54493c;--moss:#9b9678}
 html[data-theme="black"]{--cream:#0d0d0d;--paper:#151515;--field:#101010;--ink:#f5f1e9;--muted:#c6c0b6;--line:#393939;--moss:#9c9a86}
+
+/* Published team-card layout, now part of the editable source. */
+html[data-theme] .team-grid{background:var(--paper);gap:0}
+.team-grid article:nth-child(odd):not(:last-child){border-right:1px solid var(--line)}
+.team-grid article:nth-child(-n+4){border-bottom:1px solid var(--line)}
+.team-grid article{display:grid;grid-template-columns:minmax(145px,34%) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:1.5rem;align-content:start;min-height:280px}
+.team-grid article:last-child{grid-template-columns:190px minmax(0,1fr)}
+.team-grid .team-photo{grid-column:1;grid-row:1/4;display:block;width:100%;height:220px;margin:0;border-radius:3px;object-fit:cover;object-position:center 32%;background:#201e1b}
+.team-grid article h2{grid-column:2;grid-row:1}
+.team-grid article .team-role{grid-column:2;grid-row:2;margin:0 0 1rem}
+.team-grid article p:not(.team-number):not(.team-role){grid-column:2;grid-row:3;max-width:56ch;margin:0}
+
+/* Keep legal navigation and the native date picker consistent with production. */
+html[data-theme="black"] .booking-form input[type="date"],html[data-theme="dusk"] .booking-form input[type="date"],html[data-theme="evening"] .booking-form input[type="date"]{color-scheme:dark}
+.legal-links{display:flex;justify-content:flex-end;padding:0 clamp(1.25rem,4vw,4.5rem) 1.25rem;background:var(--cream,#0d0d0d);color:var(--muted,#c6c0b6);font:.78rem Arial,sans-serif}
+.legal-links a:hover,.legal-links a:focus-visible{color:var(--ochre,#d39a22);text-decoration:underline}
+
+@media(max-width:760px){
+  .team-grid article:nth-child(odd):not(:last-child){border-right:0}
+  .team-grid article,.team-grid article:last-child{grid-template-columns:minmax(0,1fr);grid-template-rows:none}
+  .team-grid .team-photo{grid-column:1;grid-row:auto;height:clamp(220px,65vw,320px);margin-bottom:1.25rem}
+  .team-grid article h2,.team-grid article .team-role,.team-grid article p:not(.team-number):not(.team-role){grid-column:1;grid-row:auto}
+}
