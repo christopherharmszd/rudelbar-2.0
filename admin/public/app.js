@@ -114,12 +114,33 @@ function closeDialog() {
 }
 
 function renderForm(item) {
-  if (!item && state.selected !== "new") return `<div class="empty">Wähle links einen Eintrag oder lege einen neuen an.</div>`;
+  if (!item && state.selected !== "new") return `<div class="empty">Wähle einen Eintrag oder lege einen neuen an.</div>`;
   const isEvent = state.section === "events";
   const formTitle = item ? itemTitle(item) : `${labels[state.section].singular} hinzufügen`;
   const disabled = !state.configured ? "disabled" : "";
   const field = (name, label, value, opts = {}) => `<div class="field ${opts.span ? "span" : ""}"><label for="f-${name}">${label}</label>${opts.multiline ? `<textarea id="f-${name}" name="${name}" maxlength="${opts.max || 1200}" ${opts.required ? "required" : ""}>${esc(value)}</textarea>` : `<input id="f-${name}" name="${name}" type="${opts.type || "text"}" value="${esc(value)}" ${opts.type === "number" ? 'min="0" max="999" step="1"' : `maxlength="${opts.max || 240}"`} ${opts.required ? "required" : ""} />`}${opts.hint ? `<small>${opts.hint}</small>` : ""}</div>`;
-  return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div><form id="edit-form"><div class="grid">${isEvent ? `${field("title", "Titel", item?.title, { required: true, span: true, max: 120 })}${field("date", "Datum", item?.date, { type: "date", required: true, max: 10 })}${field("time", "Uhrzeit", item?.time, { required: true, max: 80 })}${field("venue", "Ort / Treffpunkt", item?.venue, { required: true, max: 160 })}${field("address", "Adresse", item?.address)}${field("description", "Beschreibung", item?.description, { multiline: true, required: true, span: true })}${field("mapUrl", "Link zur Route", item?.mapUrl, { type: "url", span: true, max: 1000 })}` : `${field("name", "Name", item?.name, { required: true, max: 80 })}${field("role", "Rolle im Rudel", item?.role, { required: true, max: 160 })}${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true, span: true })}`}${field("order", "Reihenfolge", item?.order ?? state.items.length, { type: "number", max: 3, hint: "Kleinere Zahlen stehen weiter oben. Auf der Startseite zählt beim Termin immer das nächste Datum." })}</div>${!isEvent ? `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />` : ""}<div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : ""}</div>${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</form>`;
+  const orderHint = isEvent ? "Kleinere Zahlen stehen weiter oben. Auf der Startseite zählt das nächste Datum." : "Kleinere Zahlen stehen weiter oben auf der Teamseite.";
+  const orderField = field("order", "Reihenfolge", item?.order ?? state.items.length, { type: "number", hint: orderHint });
+  const mainFields = isEvent ? `
+    ${field("title", "Titel", item?.title, { required: true, span: true, max: 120 })}
+    ${field("date", "Datum", item?.date, { type: "date", required: true, max: 10 })}
+    ${field("time", "Uhrzeit", item?.time, { required: true, max: 80 })}
+    ${field("venue", "Ort / Treffpunkt", item?.venue, { required: true, max: 160 })}
+    ${field("address", "Adresse", item?.address)}
+    ${orderField}` : `
+    ${field("name", "Name", item?.name, { required: true, span: true, max: 80 })}
+    ${field("role", "Rolle im Rudel", item?.role, { required: true, span: true, max: 160 })}
+    ${orderField}`;
+  const photoFields = `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />`;
+  const detailFields = isEvent ? `
+    ${field("description", "Beschreibung", item?.description, { multiline: true, required: true })}
+    ${field("mapUrl", "Link zur Route", item?.mapUrl, { type: "url", max: 1000 })}` : `
+    ${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true })}
+    ${photoFields}`;
+  const publicationActions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
+  return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
+    <form id="edit-form"><div class="form-body"><div class="form-columns"><div class="form-main">${mainFields}</div><div class="form-aside">${detailFields}</div></div></div>
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
 }
 
 function bind() {
