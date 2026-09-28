@@ -35,9 +35,7 @@ async function load() {
   try {
     const data = await api(state.section);
     state.items = data.items || [];
-    if (state.selected !== "new" && !state.items.some(item => item._id === state.selected)) {
-      state.selected = state.section === "team" ? state.items[0]?._id || null : null;
-    }
+    if (state.selected !== "new" && !state.items.some(item => item._id === state.selected)) state.selected = null;
     render();
   } catch (error) {
     if (error.message === "Bitte anmelden.") { state.user = null; renderLogin(); }
@@ -65,13 +63,13 @@ function render() {
       ${!isEvent && safeImg(item.photoUrl) ? `<img src="${esc(item.photoUrl)}" alt="" />` : `<span class="item-icon">${isEvent ? "◷" : "♙"}</span>`}
       <span class="item-text"><strong>${esc(itemTitle(item))}</strong><small>${esc(itemMeta(item))}</small></span>
       ${pill(item)}
-      ${isEvent ? '<span class="item-chevron" aria-hidden="true">›</span>' : ""}
+      <span class="item-chevron" aria-hidden="true">›</span>
     </button>`).join("") : '<div class="empty">Noch keine Einträge. Lege den ersten Inhalt an.</div>';
-  const dialog = isEvent && state.selected ? `
+  const dialog = state.selected ? `
     <div class="modal-backdrop" id="modal-backdrop">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-heading">
         <button class="modal-close" id="close-dialog" type="button" aria-label="Dialog schließen">×</button>
-        <div class="edit">${renderForm(selected)}</div>
+        <div class="edit">${state.message ? `<p class="message ${state.error ? "error" : ""}" role="status">${esc(state.message)}</p>` : ""}${renderForm(selected)}</div>
       </section>
     </div>` : "";
   root.innerHTML = `
@@ -95,9 +93,8 @@ function render() {
           ${!state.configured ? '<div class="banner"><strong>Lokale Vorschau.</strong> Die vorhandenen Inhalte sind hier als Ausgangspunkt sichtbar. Speichern und Veröffentlichen werden aktiv, sobald Sanity und die Anmeldung eingerichtet sind.</div>' : ""}
           ${state.message ? `<p class="message ${state.error ? "error" : ""}" role="status">${esc(state.message)}</p>` : ""}
           <div class="stats"><div class="stat"><strong>${state.items.length}</strong><span>Einträge insgesamt</span></div><div class="stat"><strong>${live}</strong><span>Veröffentlicht</span></div><div class="stat"><strong>${drafts}</strong><span>Entwürfe / Änderungen</span></div></div>
-          <div class="layout ${isEvent ? "events-layout" : ""}">
+          <div class="layout entries-layout">
             <section class="panel" aria-label="Einträge"><div class="panel-head"><h2>${isEvent ? "Alle Termine" : "Alle Teammitglieder"}</h2><small>${state.items.length} ${state.items.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="list">${list}</div></section>
-            ${!isEvent ? `<section class="panel" aria-label="Bearbeiten"><div class="edit">${renderForm(selected)}</div></section>` : ""}
           </div>
         </div>
       </div>
@@ -109,7 +106,7 @@ function render() {
 }
 
 function closeDialog() {
-  if (state.section !== "events" || !state.selected) return;
+  if (!state.selected) return;
   state.selected = null;
   state.message = "";
   render();
@@ -122,7 +119,7 @@ function renderForm(item) {
   const formTitle = item ? itemTitle(item) : `${labels[state.section].singular} hinzufügen`;
   const disabled = !state.configured ? "disabled" : "";
   const field = (name, label, value, opts = {}) => `<div class="field ${opts.span ? "span" : ""}"><label for="f-${name}">${label}</label>${opts.multiline ? `<textarea id="f-${name}" name="${name}" maxlength="${opts.max || 1200}" ${opts.required ? "required" : ""}>${esc(value)}</textarea>` : `<input id="f-${name}" name="${name}" type="${opts.type || "text"}" value="${esc(value)}" maxlength="${opts.max || 240}" ${opts.required ? "required" : ""} />`}${opts.hint ? `<small>${opts.hint}</small>` : ""}</div>`;
-  return `<div class="edit-head"><div><h2 ${isEvent ? 'id="dialog-heading"' : ""}>${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div><form id="edit-form"><div class="grid">${isEvent ? `${field("title", "Titel", item?.title, { required: true, span: true, max: 120 })}${field("date", "Datum", item?.date, { type: "date", required: true, max: 10 })}${field("time", "Uhrzeit", item?.time, { required: true, max: 80 })}${field("venue", "Ort / Treffpunkt", item?.venue, { required: true, max: 160 })}${field("address", "Adresse", item?.address)}${field("description", "Beschreibung", item?.description, { multiline: true, required: true, span: true })}${field("mapUrl", "Link zur Route", item?.mapUrl, { type: "url", span: true, max: 1000 })}` : `${field("name", "Name", item?.name, { required: true, max: 80 })}${field("role", "Rolle im Rudel", item?.role, { required: true, max: 160 })}${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true, span: true })}${field("order", "Reihenfolge", item?.order ?? state.items.length, { type: "number", max: 3 })}`}</div>${!isEvent ? `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />` : ""}<div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${item && state.user?.role === "publisher" ? `<button class="secondary" type="button" data-action="publish" ${item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${item.published ? "" : "disabled"}>Von Website nehmen</button>` : ""}</div></form>`;
+  return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div><form id="edit-form"><div class="grid">${isEvent ? `${field("title", "Titel", item?.title, { required: true, span: true, max: 120 })}${field("date", "Datum", item?.date, { type: "date", required: true, max: 10 })}${field("time", "Uhrzeit", item?.time, { required: true, max: 80 })}${field("venue", "Ort / Treffpunkt", item?.venue, { required: true, max: 160 })}${field("address", "Adresse", item?.address)}${field("description", "Beschreibung", item?.description, { multiline: true, required: true, span: true })}${field("mapUrl", "Link zur Route", item?.mapUrl, { type: "url", span: true, max: 1000 })}` : `${field("name", "Name", item?.name, { required: true, max: 80 })}${field("role", "Rolle im Rudel", item?.role, { required: true, max: 160 })}${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true, span: true })}${field("order", "Reihenfolge", item?.order ?? state.items.length, { type: "number", max: 3 })}`}</div>${!isEvent ? `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />` : ""}<div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${item && state.user?.role === "publisher" ? `<button class="secondary" type="button" data-action="publish" ${item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${item.published ? "" : "disabled"}>Von Website nehmen</button>` : ""}</div></form>`;
 }
 
 function bind() {
@@ -130,13 +127,12 @@ function bind() {
     state.section = button.dataset.section; state.selected = null; state.message = ""; await load();
   }));
   document.querySelectorAll("[data-id]").forEach(button => button.addEventListener("click", () => {
-    if (state.section === "events") lastDialogTrigger = `[data-id="${button.dataset.id}"]`;
+    lastDialogTrigger = `[data-id="${button.dataset.id}"]`;
     state.selected = button.dataset.id; state.message = ""; render();
   }));
   document.querySelector("#new").addEventListener("click", () => {
-    if (state.section === "events") lastDialogTrigger = "#new";
+    lastDialogTrigger = "#new";
     state.selected = "new"; state.message = ""; render();
-    if (state.section !== "events") document.querySelector("#edit-form input")?.focus();
   });
   document.querySelector("#close-dialog")?.addEventListener("click", closeDialog);
   document.querySelector("#modal-backdrop")?.addEventListener("click", event => {
@@ -175,7 +171,7 @@ function bind() {
 }
 
 document.addEventListener("keydown", event => {
-  if (state.section !== "events" || !state.selected) return;
+  if (!state.selected) return;
   if (event.key === "Escape") { event.preventDefault(); closeDialog(); return; }
   if (event.key !== "Tab") return;
   const focusable = [...document.querySelectorAll('.modal button:not([disabled]), .modal input:not([disabled]), .modal textarea:not([disabled])')];

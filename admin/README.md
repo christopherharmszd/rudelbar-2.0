@@ -2,7 +2,7 @@
 
 Eigenständige Verwaltungsoberfläche für Termine und Teamprofile. Die öffentliche Rudelbar-Website wird durch dieses Verzeichnis nicht verändert.
 
-Termine erscheinen zunächst als kompakte Liste. Die Details und Eingabefelder öffnen sich erst nach Auswahl eines Termins in einem Dialog, auf dem Handy bildschirmfüllend. Der Dialog lässt sich über das Schließen-Symbol oder die Escape-Taste verlassen.
+Termine und Teamprofile erscheinen zunächst als kompakte Listen. Details und Eingabefelder öffnen sich erst nach Auswahl eines Eintrags in einem Dialog, auf dem Handy bildschirmfüllend. Der Dialog lässt sich über das Schließen-Symbol oder die Escape-Taste verlassen.
 
 ## Lokal ansehen
 
