@@ -21,6 +21,8 @@ cd app && npm run dev -- --host 127.0.0.1 --port 8790
 
 Dann die [Redaktion](http://127.0.0.1:8787/) und die [Test-Website](http://127.0.0.1:8790/) öffnen. Der lokale Zugang lautet `redaktion@rudelbar.local`; das Passwort wurde separat mitgeteilt und ist nur als Hash gespeichert. Einen Termin oder ein Teammitglied öffnen, den Entwurf speichern und danach ausdrücklich „Veröffentlichen“ wählen. Die Test-Website danach neu laden. Termine stehen auf der [Terminseite](http://127.0.0.1:8790/#/termine), der nächste auch auf der Startseite; Teamprofile stehen unter [Das Rudel](http://127.0.0.1:8790/#/das-rudel).
 
+Für einen Termin im Formular Ort und Adresse eingeben und „In Google Maps suchen“ wählen. Im neuen Tab den richtigen Ort prüfen, in Google Maps „Teilen“ → „Link kopieren“ wählen und dann im Formular „Kopierten Link übernehmen“ anklicken. Falls der Browser keinen Zugriff auf die Zwischenablage erlaubt, den Link direkt in das Feld „Google Maps-Link“ einfügen. Erst mit Entwurf speichern und Veröffentlichen erscheint der Routenlink auf der Test-Website. Die Suche verwendet Google Maps URLs und benötigt keinen zusätzlichen API-Schlüssel.
+
 Der API-Token hat auf Wunsch kein Ablaufdatum. Er liegt nur in `admin/.env.local` und gehört weder in Git noch in den Website-Code. Für eine öffentlich erreichbare Redaktion den Redaktionszugang mit einem neuen starken Passwort und HTTPS absichern.
 
 ## Für den echten Schreibbetrieb

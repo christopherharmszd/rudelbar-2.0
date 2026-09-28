@@ -40,6 +40,11 @@
 .modal .field{min-width:0;margin:0;align-content:start}
 .modal .field.span{grid-column:1/-1}
 .modal .field textarea{min-height:185px}
+.map-actions{display:flex;flex-wrap:wrap;gap:8px}
+.map-actions .secondary{white-space:normal;text-align:center;padding:9px 12px;font-size:12px}
+.map-field>small{line-height:1.45}
+.map-status:empty{display:none}
+.map-status:not(:empty){color:#456f49}
 .modal .photo-control{margin:0}
 .modal .photo-control>div{min-width:0;flex:1}
 .modal .photo-control input{width:100%;max-width:100%}
@@ -59,6 +64,7 @@
   .form-main{grid-template-columns:minmax(0,1fr);gap:12px}
   .form-aside{gap:12px}
   .modal .field textarea{min-height:145px}
+  .map-actions{display:grid;grid-template-columns:minmax(0,1fr)}
   .form-footer .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .form-footer .actions .primary{grid-column:1/-1}
   .form-footer .actions button{white-space:normal;padding:10px 8px;font-size:13px}

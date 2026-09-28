@@ -134,7 +134,16 @@ function renderForm(item) {
   const photoFields = `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />`;
   const detailFields = isEvent ? `
     ${field("description", "Beschreibung", item?.description, { multiline: true, required: true })}
-    ${field("mapUrl", "Link zur Route", item?.mapUrl, { type: "url", max: 1000 })}` : `
+    <div class="field map-field">
+      <label for="f-mapUrl">Google Maps-Link</label>
+      <input id="f-mapUrl" name="mapUrl" type="url" value="${esc(item?.mapUrl)}" maxlength="1000" placeholder="https://maps.app.goo.gl/…" />
+      <div class="map-actions">
+        <button class="secondary" id="open-google-maps" type="button">In Google Maps suchen</button>
+        <button class="secondary" id="paste-map-link" type="button">Kopierten Link übernehmen</button>
+      </div>
+      <small>Ort in Google Maps prüfen, dort „Teilen“ → „Link kopieren“ wählen und den Link hier übernehmen.</small>
+      <small class="map-status" id="map-status" role="status" aria-live="polite"></small>
+    </div>` : `
     ${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true })}
     ${photoFields}`;
   const publicationActions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
@@ -144,6 +153,32 @@ function renderForm(item) {
 }
 
 function bind() {
+  document.querySelector("#open-google-maps")?.addEventListener("click", () => {
+    const venue = document.querySelector("#f-venue")?.value.trim() || "";
+    const address = document.querySelector("#f-address")?.value.trim() || "";
+    const status = document.querySelector("#map-status");
+    const query = [venue, address].filter(Boolean).join(", ");
+    if (!query) { status.textContent = "Bitte zuerst Ort oder Adresse eingeben."; document.querySelector("#f-venue")?.focus(); return; }
+    const url = new URL("https://www.google.com/maps/search/");
+    url.searchParams.set("api", "1");
+    url.searchParams.set("query", query);
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+    status.textContent = "Google Maps ist geöffnet. Kopiere dort den Link zum gewünschten Ort.";
+  });
+  document.querySelector("#paste-map-link")?.addEventListener("click", async () => {
+    const input = document.querySelector("#f-mapUrl");
+    const status = document.querySelector("#map-status");
+    try {
+      const value = (await navigator.clipboard.readText()).trim();
+      const url = new URL(value);
+      if (url.protocol !== "https:" || value.length > 1000) throw new Error("invalid-link");
+      input.value = value;
+      status.textContent = "Link übernommen. Prüfe ihn vor dem Speichern.";
+    } catch {
+      status.textContent = "Link konnte nicht automatisch übernommen werden. Bitte im Feld einfügen.";
+      input.focus();
+    }
+  });
   document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", async () => {
     state.section = button.dataset.section; state.selected = null; state.message = ""; await load();
   }));
