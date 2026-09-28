@@ -8,7 +8,7 @@ Termine und Teamprofile erscheinen zunächst als kompakte Listen. Details und Ei
 
 Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
 
-Das Sanity-Projekt `Rudelbar 2.0` hat die Projektkennung `h34z7ud0`. Das öffentliche Dataset `staging` ist für den Test eingerichtet; das automatisch erzeugte `production`-Dataset bleibt leer. Der vorhandene Termin und fünf Teamprofile samt Bildern wurden in `staging` übertragen und veröffentlicht. Die lokale Website in `app/` liest diese Inhalte direkt aus Sanity.
+Das Sanity-Projekt `Rudelbar 2.0` liegt unter dem Konto `info@rudelbar.de` und hat die Projektkennung `uywmld5e`. Das öffentliche Dataset `staging` ist für den Test eingerichtet; das automatisch erzeugte `production`-Dataset bleibt leer. Zwei Termine und fünf Teamprofile samt Bildern wurden aus dem ursprünglichen Testprojekt in `staging` übertragen und veröffentlicht. Die lokale Website in `app/` liest diese Inhalte direkt aus Sanity.
 
 ## Staging jetzt testen
 
@@ -49,13 +49,13 @@ Ein Passwort-Hash lässt sich lokal mit `node admin/hash-password.mjs` erstellen
 
 ## Bestehende Inhalte übernehmen
 
-`node admin/import-existing.mjs` überträgt den vorhandenen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset. Das Skript wurde für `staging` bereits ausgeführt; dort sind die Inhalte veröffentlicht. Es bricht beim erneuten Ausführen ab, weil das Dataset nun Inhalte enthält.
+`node admin/import-existing.mjs` kann den ursprünglichen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset übertragen. Das neue `staging` enthält bereits die aus dem früheren Projekt übernommenen veröffentlichten Inhalte; das Skript dort nicht erneut ausführen. Das frühere Projekt `h34z7ud0` bleibt vorerst als Rückfallmöglichkeit bestehen.
 
 ## Reihenfolge und Website-Anbindung
 
 Bei Terminen und Teamprofilen bestimmt das Feld „Reihenfolge“ die Anordnung auf der jeweiligen Übersichtsseite. Eine Änderung wird erst nach Speichern des Entwurfs und erneuter Veröffentlichung öffentlich sichtbar. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Vergangene Termine verschwinden aus den Ansichten für kommende Termine.
 
-Die lokale Website ist über `app/.env.local` mit `staging` verbunden. Für einen weiteren Website-Build `VITE_SANITY_PROJECT_ID=h34z7ud0` und `VITE_SANITY_DATASET=staging` setzen. Das Dataset muss öffentlich lesbar sein und die jeweilige Website-Domain als CORS-Origin zugelassen werden. Ohne diese beiden Werte zeigt die Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Öffentliches Staging-Hosting und Produktionswechsel sind noch offen.
+Die lokale Website ist über `app/.env.local` mit `staging` verbunden. Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` setzt `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging` für die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/). Das Dataset ist öffentlich lesbar; die GitHub-Pages-Origin ist in Sanity freigegeben. Ohne diese beiden Werte zeigt die Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Der Produktionswechsel zu `rudelbar.de` ist noch offen.
 
 ## Betriebshinweise
 

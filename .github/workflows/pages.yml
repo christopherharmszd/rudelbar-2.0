@@ -1,0 +1,59 @@
+name: Rudelbar Staging Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app/**
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Website bauen
+        working-directory: app
+        env:
+          VITE_SANITY_PROJECT_ID: uywmld5e
+          VITE_SANITY_DATASET: staging
+        run: |
+          npm ci
+          npm run build
+          npm test
+      - name: GitHub Pages vorbereiten
+        uses: actions/configure-pages@v5
+      - name: Website hochladen
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: app/dist/client
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub Page veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
