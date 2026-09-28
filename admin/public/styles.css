@@ -42,9 +42,9 @@
 .modal .field textarea{min-height:185px}
 .map-actions{display:flex;flex-wrap:wrap;gap:8px}
 .map-actions .secondary{white-space:normal;text-align:center;padding:9px 12px;font-size:12px}
+.map-actions a.secondary{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.map-actions a[hidden]{display:none}
 .map-field>small{line-height:1.45}
-.map-status:empty{display:none}
-.map-status:not(:empty){color:#456f49}
 .modal .photo-control{margin:0}
 .modal .photo-control>div{min-width:0;flex:1}
 .modal .photo-control input{width:100%;max-width:100%}
@@ -52,8 +52,9 @@
 .form-footer .actions{margin:0;padding:0;border:0}
 .form-footer .hint{margin:10px 0 0}
 @media(max-width:700px){
+  :root{scrollbar-gutter:auto}
   .modal-backdrop{padding:0}
-  .modal{width:100%;height:100dvh;border-radius:0}
+  .modal{width:100%;height:100dvh;max-height:100dvh;border-radius:0}
   .modal .edit{padding:20px 20px 0}
   .modal .edit-head{margin-bottom:14px}
   .form-columns{grid-template-columns:minmax(0,1fr);gap:16px}

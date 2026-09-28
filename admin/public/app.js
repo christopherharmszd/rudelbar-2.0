@@ -5,6 +5,15 @@ const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&a
 const safeImg = url => /^(\/seed-assets\/|https:\/\/cdn\.sanity\.io\/images\/)/.test(url || "") ? url : "";
 let lastDialogTrigger = null;
 
+function mapsSearchUrl(venue, address) {
+  const query = [venue, address].map(value => String(value || "").trim()).filter(Boolean).join(", ");
+  if (!query) return "";
+  const url = new URL("https://www.google.com/maps/search/");
+  url.searchParams.set("api", "1");
+  url.searchParams.set("query", query);
+  return url.toString();
+}
+
 async function api(path, options = {}) {
   const response = await fetch(`/api/${path}`, { credentials: "same-origin", ...options,
     headers: { ...(options.body && typeof options.body === "string" ? { "Content-Type": "application/json" } : {}), ...(state.user?.csrf ? { "X-CSRF-Token": state.user.csrf } : {}), ...options.headers } });
@@ -138,11 +147,10 @@ function renderForm(item) {
       <label for="f-mapUrl">Google Maps-Link</label>
       <input id="f-mapUrl" name="mapUrl" type="url" value="${esc(item?.mapUrl)}" maxlength="1000" placeholder="https://maps.app.goo.gl/…" />
       <div class="map-actions">
-        <button class="secondary" id="open-google-maps" type="button">In Google Maps suchen</button>
-        <button class="secondary" id="paste-map-link" type="button">Kopierten Link übernehmen</button>
+        <a class="secondary" id="preview-google-maps" href="#" target="_blank" rel="noopener noreferrer" hidden>Karte prüfen</a>
+        <button class="secondary" id="refresh-google-map-link" type="button">Aus Adresse neu erstellen</button>
       </div>
-      <small>Ort in Google Maps prüfen, dort „Teilen“ → „Link kopieren“ wählen und den Link hier übernehmen.</small>
-      <small class="map-status" id="map-status" role="status" aria-live="polite"></small>
+      <small>Der Suchlink entsteht automatisch aus Ort und Adresse. Du kannst ihn durch einen kopierten Google-Maps-Link ersetzen. Prüfe die Karte vor dem Veröffentlichen.</small>
     </div>` : `
     ${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true })}
     ${photoFields}`;
@@ -153,32 +161,34 @@ function renderForm(item) {
 }
 
 function bind() {
-  document.querySelector("#open-google-maps")?.addEventListener("click", () => {
-    const venue = document.querySelector("#f-venue")?.value.trim() || "";
-    const address = document.querySelector("#f-address")?.value.trim() || "";
-    const status = document.querySelector("#map-status");
-    const query = [venue, address].filter(Boolean).join(", ");
-    if (!query) { status.textContent = "Bitte zuerst Ort oder Adresse eingeben."; document.querySelector("#f-venue")?.focus(); return; }
-    const url = new URL("https://www.google.com/maps/search/");
-    url.searchParams.set("api", "1");
-    url.searchParams.set("query", query);
-    window.open(url.toString(), "_blank", "noopener,noreferrer");
-    status.textContent = "Google Maps ist geöffnet. Kopiere dort den Link zum gewünschten Ort.";
-  });
-  document.querySelector("#paste-map-link")?.addEventListener("click", async () => {
-    const input = document.querySelector("#f-mapUrl");
-    const status = document.querySelector("#map-status");
-    try {
-      const value = (await navigator.clipboard.readText()).trim();
-      const url = new URL(value);
-      if (url.protocol !== "https:" || value.length > 1000) throw new Error("invalid-link");
-      input.value = value;
-      status.textContent = "Link übernommen. Prüfe ihn vor dem Speichern.";
-    } catch {
-      status.textContent = "Link konnte nicht automatisch übernommen werden. Bitte im Feld einfügen.";
-      input.focus();
-    }
-  });
+  const mapInput = document.querySelector("#f-mapUrl");
+  if (mapInput) {
+    const venueInput = document.querySelector("#f-venue");
+    const addressInput = document.querySelector("#f-address");
+    const preview = document.querySelector("#preview-google-maps");
+    let generated = mapsSearchUrl(venueInput.value, addressInput.value);
+    let autoManaged = !mapInput.value || mapInput.value === generated;
+    const updatePreview = () => {
+      let valid = false;
+      try { valid = new URL(mapInput.value).protocol === "https:"; } catch { /* Link noch unvollständig. */ }
+      preview.hidden = !valid;
+      preview.href = valid ? mapInput.value : "#";
+    };
+    const updateFromAddress = () => {
+      generated = mapsSearchUrl(venueInput.value, addressInput.value);
+      if (autoManaged) mapInput.value = generated;
+      updatePreview();
+    };
+    venueInput.addEventListener("input", updateFromAddress);
+    addressInput.addEventListener("input", updateFromAddress);
+    mapInput.addEventListener("input", () => { autoManaged = mapInput.value === generated; updatePreview(); });
+    document.querySelector("#refresh-google-map-link").addEventListener("click", () => {
+      autoManaged = true;
+      updateFromAddress();
+      mapInput.focus();
+    });
+    updateFromAddress();
+  }
   document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", async () => {
     state.section = button.dataset.section; state.selected = null; state.message = ""; await load();
   }));
