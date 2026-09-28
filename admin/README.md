@@ -1,65 +1,49 @@
-# Rudelbar Redaktion
+# Rudelbar CMS
 
-Eigenständige Verwaltungsoberfläche für Termine und Teamprofile. Die öffentliche Rudelbar-Website wird durch dieses Verzeichnis nicht verändert.
+Die öffentliche Staging-Website liegt auf GitHub Pages. Diese Redaktion wird als eigener Cloudflare Worker aus demselben Repository veröffentlicht. Beide lesen beziehungsweise schreiben das Sanity-Projekt `uywmld5e`, Dataset `staging`. Das `production`-Dataset und die bestehende Live-Website bleiben getrennt.
 
-Termine und Teamprofile erscheinen zunächst als kompakte Listen. Details und Eingabefelder öffnen sich erst nach Auswahl eines Eintrags in einem Dialog. Auf breiten Bildschirmen stehen die Felder nebeneinander; auf dem Handy ist der Dialog bildschirmfüllend und die Aktionen bleiben unten erreichbar. Der Dialog lässt sich über das Schließen-Symbol oder die Escape-Taste verlassen.
+## Für Redakteurinnen und Redakteure
 
-## Lokal ansehen
+In der Online-Redaktion steht das gemeinsame Konto **Redaktion** bereits fest. Es wird nur das Redaktionspasswort eingegeben; ein Sanity-Konto ist nicht nötig. Alle Angemeldeten können Termine und Teamprofile als Entwurf speichern, veröffentlichen und wieder von der Website nehmen. Teamfotos lassen sich hochladen. Einträge stehen zunächst als kompakte Liste da; das Formular öffnet sich nach Auswahl in einem Dialog, auf dem Handy bildschirmfüllend.
 
-Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
+Für Termine entstehen Google-Maps-Suchlinks ohne kostenpflichtige API automatisch aus Ort und Adresse. Ein genauer Link aus Google Maps kann stattdessen eingefügt und vor der Veröffentlichung geprüft werden.
 
-Das Sanity-Projekt `Rudelbar 2.0` liegt unter dem Konto `info@rudelbar.de` und hat die Projektkennung `uywmld5e`. Das öffentliche Dataset `staging` ist für den Test eingerichtet; das automatisch erzeugte `production`-Dataset bleibt leer. Zwei Termine und fünf Teamprofile samt Bildern wurden aus dem ursprünglichen Testprojekt in `staging` übertragen und veröffentlicht. Die lokale Website in `app/` liest diese Inhalte direkt aus Sanity.
+Die Reihenfolge steuert die Termin- und Teamübersicht. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Änderungen werden erst nach **Entwurf speichern** und **Veröffentlichen** öffentlich sichtbar.
 
-## Staging jetzt testen
+## Onlinebetrieb
 
-Auf diesem Rechner liegen die lokalen, von Git ausgeschlossenen Konfigurationsdateien `admin/.env.local` und `app/.env.local` bereits vor. Zwei Terminals im Repository öffnen:
+- Cloudflare-Konto: `87e06345951a028223b167dd69056336`
+- Worker: `rudelbar-cms-staging`
+- Sanity: Projekt `uywmld5e`, Dataset `staging`
+- Login: festes Konto `redaktion@rudelbar.local`, in der Oberfläche als **Redaktion** angezeigt
+- Der Sanity-Schreibschlüssel, der Sitzungsschlüssel und der Passwortprüfwert sind nur Cloudflare Worker Secrets. Sie dürfen weder in Git noch in Browsercode stehen.
+
+Der Worker liefert die Oberfläche und `/api/*` unter derselben Webadresse aus. Die Anmeldung wird serverseitig geprüft; Sitzungen haben ein signiertes, `HttpOnly`-, `Secure`- und `SameSite=Strict`-Cookie. Schreibzugriffe benötigen zusätzlich einen CSRF-Wert. Anmeldeversuche sind durch ein Cloudflare Rate-Limit begrenzt. Ein Passwortwechsel entwertet bestehende Sitzungen.
+
+### Bauen und veröffentlichen
+
+Im Ordner `admin/`:
 
 ```sh
-node --env-file=admin/.env.local admin/server.mjs
-cd app && npm run dev -- --host 127.0.0.1 --port 8790
+npm ci
+npm test
+npm run deploy:staging
 ```
 
-Dann die [Redaktion](http://127.0.0.1:8787/) und die [Test-Website](http://127.0.0.1:8790/) öffnen. Der lokale Zugang lautet `redaktion@rudelbar.local`; das Passwort wurde separat mitgeteilt und ist nur als Hash gespeichert. Einen Termin oder ein Teammitglied öffnen, den Entwurf speichern und danach ausdrücklich „Veröffentlichen“ wählen. Die Test-Website danach neu laden. Termine stehen auf der [Terminseite](http://127.0.0.1:8790/#/termine), der nächste auch auf der Startseite; Teamprofile stehen unter [Das Rudel](http://127.0.0.1:8790/#/das-rudel).
+Für die erste Einrichtung beziehungsweise einen Passwortwechsel anschließend im Repository:
 
-Für einen Termin im Formular Ort und Adresse eingeben. Daraus entsteht automatisch ein Google-Maps-Suchlink. Mit „Karte prüfen“ lässt sich das Ergebnis vor der Veröffentlichung kontrollieren. Falls Google nicht den richtigen Ort trifft, einen genauen Link aus Google Maps in das Linkfeld einfügen; dieser bleibt auch bei Änderungen an Ort und Adresse erhalten. „Aus Adresse neu erstellen“ ersetzt einen solchen Link wieder durch die automatische Suche. Erst mit Entwurf speichern und Veröffentlichen erscheint der Link auf der Test-Website. Maps URLs benötigen keinen API-Schlüssel und verursachen keine API-Kosten.
-
-Der API-Token hat auf Wunsch kein Ablaufdatum. Er liegt nur in `admin/.env.local` und gehört weder in Git noch in den Website-Code. Für eine öffentlich erreichbare Redaktion den Redaktionszugang mit einem neuen starken Passwort und HTTPS absichern.
-
-## Für den echten Schreibbetrieb
-
-Einen **Editor-API-Token** für dieses Projekt erzeugen; keinen persönlichen Administrator-Token verwenden. Die Konfiguration aus `admin/.env.example` nach `admin/.env.local` übernehmen, die geheimen Werte ergänzen und lokal mit `node --env-file=admin/.env.local admin/server.mjs` starten. `admin/.env.local` ist von Git ausgeschlossen. Für einen späteren Node-Host dieselben Werte als geschützte Umgebungsvariablen setzen:
-
-| Variable | Bedeutung |
-| --- | --- |
-| `SANITY_PROJECT_ID` | Projektkennung |
-| `SANITY_DATASET` | Name des Datasets, zum Beispiel `staging` |
-| `SANITY_EDITOR_TOKEN` | Technischer Schreibzugang, nur auf dem Server |
-| `RUDELBAR_SESSION_SECRET` | Zufälliger Schlüssel mit mindestens 32 Zeichen |
-| `RUDELBAR_USERS_JSON` | JSON-Liste von Redaktionszugängen |
-| `NODE_ENV` | Für HTTPS-Betrieb `production` setzen; Session-Cookies erhalten dann `Secure` |
-| `HOST`, `PORT` | Adresse und Port des Node-Dienstes; Standard `127.0.0.1:8787` |
-
-Ein Passwort-Hash lässt sich lokal mit `node admin/hash-password.mjs` erstellen. Das Passwort wird im Terminal verborgen eingegeben. Beispiel für die Struktur der Nutzerliste, **ohne echte Zugangsdaten**:
-
-```json
-[{"email":"redaktion@example.invalid","passwordHash":"SALT:HASH","role":"editor"},{"email":"freigabe@example.invalid","passwordHash":"SALT:HASH","role":"publisher"}]
+```sh
+node --env-file=admin/.env.local admin/configure-worker.mjs
 ```
 
-`editor` darf Entwürfe schreiben und Bilder hochladen. `publisher` darf zusätzlich veröffentlichen und veröffentlichte Inhalte zurückziehen. Diese Rechte werden im Server geprüft. Der Browser erhält nie den Sanity-Token. Die App braucht einen Node-Host mit HTTPS; GitHub Pages allein kann den schreibenden Dienst nicht ausführen.
+Das Skript erzeugt ein neues starkes Passwort und zeigt es **einmalig** nach erfolgreicher Übertragung an. Mit `--prompt` kann stattdessen ein selbst gewähltes Passwort im Terminal verborgen eingegeben werden; es muss mindestens 16 Zeichen lang sein. Bei jedem Lauf werden der Sitzungsschlüssel und der Passwortprüfwert gemeinsam ersetzt und alle bisherigen Sitzungen abgemeldet. `admin/.env.local` enthält den bereits eingerichteten Sanity Editor Token und ist von Git ausgeschlossen. Die Datei ist Voraussetzung für diesen Betreiberbefehl, nicht für Redakteure.
 
-## Bestehende Inhalte übernehmen
+Der Workername und die Sanity-Staging-Konfiguration stehen in `admin/wrangler.jsonc`. Ein künftiger Produktions-Worker braucht einen eigenen Namen, ein eigenes Dataset und eigene Geheimnisse. Die Cloudflare-Adresse unter `workers.dev` funktioniert ohne DNS-Änderung. Für `redaktion.rudelbar.de` muss die Domainanbindung separat eingerichtet und geprüft werden; die bestehende Website- und Mail-DNS-Konfiguration darf dabei nicht verändert werden.
 
-`node admin/import-existing.mjs` kann den ursprünglichen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset übertragen. Das neue `staging` enthält bereits die aus dem früheren Projekt übernommenen veröffentlichten Inhalte; das Skript dort nicht erneut ausführen. Das frühere Projekt `h34z7ud0` bleibt vorerst als Rückfallmöglichkeit bestehen.
+### Lokal testen
 
-## Reihenfolge und Website-Anbindung
+Mit einer Git-ignorierten `admin/.dev.vars`-Datei, die dieselben drei Worker Secrets enthält, im Ordner `admin/` `npm run dev:worker` starten. Die lokale Oberfläche liegt auf `http://127.0.0.1:8788/`. Der bisherige Node-Server `admin/server.mjs` bleibt als lokale Vergleichsmöglichkeit erhalten; seine früheren Rollen `editor` und `publisher` gelten nicht für den Online-Worker.
 
-Bei Terminen und Teamprofilen bestimmt das Feld „Reihenfolge“ die Anordnung auf der jeweiligen Übersichtsseite. Eine Änderung wird erst nach Speichern des Entwurfs und erneuter Veröffentlichung öffentlich sichtbar. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Vergangene Termine verschwinden aus den Ansichten für kommende Termine.
+## Website
 
-Die lokale Website ist über `app/.env.local` mit `staging` verbunden. Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` setzt `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging` für die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/). Das Dataset ist öffentlich lesbar; die GitHub-Pages-Origin ist in Sanity freigegeben. Ohne diese beiden Werte zeigt die Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Der Produktionswechsel zu `rudelbar.de` ist noch offen.
-
-## Betriebshinweise
-
-- Den Schreibdienst nur über HTTPS erreichbar machen und Token sowie Nutzerliste im Hosting als Geheimnisse hinterlegen.
-- Für jede Website ein eigenes Sanity-Projekt und eigene technische Zugänge verwenden.
-- Regelmäßig Datensicherung, Tokenwechsel und Zuständigkeiten für Redaktionszugänge festlegen.
-- Die App verwaltet derzeit nur Termine und Teamprofile. Ein allgemeiner Seiteneditor ist nicht enthalten.
+Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` baut die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/) mit `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging`. Das Dataset ist öffentlich lesbar; der Browser erhält keinen Schreibschlüssel. Nach dem Veröffentlichen in der Redaktion zeigt die Website die Inhalte beim nächsten Laden. Der Wechsel zu `rudelbar.de` und `production` ist ein eigener Veröffentlichungsschritt.
