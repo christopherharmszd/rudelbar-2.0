@@ -61,19 +61,19 @@ function clean(value, max, required = false) {
   return result;
 }
 function fields(type, data) {
+  const order = Number(data.order ?? 0);
+  if (!Number.isInteger(order) || order < 0 || order > 999) throw Object.assign(new Error("Ungültige Reihenfolge."), { status: 400 });
   if (type === "events") {
     const date = clean(data.date, 10, true);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00Z`))) throw Object.assign(new Error("Bitte ein gültiges Datum eingeben."), { status: 400 });
     const mapUrl = clean(data.mapUrl, 1000);
     if (mapUrl && !/^https:\/\//i.test(mapUrl)) throw Object.assign(new Error("Der Routenlink muss mit https:// beginnen."), { status: 400 });
-    return { title: clean(data.title, 120, true), date, time: clean(data.time, 80, true), venue: clean(data.venue, 160, true), address: clean(data.address, 240), description: clean(data.description, 1200, true), mapUrl };
+    return { title: clean(data.title, 120, true), date, time: clean(data.time, 80, true), venue: clean(data.venue, 160, true), address: clean(data.address, 240), description: clean(data.description, 1200, true), mapUrl, order };
   }
   const photoAssetId = clean(data.photoAssetId, 200);
   if (photoAssetId && !/^image-[a-zA-Z0-9-]+$/.test(photoAssetId)) throw Object.assign(new Error("Ungültiges Bild."), { status: 400 });
   const photoUrl = clean(data.photoUrl, 1000);
   if (photoUrl && !/^https:\/\/cdn\.sanity\.io\/images\//.test(photoUrl)) throw Object.assign(new Error("Ungültige Bildadresse."), { status: 400 });
-  const order = Number(data.order || 0);
-  if (!Number.isInteger(order) || order < 0 || order > 999) throw Object.assign(new Error("Ungültige Reihenfolge."), { status: 400 });
   return { name: clean(data.name, 80, true), role: clean(data.role, 160, true), bio: clean(data.bio, 1200, true), order, ...(photoAssetId ? { photo: { _type: "image", asset: { _type: "reference", _ref: photoAssetId } }, photoUrl } : {}) };
 }
 function typeFromPath(value) { return value === "events" ? "rudelEvent" : value === "team" ? "rudelTeamMember" : null; }

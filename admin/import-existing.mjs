@@ -13,7 +13,7 @@ if (existingEvents.length || existingTeam.length) throw new Error("Import abgebr
 const event = events[0];
 await sanity.saveDraft("rudelEvent", "rudel-event-scharnebeck-2026-10-02", {
   title: event.title, date: event.date, time: event.time, venue: event.venue,
-  address: event.address, description: event.description, mapUrl: event.mapUrl,
+  address: event.address, description: event.description, mapUrl: event.mapUrl, order: event.order,
 });
 
 const assetDir = resolve(dirname(fileURLToPath(import.meta.url)), "../app/public/assets");

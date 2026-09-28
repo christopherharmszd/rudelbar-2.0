@@ -34,9 +34,11 @@ Ein Passwort-Hash lässt sich lokal mit `node admin/hash-password.mjs` erstellen
 
 `node admin/import-existing.mjs` überträgt den vorhandenen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset. Das Skript bricht ab, wenn bereits Rudelbar-Inhalte vorhanden sind. Es wird bewusst nicht automatisch ausgeführt oder veröffentlicht. Vor einem Einsatz müssen die Daten nochmals auf Aktualität geprüft werden.
 
-## Veröffentlichungsgrenze
+## Reihenfolge und Website-Anbindung
 
-„Veröffentlichen“ in dieser App schreibt einen veröffentlichten Datensatz in Sanity. Die aktuelle öffentliche Website liest noch fest eingetragene Inhalte aus dem React-Code. Erst die separate Anbindung der Website an die Sanity-API macht redaktionelle Änderungen auf der Website sichtbar. Staging-Hosting und Produktionswechsel sind noch offen.
+Bei Terminen und Teamprofilen bestimmt das Feld „Reihenfolge“ die Anordnung auf der jeweiligen Übersichtsseite. Eine Änderung wird erst nach Speichern des Entwurfs und erneuter Veröffentlichung öffentlich sichtbar. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Vergangene Termine verschwinden aus den Ansichten für kommende Termine.
+
+Die Website ist für veröffentlichte Sanity-Inhalte vorbereitet. Beim Website-Build `VITE_SANITY_PROJECT_ID` und `VITE_SANITY_DATASET` setzen. Das Dataset muss öffentlich lesbar sein und die Website-Domain als CORS-Origin zugelassen werden. Ohne diese beiden Werte zeigt die lokale Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Ohne eingerichtetes Sanity-Projekt, Zugangsdaten und Website-Build ist die Verbindung noch nicht aktiv. Staging-Hosting und Produktionswechsel sind noch offen.
 
 ## Betriebshinweise
 

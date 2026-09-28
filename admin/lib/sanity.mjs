@@ -30,7 +30,7 @@ export function createSanity({ projectId, dataset, token }) {
       entries.set(id, entry);
     }
     return [...entries.values()].map(({ content, ...meta }) => ({ ...meta, ...content, _id: meta.id })).sort((a, b) =>
-      type === "rudelEvent" ? String(a.date || "").localeCompare(String(b.date || "")) : (a.order || 0) - (b.order || 0));
+      (a.order ?? 0) - (b.order ?? 0) || (type === "rudelEvent" ? String(a.date || "").localeCompare(String(b.date || "")) : String(a.name || "").localeCompare(String(b.name || ""))));
   }
 
   async function getDocument(id) {
