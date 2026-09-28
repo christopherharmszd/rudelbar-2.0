@@ -14,6 +14,7 @@ Im Repository-Verzeichnis `python3 -m http.server 8767 --directory site` starten
 
 ## Nächste Schritte
 
-1. Sanity für Termine zuerst integrieren; danach Team und weitere Texte. Inhalt, Bild-Uploads und Veröffentlichungsablauf getrennt für Staging und Produktion definieren.
-2. Eine eigene Staging-Veröffentlichung wählen und testen. Erst nach ausdrücklicher Freigabe Änderungen nach `rudelbar-pages` und damit auf `rudelbar.de` übertragen.
-3. Das frühere Cloudflare-Projekt erst nach Bestätigung der genauen Ziele und Prüfung noch bestehender Abhängigkeiten entfernen. Es ist nicht mehr Grundlage der Weiterentwicklung.
+1. Unter `admin/` liegt jetzt eine eigenständige Redaktionsoberfläche für Termine und Teamprofile. Sie zeigt ohne Konfiguration eine schreibgeschützte lokale Vorschau. Für den Schreibbetrieb braucht sie ein Sanity-Projekt, technische Zugangsdaten und einen Node-Host; Details stehen in `admin/README.md`.
+2. Sanity-Inhalte in die öffentliche Website einbinden. Bis dahin bleiben die dort sichtbaren Inhalte fest im Website-Code eingetragen.
+3. Eine eigene Staging-Veröffentlichung wählen und testen. Erst nach ausdrücklicher Freigabe Änderungen nach `rudelbar-pages` und damit auf `rudelbar.de` übertragen.
+4. Das frühere Cloudflare-Projekt erst nach Bestätigung der genauen Ziele und Prüfung noch bestehender Abhängigkeiten entfernen. Es ist nicht mehr Grundlage der Weiterentwicklung.

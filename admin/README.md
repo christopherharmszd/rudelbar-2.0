@@ -1,0 +1,44 @@
+# Rudelbar Redaktion
+
+Eigenständige Verwaltungsoberfläche für Termine und Teamprofile. Die öffentliche Rudelbar-Website wird durch dieses Verzeichnis nicht verändert.
+
+## Lokal ansehen
+
+Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
+
+## Für den echten Schreibbetrieb
+
+Ein Sanity-Projekt und ein Dataset anlegen. Einen **Editor-API-Token** für genau dieses Projekt erzeugen; keinen persönlichen Administrator-Token verwenden. Diese Werte und die Redaktionszugänge als geschützte Umgebungsvariablen für den Node-Dienst setzen:
+
+| Variable | Bedeutung |
+| --- | --- |
+| `SANITY_PROJECT_ID` | Projektkennung |
+| `SANITY_DATASET` | Name des Datasets, zum Beispiel `staging` |
+| `SANITY_EDITOR_TOKEN` | Technischer Schreibzugang, nur auf dem Server |
+| `RUDELBAR_SESSION_SECRET` | Zufälliger Schlüssel mit mindestens 32 Zeichen |
+| `RUDELBAR_USERS_JSON` | JSON-Liste von Redaktionszugängen |
+| `NODE_ENV` | Für HTTPS-Betrieb `production` setzen; Session-Cookies erhalten dann `Secure` |
+| `HOST`, `PORT` | Adresse und Port des Node-Dienstes; Standard `127.0.0.1:8787` |
+
+Ein Passwort-Hash lässt sich lokal mit `node admin/hash-password.mjs` erstellen. Das Passwort wird im Terminal verborgen eingegeben. Beispiel für die Struktur der Nutzerliste, **ohne echte Zugangsdaten**:
+
+```json
+[{"email":"redaktion@example.invalid","passwordHash":"SALT:HASH","role":"editor"},{"email":"freigabe@example.invalid","passwordHash":"SALT:HASH","role":"publisher"}]
+```
+
+`editor` darf Entwürfe schreiben und Bilder hochladen. `publisher` darf zusätzlich veröffentlichen und veröffentlichte Inhalte zurückziehen. Diese Rechte werden im Server geprüft. Der Browser erhält nie den Sanity-Token. Die App braucht einen Node-Host mit HTTPS; GitHub Pages allein kann den schreibenden Dienst nicht ausführen.
+
+## Bestehende Inhalte übernehmen
+
+`node admin/import-existing.mjs` überträgt den vorhandenen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset. Das Skript bricht ab, wenn bereits Rudelbar-Inhalte vorhanden sind. Es wird bewusst nicht automatisch ausgeführt oder veröffentlicht. Vor einem Einsatz müssen die Daten nochmals auf Aktualität geprüft werden.
+
+## Veröffentlichungsgrenze
+
+„Veröffentlichen“ in dieser App schreibt einen veröffentlichten Datensatz in Sanity. Die aktuelle öffentliche Website liest noch fest eingetragene Inhalte aus dem React-Code. Erst die separate Anbindung der Website an die Sanity-API macht redaktionelle Änderungen auf der Website sichtbar. Staging-Hosting und Produktionswechsel sind noch offen.
+
+## Betriebshinweise
+
+- Den Schreibdienst nur über HTTPS erreichbar machen und Token sowie Nutzerliste im Hosting als Geheimnisse hinterlegen.
+- Für jede Website ein eigenes Sanity-Projekt und eigene technische Zugänge verwenden.
+- Regelmäßig Datensicherung, Tokenwechsel und Zuständigkeiten für Redaktionszugänge festlegen.
+- Die App verwaltet derzeit nur Termine und Teamprofile. Ein allgemeiner Seiteneditor ist nicht enthalten.
