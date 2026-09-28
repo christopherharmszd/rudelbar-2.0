@@ -15,6 +15,6 @@ Im Repository-Verzeichnis `python3 -m http.server 8767 --directory site` starten
 ## Nächste Schritte
 
 1. Unter `admin/` liegt jetzt eine eigenständige Redaktionsoberfläche für Termine und Teamprofile. Sie zeigt ohne Konfiguration eine schreibgeschützte lokale Vorschau. Für den Schreibbetrieb braucht sie ein Sanity-Projekt, technische Zugangsdaten und einen Node-Host; Details stehen in `admin/README.md`.
-2. Sanity-Projekt und Dataset anlegen, Redaktionszugänge konfigurieren und die Website mit `VITE_SANITY_PROJECT_ID` und `VITE_SANITY_DATASET` für Staging bauen. Die Veröffentlichung und die mobile Darstellung mit echten Daten prüfen.
+2. Das angelegte Sanity-Projekt `h34z7ud0` und Dataset `staging` mit einem technischen Editor-Token und Redaktionszugängen verbinden. Die lokale Website liest bereits aus dem noch leeren Dataset. Danach die Veröffentlichung und die mobile Darstellung mit echten Daten prüfen.
 3. Eine eigene Staging-Veröffentlichung wählen und testen. Erst nach ausdrücklicher Freigabe Änderungen nach `rudelbar-pages` und damit auf `rudelbar.de` übertragen.
 4. Das frühere Cloudflare-Projekt erst nach Bestätigung der genauen Ziele und Prüfung noch bestehender Abhängigkeiten entfernen. Es ist nicht mehr Grundlage der Weiterentwicklung.

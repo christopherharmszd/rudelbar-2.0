@@ -8,9 +8,11 @@ Termine und Teamprofile erscheinen zunächst als kompakte Listen. Details und Ei
 
 Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
 
+Das Sanity-Projekt `Rudelbar 2.0` hat die Projektkennung `h34z7ud0`. Das öffentliche Dataset `staging` ist für die Vorschau angelegt; das automatisch erzeugte `production`-Dataset bleibt zunächst leer. Die bearbeitbare Website in `app/` liest lokal bereits aus `staging`. Dort erscheint bis zur Veröffentlichung des ersten Termins der leere Termin-Platzhalter.
+
 ## Für den echten Schreibbetrieb
 
-Ein Sanity-Projekt und ein Dataset anlegen. Einen **Editor-API-Token** für genau dieses Projekt erzeugen; keinen persönlichen Administrator-Token verwenden. Diese Werte und die Redaktionszugänge als geschützte Umgebungsvariablen für den Node-Dienst setzen:
+Einen **Editor-API-Token** für dieses Projekt erzeugen; keinen persönlichen Administrator-Token verwenden. Die Konfiguration aus `admin/.env.example` nach `admin/.env.local` übernehmen, die geheimen Werte ergänzen und lokal mit `node --env-file=admin/.env.local admin/server.mjs` starten. `admin/.env.local` ist von Git ausgeschlossen. Für einen späteren Node-Host dieselben Werte als geschützte Umgebungsvariablen setzen:
 
 | Variable | Bedeutung |
 | --- | --- |
