@@ -28,7 +28,7 @@
 
 /* The dialog uses the available screen area; only the form body scrolls on short screens. */
 .modal-backdrop{padding:16px}
-.modal{position:relative;display:flex;width:min(1100px,100%);height:min(580px,calc(100dvh - 32px));max-height:none;overflow:hidden}
+.modal{position:relative;display:flex;width:min(1100px,100%);height:auto;max-height:calc(100dvh - 32px);overflow:hidden}
 .modal .edit{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;padding:24px 30px 0}
 .modal .edit-head{flex:none;margin-bottom:18px;padding-right:64px}
 .modal-close{position:absolute;top:17px;right:19px;float:none;margin:0}

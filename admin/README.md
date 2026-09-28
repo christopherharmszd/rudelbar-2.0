@@ -8,7 +8,20 @@ Termine und Teamprofile erscheinen zunächst als kompakte Listen. Details und Ei
 
 Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
 
-Das Sanity-Projekt `Rudelbar 2.0` hat die Projektkennung `h34z7ud0`. Das öffentliche Dataset `staging` ist für die Vorschau angelegt; das automatisch erzeugte `production`-Dataset bleibt zunächst leer. Die bearbeitbare Website in `app/` liest lokal bereits aus `staging`. Dort erscheint bis zur Veröffentlichung des ersten Termins der leere Termin-Platzhalter.
+Das Sanity-Projekt `Rudelbar 2.0` hat die Projektkennung `h34z7ud0`. Das öffentliche Dataset `staging` ist für den Test eingerichtet; das automatisch erzeugte `production`-Dataset bleibt leer. Der vorhandene Termin und fünf Teamprofile samt Bildern wurden in `staging` übertragen und veröffentlicht. Die lokale Website in `app/` liest diese Inhalte direkt aus Sanity.
+
+## Staging jetzt testen
+
+Auf diesem Rechner liegen die lokalen, von Git ausgeschlossenen Konfigurationsdateien `admin/.env.local` und `app/.env.local` bereits vor. Zwei Terminals im Repository öffnen:
+
+```sh
+node --env-file=admin/.env.local admin/server.mjs
+cd app && npm run dev -- --host 127.0.0.1 --port 8790
+```
+
+Dann die [Redaktion](http://127.0.0.1:8787/) und die [Test-Website](http://127.0.0.1:8790/) öffnen. Der lokale Zugang lautet `redaktion@rudelbar.local`; das Passwort wurde separat mitgeteilt und ist nur als Hash gespeichert. Einen Termin oder ein Teammitglied öffnen, den Entwurf speichern und danach ausdrücklich „Veröffentlichen“ wählen. Die Test-Website danach neu laden. Termine stehen auf der [Terminseite](http://127.0.0.1:8790/#/termine), der nächste auch auf der Startseite; Teamprofile stehen unter [Das Rudel](http://127.0.0.1:8790/#/das-rudel).
+
+Der API-Token hat auf Wunsch kein Ablaufdatum. Er liegt nur in `admin/.env.local` und gehört weder in Git noch in den Website-Code. Für eine öffentlich erreichbare Redaktion den Redaktionszugang mit einem neuen starken Passwort und HTTPS absichern.
 
 ## Für den echten Schreibbetrieb
 
@@ -34,13 +47,13 @@ Ein Passwort-Hash lässt sich lokal mit `node admin/hash-password.mjs` erstellen
 
 ## Bestehende Inhalte übernehmen
 
-`node admin/import-existing.mjs` überträgt den vorhandenen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset. Das Skript bricht ab, wenn bereits Rudelbar-Inhalte vorhanden sind. Es wird bewusst nicht automatisch ausgeführt oder veröffentlicht. Vor einem Einsatz müssen die Daten nochmals auf Aktualität geprüft werden.
+`node admin/import-existing.mjs` überträgt den vorhandenen Scharnebeck-Termin und die fünf Teamprofile samt Bildern **als Entwürfe** in ein leeres Dataset. Das Skript wurde für `staging` bereits ausgeführt; dort sind die Inhalte veröffentlicht. Es bricht beim erneuten Ausführen ab, weil das Dataset nun Inhalte enthält.
 
 ## Reihenfolge und Website-Anbindung
 
 Bei Terminen und Teamprofilen bestimmt das Feld „Reihenfolge“ die Anordnung auf der jeweiligen Übersichtsseite. Eine Änderung wird erst nach Speichern des Entwurfs und erneuter Veröffentlichung öffentlich sichtbar. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Vergangene Termine verschwinden aus den Ansichten für kommende Termine.
 
-Die Website ist für veröffentlichte Sanity-Inhalte vorbereitet. Beim Website-Build `VITE_SANITY_PROJECT_ID` und `VITE_SANITY_DATASET` setzen. Das Dataset muss öffentlich lesbar sein und die Website-Domain als CORS-Origin zugelassen werden. Ohne diese beiden Werte zeigt die lokale Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Ohne eingerichtetes Sanity-Projekt, Zugangsdaten und Website-Build ist die Verbindung noch nicht aktiv. Staging-Hosting und Produktionswechsel sind noch offen.
+Die lokale Website ist über `app/.env.local` mit `staging` verbunden. Für einen weiteren Website-Build `VITE_SANITY_PROJECT_ID=h34z7ud0` und `VITE_SANITY_DATASET=staging` setzen. Das Dataset muss öffentlich lesbar sein und die jeweilige Website-Domain als CORS-Origin zugelassen werden. Ohne diese beiden Werte zeigt die Website weiterhin die bisherigen Beispieldaten. Der Schreib-Token bleibt ausschließlich beim Redaktionsserver. Öffentliches Staging-Hosting und Produktionswechsel sind noch offen.
 
 ## Betriebshinweise
 
