@@ -2,6 +2,8 @@
 
 Eigenständige Verwaltungsoberfläche für Termine und Teamprofile. Die öffentliche Rudelbar-Website wird durch dieses Verzeichnis nicht verändert.
 
+Termine erscheinen zunächst als kompakte Liste. Die Details und Eingabefelder öffnen sich erst nach Auswahl eines Termins in einem Dialog, auf dem Handy bildschirmfüllend. Der Dialog lässt sich über das Schließen-Symbol oder die Escape-Taste verlassen.
+
 ## Lokal ansehen
 
 Im Repository `node admin/server.mjs` starten und `http://127.0.0.1:8787` öffnen. Ohne Sanity-Konfiguration läuft eine **schreibgeschützte Vorschau** mit dem im Website-Code vorhandenen Termin und fünf Teamprofilen. Es gibt keine Anmeldung und keine Speicherung in diesem Modus; der Server bindet dafür ausschließlich an `127.0.0.1`.
