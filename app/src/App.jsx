@@ -53,7 +53,7 @@ function PostGallery({ images }) {
       </button>
       {image.caption && <figcaption>{image.caption}</figcaption>}
     </figure>)}</div>
-    {open && <div className="post-lightbox-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setActiveIndex(null); }}>
+    {open && <div className="post-lightbox-backdrop" onClick={event => { if (event.target === event.currentTarget) setActiveIndex(null); }}>
       <section className="post-lightbox" role="dialog" aria-modal="true" aria-label="Bildergalerie">
         <div className="post-lightbox-top"><span>Bild {activeIndex + 1} von {images.length}</span><button ref={closeButton} type="button" aria-label="Galerie schließen" onClick={() => setActiveIndex(null)}><X aria-hidden="true" /></button></div>
         <div className="post-lightbox-stage" onTouchStart={event => { touchStart.current = [event.touches[0].clientX, event.touches[0].clientY]; }} onTouchEnd={event => {
