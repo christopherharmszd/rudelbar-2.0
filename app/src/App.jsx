@@ -78,6 +78,7 @@ function BookingForm({ eventMode = false }) {
     <label>Deine Nachricht<textarea required name="nachricht" rows="5" placeholder={eventMode ? "Erzähl uns kurz von eurem Anlass und was ihr euch für den Abend wünscht." : "Was habt ihr vor?"} /></label>
     <input type="checkbox" name="botcheck" tabIndex={-1} aria-hidden="true" style={{ display: "none" }} />
     <button className="button" type="submit" disabled={sending}>{sending ? "Wird gesendet …" : "Anfrage senden"}</button>
+    <p className="form-privacy">Mit dem Absenden werden deine Angaben zur Bearbeitung der Anfrage an Web3Forms übermittelt. Mehr dazu unter <a href="./datenschutz.html#kontaktformular">Datenschutz &amp; Cookies</a>.</p>
     {notice && <p className="notice form-send-status" role="status">{notice}</p>}
   </form>;
 }

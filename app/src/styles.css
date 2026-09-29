@@ -62,8 +62,10 @@ html[data-theme] .team-grid{background:var(--paper);gap:0}
 
 /* Keep legal navigation and the native date picker consistent with production. */
 html[data-theme="black"] .booking-form input[type="date"],html[data-theme="dusk"] .booking-form input[type="date"],html[data-theme="evening"] .booking-form input[type="date"]{color-scheme:dark}
-.legal-links{display:flex;justify-content:flex-end;padding:0 clamp(1.25rem,4vw,4.5rem) 1.25rem;background:var(--cream,#0d0d0d);color:var(--muted,#c6c0b6);font:.78rem Arial,sans-serif}
+.legal-links{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:1.3rem;padding:0 clamp(1.25rem,4vw,4.5rem) 1.25rem;background:var(--cream,#0d0d0d);color:var(--muted,#c6c0b6);font:.78rem Arial,sans-serif}
 .legal-links a:hover,.legal-links a:focus-visible{color:var(--ochre,#d39a22);text-decoration:underline}
+.form-privacy{margin:0;color:var(--muted);font:0.8rem/1.5 Arial,sans-serif}
+.form-privacy a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
 
 @media(max-width:760px){
   .team-grid article:nth-child(odd):not(:last-child){border-right:0}

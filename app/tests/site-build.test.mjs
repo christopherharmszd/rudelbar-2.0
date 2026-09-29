@@ -8,6 +8,7 @@ test("build contains the public pages and brand assets", async () => {
   for (const path of [
     "index.html",
     "impressum.html",
+    "datenschutz.html",
     "assets/rudelbar-logo.png",
     "assets/team-martin.png",
     "assets/team-jan.png",
@@ -23,5 +24,6 @@ test("build does not claim the production domain", async () => {
   await assert.rejects(access(built("CNAME")));
   const index = await readFile(built("index.html"), "utf8");
   assert.match(index, /Impressum/);
+  assert.match(index, /datenschutz\.html/);
   assert.match(index, /\.\/assets\/rudelbar-logo\.png/);
 });

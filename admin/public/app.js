@@ -32,7 +32,7 @@ async function start() {
 }
 
 function renderLogin() {
-  root.innerHTML = `<main class="login-wrap"><form class="login" id="login-form"><div class="brand-mark">R</div><p class="eyebrow">RUDELBAR REDAKTION</p><h1>Willkommen zurück.</h1><p>Melde dich an, um Termine und das Rudel zu verwalten.</p>${state.message ? `<p class="message error">${esc(state.message)}</p>` : ""}<div class="field"><span class="account-label">Konto</span><strong class="account-name">Redaktion</strong><input name="email" type="hidden" value="redaktion@rudelbar.local" autocomplete="username" /></div><div class="field"><label for="password">Passwort</label><input id="password" name="password" type="password" autocomplete="current-password" required /></div><button class="primary" type="submit">Anmelden</button></form></main>`;
+  root.innerHTML = `<main class="login-wrap"><form class="login" id="login-form"><div class="brand-mark">R</div><p class="eyebrow">RUDELBAR REDAKTION</p><h1>Willkommen zurück.</h1><p>Melde dich an, um Termine und das Rudel zu verwalten.</p>${state.message ? `<p class="message error">${esc(state.message)}</p>` : ""}<div class="field"><span class="account-label">Konto</span><strong class="account-name">Redaktion</strong><input name="email" type="hidden" value="redaktion@rudelbar.local" autocomplete="username" /></div><div class="field"><label for="password">Passwort</label><input id="password" name="password" type="password" autocomplete="current-password" required /></div><button class="primary" type="submit">Anmelden</button><a class="privacy-link" href="/datenschutz.html">Datenschutz &amp; Cookies</a></form></main>`;
   document.querySelector("#password")?.focus();
   document.querySelector("#login-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -90,11 +90,11 @@ function render() {
           <button type="button" data-section="events" class="${isEvent ? "active" : ""}">Termine <span>↗</span></button>
           <button type="button" data-section="team" class="${!isEvent ? "active" : ""}">Das Rudel <span>↗</span></button>
         </nav></div>
-        <div class="side-foot">${state.configured ? "Veröffentlichte Inhalte werden in Sanity gespeichert." : "Lokale Vorschau mit dem aktuellen Rudelbar-Inhalt."}</div>
+        <div class="side-foot">${state.configured ? "Veröffentlichte Inhalte werden in Sanity gespeichert." : "Lokale Vorschau mit dem aktuellen Rudelbar-Inhalt."}<br /><a href="/datenschutz.html">Datenschutz &amp; Cookies</a></div>
       </aside>
       <div class="main">
         <header class="top"><div class="crumb">Rudelbar <span> / </span> <strong>${info.title}</strong></div>
-          <div class="account"><span class="avatar">R</span><span class="email">${state.user ? "Redaktion" : "Vorschau"}</span>${state.user ? '<button id="logout" type="button">Abmelden</button>' : ""}</div>
+          <div class="account"><span class="avatar">R</span><span class="email">${state.user ? "Redaktion" : "Vorschau"}</span><a class="account-privacy" href="/datenschutz.html">Datenschutz</a>${state.user ? '<button id="logout" type="button">Abmelden</button>' : ""}</div>
         </header>
         <div class="content">
           <div class="page-head"><div><p class="eyebrow">INHALTE VERWALTEN</p><h1>${info.title}</h1><p>${info.description}</p></div>
