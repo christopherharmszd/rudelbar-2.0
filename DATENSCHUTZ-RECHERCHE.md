@@ -1,6 +1,6 @@
 # Datenschutzprüfung für Rudelbar 2.0
 
-Stand: 29. September 2026. Diese Bestandsaufnahme beschreibt den aktuellen **Staging-Stand**. Die öffentlichen Texte liegen in `app/public/datenschutz.html` und `admin/public/datenschutz.html`. Vor dem Wechsel auf `rudelbar.de` müssen Anbieter, Einstellungen und betriebliche Abläufe erneut geprüft werden.
+Stand: 29. September 2026. Diese Bestandsaufnahme beschreibt den aktuellen **Staging-Stand**. Die Besucherinformationen liegen in `app/public/datenschutz.html`; die Hinweise zum Anmelde-Cookie und zur Redaktion ausschließlich in `admin/public/datenschutz.html`. Vor dem Wechsel auf `rudelbar.de` müssen Anbieter, Einstellungen und betriebliche Abläufe erneut geprüft werden.
 
 ## Im Code bestätigt
 
