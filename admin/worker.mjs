@@ -103,6 +103,7 @@ function sanity(env) {
 function fields(type, data) {
   if (type === "posts") {
     const date = clean(data.date, 10, true);
+    const teaser = clean(data.teaser, 300, true);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00Z`))) throw Object.assign(new Error("Bitte ein gültiges Beitragsdatum eingeben."), { status: 400 });
     if (!Array.isArray(data.images) || data.images.length > 12) throw Object.assign(new Error("Maximal 12 Bilder pro Beitrag sind möglich."), { status: 400 });
     const images = data.images.map(image => {
@@ -111,10 +112,10 @@ function fields(type, data) {
       if (!/^image-[a-zA-Z0-9-]+$/.test(assetId) || !/^https:\/\/cdn\.sanity\.io\/images\//.test(url)) throw Object.assign(new Error("Ungültiges Beitragsbild."), { status: 400 });
       return {
         _key: crypto.randomUUID(), _type: "image", asset: { _type: "reference", _ref: assetId },
-        url, alt: clean(image.alt, 180, true), caption: clean(image.caption, 240),
+        url, alt: clean(image.alt, 300) || teaser, caption: clean(image.caption, 240),
       };
     });
-    return { title: clean(data.title, 120, true), date, teaser: clean(data.teaser, 300, true), body: clean(data.body, 12000, true), images };
+    return { title: clean(data.title, 120, true), date, teaser, body: clean(data.body, 12000, true), images };
   }
   const order = Number(data.order ?? 0);
   if (!Number.isInteger(order) || order < 0 || order > 999) throw Object.assign(new Error("Ungültige Reihenfolge."), { status: 400 });

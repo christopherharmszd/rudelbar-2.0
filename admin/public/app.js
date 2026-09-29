@@ -66,10 +66,30 @@ function itemMeta(item) { return state.section === "team" ? item.role || "Ohne R
 function postImageRow(image) {
   if (!safeImg(image.url)) return "";
   return `<div class="post-image-row" data-asset-id="${esc(image.asset?._ref || image.assetId)}" data-url="${esc(image.url)}">
+    <div class="post-image-row-header"><strong class="post-image-position"></strong><div class="post-image-order-controls">
+      <button type="button" class="post-image-handle" aria-label="Bild verschieben">⋮⋮ Ziehen</button>
+      <button type="button" class="move-post-image-up" aria-label="Bild nach oben verschieben">↑</button>
+      <button type="button" class="move-post-image-down" aria-label="Bild nach unten verschieben">↓</button>
+    </div></div>
     <img src="${esc(image.url)}" alt="" />
-    <div class="post-image-fields"><label>Bildbeschreibung für Screenreader<input class="post-image-alt" maxlength="180" required value="${esc(image.alt)}" placeholder="Was zeigt das Bild?" /></label>
+    <div class="post-image-fields"><label>Bildbeschreibung für Screenreader (optional)<input class="post-image-alt" maxlength="300" value="${esc(image.alt)}" /><small>Leer lassen: Der Kurztext wird beim Speichern übernommen.</small></label>
       <label>Bildunterschrift (optional)<input class="post-image-caption" maxlength="240" value="${esc(image.caption)}" /></label>
       <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
+}
+
+function refreshPostImageRows(list) {
+  const rows = [...list.querySelectorAll(".post-image-row")];
+  rows.forEach((row, index) => {
+    row.classList.toggle("is-cover", index === 0);
+    row.querySelector(".post-image-position").textContent = index === 0 ? "Titelbild · Bild 1" : `Bild ${index + 1}`;
+    row.querySelector(".post-image-handle").setAttribute("aria-label", `Bild ${index + 1} ziehen und verschieben`);
+    const up = row.querySelector(".move-post-image-up");
+    const down = row.querySelector(".move-post-image-down");
+    up.disabled = index === 0;
+    down.disabled = index === rows.length - 1;
+    up.setAttribute("aria-label", `Bild ${index + 1} nach oben verschieben`);
+    down.setAttribute("aria-label", `Bild ${index + 1} nach unten verschieben`);
+  });
 }
 
 function actionConfirmation() {
@@ -96,10 +116,10 @@ function renderPostForm(item) {
       <div class="field span"><label for="f-date">Beitragsdatum</label><input id="f-date" name="date" type="date" required value="${esc(item?.date || localDate)}" /><small>Neuere Beiträge stehen zuerst.</small></div>
       <div class="field span"><label for="f-teaser">Kurztext für die Übersicht</label><textarea id="f-teaser" name="teaser" maxlength="300" required>${esc(item?.teaser)}</textarea></div>
       <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen erzeugen Absätze. Bilder erscheinen als Galerie unter dem Text.</small></div>
-    </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Bis zu 12 Bilder pro Beitrag.</p>
+    </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Reihenfolge mit „Ziehen“ oder den Pfeilen ändern. Bis zu 12 Bilder pro Beitrag.</p>
       <div id="post-images">${(item?.images || []).map(postImageRow).join("")}</div>
       <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
-      <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Beschreibe jedes Bild vor dem Speichern.</small><p id="upload-status" role="status"></p>
+      <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Ohne eigene Bildbeschreibung wird der Kurztext verwendet.</small><p id="upload-status" role="status"></p>
     </div></div></div></div>
     <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div>${item ? actionConfirmation() : ""}</div></form>`;
 }
@@ -212,6 +232,16 @@ function renderForm(item) {
 }
 
 function bind() {
+  const imageList = document.querySelector("#post-images");
+  if (imageList) {
+    const teaser = document.querySelector("#f-teaser");
+    const updateAltPlaceholders = () => imageList.querySelectorAll(".post-image-alt").forEach(input => {
+      input.placeholder = teaser.value.trim() || "Kurztext wird übernommen";
+    });
+    teaser.addEventListener("input", updateAltPlaceholders);
+    refreshPostImageRows(imageList);
+    updateAltPlaceholders();
+  }
   const mapInput = document.querySelector("#f-mapUrl");
   if (mapInput) {
     const venueInput = document.querySelector("#f-venue");
@@ -267,7 +297,8 @@ function bind() {
       if (state.section === "posts") {
         data.images = [...form.querySelectorAll(".post-image-row")].map(row => ({
           assetId: row.dataset.assetId, url: row.dataset.url,
-          alt: row.querySelector(".post-image-alt").value, caption: row.querySelector(".post-image-caption").value,
+          alt: row.querySelector(".post-image-alt").value.trim() || String(data.teaser).trim(),
+          caption: row.querySelector(".post-image-caption").value,
         }));
       }
       const path = state.selected === "new" ? state.section : `${state.section}/${state.selected}`;
@@ -338,9 +369,57 @@ function bind() {
       document.querySelector("#photo-placeholder")?.replaceWith(preview);
     } catch (error) { state.message = error.message; state.error = true; render(); }
   });
-  document.querySelector("#post-images")?.addEventListener("click", event => {
-    if (event.target.closest(".remove-post-image")) event.target.closest(".post-image-row")?.remove();
-  });
+  if (imageList) {
+    const changed = () => {
+      refreshPostImageRows(imageList);
+      document.querySelector("#upload-status").textContent = "Bildreihenfolge geändert. Bitte den Entwurf speichern.";
+    };
+    imageList.addEventListener("click", event => {
+      const row = event.target.closest(".post-image-row");
+      if (!row) return;
+      if (event.target.closest(".remove-post-image")) { row.remove(); refreshPostImageRows(imageList); return; }
+      if (event.target.closest(".move-post-image-up") && row.previousElementSibling) {
+        imageList.insertBefore(row, row.previousElementSibling); changed();
+      }
+      if (event.target.closest(".move-post-image-down") && row.nextElementSibling) {
+        imageList.insertBefore(row.nextElementSibling, row); changed();
+      }
+    });
+    let drag = null;
+    imageList.addEventListener("pointerdown", event => {
+      const handle = event.target.closest(".post-image-handle");
+      if (!handle || !event.isPrimary || event.button !== 0) return;
+      drag = { handle, row: handle.closest(".post-image-row"), x: event.clientX, y: event.clientY, moved: false, target: null, before: true, startIndex: [...imageList.children].indexOf(handle.closest(".post-image-row")) };
+      handle.setPointerCapture(event.pointerId);
+    });
+    const trackDrag = event => {
+      if (!drag || !drag.handle.hasPointerCapture(event.pointerId)) return;
+      if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6) return;
+      drag.moved = true;
+      drag.row.classList.add("is-dragging");
+      drag.target?.classList.remove("is-drop-target");
+      const otherRows = [...imageList.children].filter(row => row !== drag.row);
+      drag.target = otherRows.find(row => event.clientY < row.getBoundingClientRect().bottom) || otherRows.at(-1) || null;
+      if (!drag.target) return;
+      const rect = drag.target.getBoundingClientRect();
+      drag.before = event.clientY < rect.top + rect.height / 2;
+      drag.target.classList.add("is-drop-target");
+    };
+    imageList.addEventListener("pointermove", trackDrag);
+    const finishDrag = event => {
+      if (!drag) return;
+      if (event.type === "pointerup") trackDrag(event);
+      drag.row.classList.remove("is-dragging");
+      drag.target?.classList.remove("is-drop-target");
+      if (event.type === "pointerup" && drag.moved && drag.target) {
+        imageList.insertBefore(drag.row, drag.before ? drag.target : drag.target.nextElementSibling);
+        if ([...imageList.children].indexOf(drag.row) !== drag.startIndex) changed();
+      }
+      drag = null;
+    };
+    imageList.addEventListener("pointerup", finishDrag);
+    imageList.addEventListener("pointercancel", finishDrag);
+  }
   document.querySelector("#post-image-upload")?.addEventListener("change", async event => {
     const input = event.currentTarget;
     const files = [...input.files];
@@ -358,8 +437,10 @@ function bind() {
         status.textContent = `Bild ${index + 1} von ${files.length} wird hochgeladen …`;
         const result = await api("upload", { method: "POST", headers: { "Content-Type": file.type, "X-File-Name": file.name }, body: file });
         list.insertAdjacentHTML("beforeend", postImageRow({ assetId: result.assetId, url: result.url, alt: "", caption: "" }));
+        refreshPostImageRows(list);
+        list.lastElementChild.querySelector(".post-image-alt").placeholder = document.querySelector("#f-teaser").value.trim() || "Kurztext wird übernommen";
       }
-      status.textContent = `${files.length} ${files.length === 1 ? "Bild" : "Bilder"} hochgeladen. Bitte Bildbeschreibungen ergänzen und den Entwurf speichern.`;
+      status.textContent = `${files.length} ${files.length === 1 ? "Bild" : "Bilder"} hochgeladen. Bitte den Entwurf speichern.`;
     } catch (error) { status.textContent = error.message; }
     finally { input.disabled = false; input.value = ""; submitButton.disabled = false; }
   });

@@ -136,12 +136,27 @@ test("online login protects Sanity writes and revokes sessions when the password
     assert.equal((await (await worker.fetch(request("/api/posts", { cookie }), state.env)).json()).items[0].published, true);
     assert.equal((await worker.fetch(request(`/api/posts/${postId}/unpublish`, { method: "POST", cookie, csrf }), state.env)).status, 200);
     assert.equal(state.docs.has(postId), false);
-    const invalidPost = await worker.fetch(request("/api/posts", { method: "POST", cookie, csrf, body: {
-      title: "Ohne Bildbeschreibung", date: "2026-09-29", teaser: "Ein Blick", body: "Text", images: [{
-        assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "",
-      }],
+    const fallbackPost = await worker.fetch(request("/api/posts", { method: "POST", cookie, csrf, body: {
+      title: "Ohne Bildbeschreibung", date: "2026-09-29", teaser: "Ein Blick", body: "Text", images: [
+        { assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "", caption: "Erstes Bild" },
+        { assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "Eigene Beschreibung", caption: "Zweites Bild" },
+      ],
     } }), state.env);
-    assert.equal(invalidPost.status, 400);
+    assert.equal(fallbackPost.status, 201);
+    const { id: fallbackId } = await fallbackPost.json();
+    assert.deepEqual(state.docs.get(`drafts.${fallbackId}`).images.map(image => [image.alt, image.caption]), [
+      ["Ein Blick", "Erstes Bild"], ["Eigene Beschreibung", "Zweites Bild"],
+    ]);
+    const reorderedPost = await worker.fetch(request(`/api/posts/${fallbackId}`, { method: "PUT", cookie, csrf, body: {
+      title: "Ohne Bildbeschreibung", date: "2026-09-29", teaser: "Ein Blick", body: "Text", images: [
+        { assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "Eigene Beschreibung", caption: "Zweites Bild" },
+        { assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "", caption: "Erstes Bild" },
+      ],
+    } }), state.env);
+    assert.equal(reorderedPost.status, 200);
+    assert.deepEqual(state.docs.get(`drafts.${fallbackId}`).images.map(image => [image.alt, image.caption]), [
+      ["Eigene Beschreibung", "Zweites Bild"], ["Ein Blick", "Erstes Bild"],
+    ]);
 
     state.env.RUDELBAR_PASSWORD_VERIFIER = await passwordVerifier(secret, "A-new-test-password-2026!");
     const expired = await worker.fetch(request("/api/session", { cookie }), state.env);
