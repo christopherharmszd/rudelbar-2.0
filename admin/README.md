@@ -12,6 +12,8 @@ Die Reihenfolge steuert die Termin- und Teamübersicht. Auf der Startseite ersch
 
 Beiträge werden nach Datum sortiert. Solange kein Beitrag veröffentlicht ist, gibt es auf der Website weder den Menüpunkt noch den Abschnitt „Aktuelles“. Nach der ersten Veröffentlichung erscheinen Startseiten-Vorschau, Übersicht und die einzelnen Beiträge automatisch beim nächsten Laden.
 
+Termine und Beiträge haben die Ansichten **Aktiv** und **Archiviert**. „Von Website nehmen“ behält einen Eintrag als aktiven Entwurf. „Archivieren“ nimmt ihn ebenfalls von der Website und verschiebt ihn in das Archiv. Nach „Wiederherstellen“ liegt er als unveröffentlichter Entwurf unter Aktiv; für die Website muss er erneut veröffentlicht werden. **Endgültig löschen** ist nur im Archiv verfügbar und entfernt den Eintrag aus dem Dataset. Zugehörige Bilddateien werden dabei nicht automatisch aus dem Sanity-Medienspeicher gelöscht und können noch in Caches vorhanden sein. Teamprofile bleiben von diesem Archivablauf unberührt.
+
 ## Onlinebetrieb
 
 - Cloudflare-Konto: `87e06345951a028223b167dd69056336`

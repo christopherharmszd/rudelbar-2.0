@@ -29,7 +29,7 @@ export function createSanity({ projectId, dataset, token }) {
       else { entry.published = true; if (!entry.draft) entry.content = doc; }
       entries.set(id, entry);
     }
-    return [...entries.values()].map(({ content, ...meta }) => ({ ...meta, ...content, _id: meta.id })).sort((a, b) =>
+    return [...entries.values()].map(({ content, ...meta }) => ({ ...meta, ...content, _id: meta.id, archived: content?.archived === true })).sort((a, b) =>
       type === "rudelPost" ? String(b.date || "").localeCompare(String(a.date || "")) || String(a.title || "").localeCompare(String(b.title || "")) :
         (a.order ?? 0) - (b.order ?? 0) || (type === "rudelEvent" ? String(a.date || "").localeCompare(String(b.date || "")) : String(a.name || "").localeCompare(String(b.name || ""))));
   }
@@ -48,13 +48,19 @@ export function createSanity({ projectId, dataset, token }) {
     });
   }
 
-  async function saveDraft(type, id, fields) {
+  async function saveDraft(type, id, fields, requireExisting = false) {
+    const existing = await getDocument(`drafts.${id}`);
+    const published = requireExisting && !existing ? await getDocument(id) : null;
+    if (requireExisting && !existing && !published) throw Object.assign(new Error("Eintrag nicht gefunden. Bitte die Liste neu laden."), { status: 404 });
+    if ((existing || published) && (existing || published)._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), { status: 404 });
+    if (existing?.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
     await mutate([{ createOrReplace: { _id: `drafts.${id}`, _type: type, ...fields } }]);
   }
 
   async function publish(id) {
     const draft = await getDocument(`drafts.${id}`);
     if (!draft) throw new Error("Kein Entwurf zum Veröffentlichen vorhanden.");
+    if (draft.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
     const { _id, _rev, _createdAt, _updatedAt, ...content } = draft;
     await mutate([{ createOrReplace: { _id: id, ...content } }, { delete: { id: `drafts.${id}` } }]);
   }
@@ -67,11 +73,37 @@ export function createSanity({ projectId, dataset, token }) {
     await mutate([{ createOrReplace: { _id: `drafts.${id}`, ...content } }, { delete: { id } }]);
   }
 
+  async function archive(id, type) {
+    const draft = await getDocument(`drafts.${id}`);
+    const published = await getDocument(id);
+    const source = draft || published;
+    if (!source || source._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), { status: 404 });
+    if (draft?.archived) throw Object.assign(new Error("Der Eintrag ist bereits archiviert."), { status: 409 });
+    const { _id, _rev, _createdAt, _updatedAt, ...content } = source;
+    await mutate([
+      { createOrReplace: { _id: `drafts.${id}`, ...content, archived: true, archivedAt: new Date().toISOString() } },
+      { delete: { id } },
+    ]);
+  }
+
+  async function restore(id, type) {
+    const draft = await getDocument(`drafts.${id}`);
+    if (!draft || draft._type !== type || !draft.archived) throw Object.assign(new Error("Archivierter Eintrag nicht gefunden."), { status: 404 });
+    const { _id, _rev, _createdAt, _updatedAt, archived, archivedAt, ...content } = draft;
+    await mutate([{ createOrReplace: { _id: `drafts.${id}`, ...content } }]);
+  }
+
+  async function deleteForever(id, type) {
+    const draft = await getDocument(`drafts.${id}`);
+    if (!draft || draft._type !== type || !draft.archived) throw Object.assign(new Error("Nur archivierte Einträge können endgültig gelöscht werden."), { status: 409 });
+    await mutate([{ delete: { id } }, { delete: { id: `drafts.${id}` } }]);
+  }
+
   async function uploadImage(buffer, mime, filename) {
     const path = `/assets/images/${dataset}?filename=${encodeURIComponent(filename)}`;
     const data = await request(path, { method: "POST", headers: { "Content-Type": mime }, body: buffer });
     return { assetId: data.document?._id, url: data.document?.url };
   }
 
-  return { list, saveDraft, publish, unpublish, uploadImage };
+  return { list, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
 }

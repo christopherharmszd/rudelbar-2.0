@@ -1,5 +1,5 @@
 const root = document.querySelector("#app");
-const state = { configured: false, user: null, section: "events", items: [], selected: null, message: "", error: false, busy: false };
+const state = { configured: false, user: null, section: "events", view: "active", items: [], selected: null, message: "", error: false, busy: false };
 const labels = { events: { title: "Termine", description: "Rudel Abende anlegen, vorbereiten und veröffentlichen.", singular: "Termin" }, team: { title: "Das Rudel", description: "Menschen, Fotos und Beschreibungstexte pflegen.", singular: "Teammitglied" }, posts: { title: "Aktuelles", description: "Geschichten und Bilder aus dem Rudel veröffentlichen. Der Bereich erscheint erst mit dem ersten veröffentlichten Beitrag auf der Website.", singular: "Beitrag" } };
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const safeImg = url => /^(\/seed-assets\/|https:\/\/cdn\.sanity\.io\/images\/)/.test(url || "") ? url : "";
@@ -55,10 +55,11 @@ async function load() {
 
 function status(item) {
   if (!item) return "Neuer Entwurf";
+  if (item.archived) return "Archiviert";
   if (item.draft) return item.published ? "Änderungen offen" : "Entwurf";
   return item.published ? "Veröffentlicht" : "Nicht sichtbar";
 }
-function pill(item) { const label = status(item); return `<span class="pill ${item?.draft ? "draft" : !item?.published ? "offline" : ""}">${label}</span>`; }
+function pill(item) { const label = status(item); return `<span class="pill ${item?.archived ? "archived" : item?.draft ? "draft" : !item?.published ? "offline" : ""}">${label}</span>`; }
 function itemTitle(item) { return state.section === "team" ? item.name : item.title; }
 function itemMeta(item) { return state.section === "team" ? item.role || "Ohne Rolle" : item.date || "Ohne Datum"; }
 
@@ -71,16 +72,22 @@ function postImageRow(image) {
       <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
 }
 
-function unpublishConfirmation() {
-  return `<div class="unpublish-confirmation" id="unpublish-confirmation" role="group" aria-label="Veröffentlichung zurücknehmen" hidden>
-    <div><strong>Wirklich von der Website nehmen?</strong><p>Der Eintrag bleibt als Entwurf erhalten. Bereits geöffnete Seiten zeigen die Änderung nach dem Neuladen.</p></div>
-    <div class="unpublish-confirmation-actions"><button class="danger" id="confirm-unpublish" type="button">Ja, von Website nehmen</button><button class="secondary" id="cancel-unpublish" type="button">Abbrechen</button></div>
+function actionConfirmation() {
+  return `<div class="action-confirmation" id="action-confirmation" role="group" aria-label="Aktion bestätigen" hidden>
+    <div><strong id="confirmation-title"></strong><p id="confirmation-description"></p></div>
+    <div class="action-confirmation-actions"><button class="danger" id="confirm-action" type="button"></button><button class="secondary" id="cancel-action" type="button">Abbrechen</button></div>
   </div>`;
+}
+
+function renderArchiveDetails(item) {
+  return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(itemTitle(item))}</h2><p>${esc(itemMeta(item))}</p></div>${pill(item)}</div>
+    <div class="archive-detail"><p>Dieser Eintrag ist archiviert und auf der Website nicht sichtbar. Nach dem Wiederherstellen liegt er als Entwurf bereit und kann erneut veröffentlicht werden.</p>${item.archivedAt ? `<small>Archiviert am ${esc(new Date(item.archivedAt).toLocaleDateString("de-DE"))}</small>` : ""}</div>
+    <div class="form-footer"><div class="actions"><button class="primary" type="button" data-action="restore" ${state.user?.role === "publisher" ? "" : "disabled"}>Wiederherstellen</button><button class="danger" type="button" data-action="delete" ${state.user?.role === "publisher" ? "" : "disabled"}>Endgültig löschen</button></div>${actionConfirmation()}</div>`;
 }
 
 function renderPostForm(item) {
   const disabled = !state.configured ? "disabled" : "";
-  const actions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
+  const actions = item ? `${item.draft ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" ? "" : "disabled"}>Veröffentlichen</button>` : ""}${item.published ? `<button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" ? "" : "disabled"}>Von Website nehmen</button>` : ""}<button class="secondary" type="button" data-action="archive" ${state.user?.role === "publisher" ? "" : "disabled"}>Archivieren</button>` : "";
   const today = new Date();
   const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(item?.title || "Beitrag hinzufügen")}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
@@ -94,22 +101,26 @@ function renderPostForm(item) {
       <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
       <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Beschreibe jedes Bild vor dem Speichern.</small><p id="upload-status" role="status"></p>
     </div></div></div></div>
-    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div>${item ? unpublishConfirmation() : ""}</div></form>`;
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div>${item ? actionConfirmation() : ""}</div></form>`;
 }
 
 function render() {
   const info = labels[state.section];
   const isEvent = state.section === "events";
+  const hasArchive = state.section !== "team";
   const selected = state.selected === "new" ? null : state.items.find(item => item._id === state.selected);
-  const live = state.items.filter(item => item.published).length;
-  const drafts = state.items.filter(item => item.draft).length;
-  const list = state.items.length ? state.items.map(item => `
+  const activeItems = state.items.filter(item => !item.archived);
+  const archivedItems = state.items.filter(item => item.archived);
+  const visibleItems = hasArchive && state.view === "archived" ? archivedItems : activeItems;
+  const live = activeItems.filter(item => item.published).length;
+  const drafts = activeItems.filter(item => item.draft).length;
+  const list = visibleItems.length ? visibleItems.map(item => `
     <button type="button" class="item ${state.selected === item._id ? "selected" : ""}" data-id="${esc(item._id)}" aria-label="${esc(itemTitle(item))} öffnen">
       ${safeImg(state.section === "posts" ? item.images?.[0]?.url : item.photoUrl) ? `<img src="${esc(state.section === "posts" ? item.images[0].url : item.photoUrl)}" alt="" />` : `<span class="item-icon">${isEvent ? "◷" : state.section === "posts" ? "✎" : "♙"}</span>`}
       <span class="item-text"><strong>${esc(itemTitle(item))}</strong><small>${esc(itemMeta(item))}${state.section === "posts" ? "" : ` · Reihenfolge ${esc(item.order ?? 0)}`}</small></span>
       ${pill(item)}
       <span class="item-chevron" aria-hidden="true">›</span>
-    </button>`).join("") : '<div class="empty">Noch keine Einträge. Lege den ersten Inhalt an.</div>';
+    </button>`).join("") : `<div class="empty">${state.view === "archived" && hasArchive ? "Im Archiv liegen noch keine Einträge." : "Noch keine Einträge. Lege den ersten Inhalt an."}</div>`;
   const dialog = state.selected ? `
     <div class="modal-backdrop" id="modal-backdrop">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-heading">
@@ -138,9 +149,10 @@ function render() {
           </div>
           ${!state.configured ? '<div class="banner"><strong>Lokale Vorschau.</strong> Die vorhandenen Inhalte sind hier als Ausgangspunkt sichtbar. Speichern und Veröffentlichen werden aktiv, sobald Sanity und die Anmeldung eingerichtet sind.</div>' : ""}
           ${state.message ? `<p class="message ${state.error ? "error" : ""}" role="status">${esc(state.message)}</p>` : ""}
-          <div class="stats"><div class="stat"><strong>${state.items.length}</strong><span>Einträge insgesamt</span></div><div class="stat"><strong>${live}</strong><span>Veröffentlicht</span></div><div class="stat"><strong>${drafts}</strong><span>Entwürfe / Änderungen</span></div></div>
+          <div class="stats"><div class="stat"><strong>${activeItems.length}</strong><span>Aktive Einträge</span></div><div class="stat"><strong>${live}</strong><span>Veröffentlicht</span></div><div class="stat"><strong>${hasArchive ? archivedItems.length : drafts}</strong><span>${hasArchive ? "Archiviert" : "Entwürfe / Änderungen"}</span></div></div>
+          ${hasArchive ? `<div class="entry-tabs" role="group" aria-label="Einträge anzeigen"><button type="button" data-view="active" aria-pressed="${state.view === "active"}" class="${state.view === "active" ? "active" : ""}">Aktiv <span>${activeItems.length}</span></button><button type="button" data-view="archived" aria-pressed="${state.view === "archived"}" class="${state.view === "archived" ? "active" : ""}">Archiviert <span>${archivedItems.length}</span></button></div>` : ""}
           <div class="layout entries-layout">
-            <section class="panel" aria-label="Einträge"><div class="panel-head"><h2>${isEvent ? "Alle Termine" : state.section === "team" ? "Alle Teammitglieder" : "Alle Beiträge"}</h2><small>${state.items.length} ${state.items.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="list">${list}</div></section>
+            <section class="panel" aria-label="Einträge"><div class="panel-head"><h2>${hasArchive && state.view === "archived" ? "Archivierte " + (isEvent ? "Termine" : "Beiträge") : isEvent ? "Aktive Termine" : state.section === "team" ? "Alle Teammitglieder" : "Aktive Beiträge"}</h2><small>${visibleItems.length} ${visibleItems.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="list">${list}</div></section>
           </div>
         </div>
       </div>
@@ -161,6 +173,7 @@ function closeDialog() {
 
 function renderForm(item) {
   if (!item && state.selected !== "new") return `<div class="empty">Wähle einen Eintrag oder lege einen neuen an.</div>`;
+  if (item?.archived && state.section !== "team") return renderArchiveDetails(item);
   if (state.section === "posts") return renderPostForm(item);
   const isEvent = state.section === "events";
   const formTitle = item ? itemTitle(item) : `${labels[state.section].singular} hinzufügen`;
@@ -192,10 +205,10 @@ function renderForm(item) {
     </div>` : `
     ${field("bio", "Beschreibung", item?.bio, { multiline: true, required: true })}
     ${photoFields}`;
-  const publicationActions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
+  const publicationActions = item ? `${item.draft ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" ? "" : "disabled"}>Veröffentlichen</button>` : ""}${item.published ? `<button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" ? "" : "disabled"}>Von Website nehmen</button>` : ""}${isEvent ? `<button class="secondary" type="button" data-action="archive" ${state.user?.role === "publisher" ? "" : "disabled"}>Archivieren</button>` : ""}` : "";
   return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
     <form id="edit-form"><div class="form-body"><div class="form-columns"><div class="form-main">${mainFields}</div><div class="form-aside">${detailFields}</div></div></div>
-    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${item ? unpublishConfirmation() : ""}${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${item ? actionConfirmation() : ""}${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
 }
 
 function bind() {
@@ -228,7 +241,10 @@ function bind() {
     updateFromAddress();
   }
   document.querySelectorAll("[data-section]").forEach(button => button.addEventListener("click", async () => {
-    state.section = button.dataset.section; state.selected = null; state.message = ""; await load();
+    state.section = button.dataset.section; state.view = "active"; state.selected = null; state.message = ""; await load();
+  }));
+  document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
+    state.view = button.dataset.view; state.selected = null; state.message = ""; render();
   }));
   document.querySelectorAll("[data-id]").forEach(button => button.addEventListener("click", () => {
     lastDialogTrigger = `[data-id="${button.dataset.id}"]`;
@@ -236,7 +252,7 @@ function bind() {
   }));
   document.querySelector("#new").addEventListener("click", () => {
     lastDialogTrigger = "#new";
-    state.selected = "new"; state.message = ""; render();
+    state.view = "active"; state.selected = "new"; state.message = ""; render();
   });
   document.querySelector("#close-dialog")?.addEventListener("click", closeDialog);
   document.querySelector("#modal-backdrop")?.addEventListener("click", event => {
@@ -260,28 +276,56 @@ function bind() {
     } catch (error) { state.message = error.message; state.error = true; render(); }
     finally { state.busy = false; }
   });
-  const publish = async action => {
+  const performAction = async action => {
     if (state.busy) return;
     state.busy = true;
-    try { await api(`${state.section}/${state.selected}/${action}`, { method: "POST" }); state.message = action === "publish" ? "Veröffentlicht in Sanity. Die angebundene Website zeigt den Inhalt nach dem nächsten Laden." : "In Sanity nicht mehr veröffentlicht. Die Website zeigt die Änderung nach dem nächsten Laden."; state.error = false; await load(); }
+    const button = action === "publish" ? document.querySelector('[data-action="publish"]') :
+      action === "restore" ? document.querySelector('[data-action="restore"]') : document.querySelector("#confirm-action");
+    if (button) { button.disabled = true; button.textContent = "Wird verarbeitet …"; }
+    try {
+      await api(`${state.section}/${state.selected}/${action}`, { method: "POST" });
+      state.message = {
+        publish: "Veröffentlicht. Die Website zeigt den Inhalt nach dem nächsten Laden.",
+        unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv.",
+        archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert.",
+        restore: "Wiederhergestellt als Entwurf. Veröffentliche ihn bei Bedarf erneut.",
+        delete: "Eintrag endgültig aus der Redaktion entfernt.",
+      }[action];
+      state.error = false;
+      if (["archive", "restore", "delete"].includes(action)) {
+        state.selected = null;
+        state.view = action === "archive" ? "archived" : "active";
+      }
+      await load();
+    }
     catch (error) { state.message = error.message; state.error = true; render(); }
     finally { state.busy = false; }
   };
-  const unpublishButton = document.querySelector('[data-action="unpublish"]');
-  const confirmation = document.querySelector("#unpublish-confirmation");
+  const confirmation = document.querySelector("#action-confirmation");
   const actions = document.querySelector(".form-footer .actions");
-  document.querySelector('[data-action="publish"]')?.addEventListener("click", () => publish("publish"));
-  unpublishButton?.addEventListener("click", () => {
+  const confirmations = {
+    unpublish: ["Wirklich von der Website nehmen?", "Der Eintrag bleibt als aktiver Entwurf erhalten. Die Website zeigt die Änderung nach dem Neuladen.", "Ja, von Website nehmen"],
+    archive: ["Eintrag archivieren?", "Der Eintrag verschwindet sofort von der Website und liegt dann im Archiv. Ungespeicherte Änderungen werden nicht übernommen.", "Ja, archivieren"],
+    delete: ["Eintrag endgültig löschen?", "Der Eintrag wird aus der Redaktion entfernt und kann hier nicht wiederhergestellt werden. Hochgeladene Bilddateien können im Medienspeicher verbleiben.", "Ja, endgültig löschen"],
+  };
+  document.querySelector('[data-action="publish"]')?.addEventListener("click", () => performAction("publish"));
+  document.querySelector('[data-action="restore"]')?.addEventListener("click", () => performAction("restore"));
+  document.querySelectorAll('[data-action="unpublish"], [data-action="archive"], [data-action="delete"]').forEach(button => button.addEventListener("click", () => {
+    const [title, description, label] = confirmations[button.dataset.action];
+    document.querySelector("#confirmation-title").textContent = title;
+    document.querySelector("#confirmation-description").textContent = description;
+    document.querySelector("#confirm-action").textContent = label;
+    document.querySelector("#confirm-action").dataset.action = button.dataset.action;
     actions.hidden = true;
     confirmation.hidden = false;
-    document.querySelector("#cancel-unpublish").focus();
-  });
-  document.querySelector("#cancel-unpublish")?.addEventListener("click", () => {
+    document.querySelector("#cancel-action").focus();
+  }));
+  document.querySelector("#cancel-action")?.addEventListener("click", () => {
     confirmation.hidden = true;
     actions.hidden = false;
-    unpublishButton.focus();
+    document.querySelector(`[data-action="${document.querySelector("#confirm-action").dataset.action}"]`)?.focus();
   });
-  document.querySelector("#confirm-unpublish")?.addEventListener("click", () => publish("unpublish"));
+  document.querySelector("#confirm-action")?.addEventListener("click", event => performAction(event.currentTarget.dataset.action));
   document.querySelector("#photo-upload")?.addEventListener("change", async event => {
     const file = event.target.files?.[0]; if (!file) return;
     if (file.size > 8_000_000) { state.message = "Das Bild darf höchstens 8 MB groß sein."; state.error = true; render(); return; }

@@ -138,7 +138,7 @@ async function handle(req, res) {
       const file = await body(req, 8_000_000);
       return reply(res, 200, await sanity.uploadImage(file, mime, filename));
     }
-    const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
+    const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish|archive|restore|delete))?$/i);
     if (match) {
       const [, group, id, action] = match;
       const type = typeFromPath(group);
@@ -153,13 +153,17 @@ async function handle(req, res) {
       if (req.method === "PUT" && id && !action) {
         if (!authorized(req, res)) return;
         const data = JSON.parse((await body(req)).toString());
-        await sanity.saveDraft(type, id, fields(group, data));
+        await sanity.saveDraft(type, id, fields(group, data), true);
         return reply(res, 200, { id });
       }
       if (req.method === "POST" && id && action) {
         if (!authorized(req, res, "publisher")) return;
+        if (["archive", "restore", "delete"].includes(action) && group === "team") return reply(res, 404, { error: "Nicht gefunden." });
         if (action === "publish") await sanity.publish(id);
-        else await sanity.unpublish(id);
+        else if (action === "unpublish") await sanity.unpublish(id);
+        else if (action === "archive") await sanity.archive(id, type);
+        else if (action === "restore") await sanity.restore(id, type);
+        else await sanity.deleteForever(id, type);
         return reply(res, 200, { ok: true });
       }
     }

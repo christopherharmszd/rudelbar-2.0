@@ -152,6 +152,61 @@ test("online login protects Sanity writes and revokes sessions when the password
   }
 });
 
+test("events and posts move through archive, restore, and final deletion", async () => {
+  const state = await setup();
+  try {
+    const { cookie, csrf } = await login(state.env);
+    const write = (path, method = "POST", body) => worker.fetch(request(path, { method, cookie, csrf, body }), state.env);
+    const read = path => worker.fetch(request(path, { cookie }), state.env);
+    const event = await write("/api/events", "POST", {
+      title: "Testtermin", date: "2026-10-17", time: "19 Uhr", venue: "Scharnebeck",
+      address: "Hauptstraße 1", description: "Ein Testtermin", order: 1,
+    });
+    assert.equal(event.status, 201);
+    const { id } = await event.json();
+    assert.equal((await write(`/api/events/${id}/publish`)).status, 200);
+    assert.equal((await write(`/api/events/${id}/delete`)).status, 409);
+    assert.equal((await write(`/api/events/${id}/archive`)).status, 200);
+    assert.equal(state.docs.has(id), false);
+    assert.equal(state.docs.get(`drafts.${id}`).archived, true);
+    assert.equal((await (await read("/api/events")).json()).items[0].archived, true);
+    assert.equal((await write(`/api/events/${id}/publish`)).status, 409);
+    assert.equal((await write(`/api/events/${id}`, "PUT", {
+      title: "Versehentlich bearbeitet", date: "2026-10-17", time: "19 Uhr",
+      venue: "Scharnebeck", description: "Ein Testtermin", order: 1,
+    })).status, 409);
+    assert.equal((await write(`/api/events/${id}/restore`)).status, 200);
+    assert.equal(state.docs.get(`drafts.${id}`).archived, undefined);
+    assert.equal(state.docs.has(id), false);
+    assert.equal((await write(`/api/events/${id}/publish`)).status, 200);
+    assert.equal(state.docs.has(id), true);
+    assert.equal((await write(`/api/events/${id}/archive`)).status, 200);
+    assert.equal((await write(`/api/events/${id}/delete`)).status, 200);
+    assert.equal(state.docs.has(id), false);
+    assert.equal(state.docs.has(`drafts.${id}`), false);
+    assert.equal((await (await read("/api/events")).json()).items.length, 0);
+    assert.equal((await write(`/api/events/${id}`, "PUT", {
+      title: "Alter Tab", date: "2026-10-17", time: "19 Uhr",
+      venue: "Scharnebeck", description: "Ein Testtermin", order: 1,
+    })).status, 404);
+
+    const post = await write("/api/posts", "POST", {
+      title: "Testbeitrag", date: "2026-09-29", teaser: "Ein Einblick", body: "Testtext", images: [],
+    });
+    assert.equal(post.status, 201);
+    const { id: postId } = await post.json();
+    assert.equal((await write(`/api/posts/${postId}/publish`)).status, 200);
+    assert.equal((await write(`/api/posts/${postId}/archive`)).status, 200);
+    assert.equal(state.docs.has(postId), false);
+    assert.equal((await (await read("/api/posts")).json()).items[0].archived, true);
+    assert.equal((await write(`/api/posts/${postId}/delete`)).status, 200);
+    assert.equal(state.docs.has(`drafts.${postId}`), false);
+    assert.equal((await write(`/api/team/${postId}/archive`)).status, 404);
+  } finally {
+    state.restore();
+  }
+});
+
 test("login throttling runs before checking passwords", async () => {
   const state = await setup();
   try {

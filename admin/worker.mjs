@@ -189,7 +189,7 @@ async function api(request, env) {
     const file = await body(request, 8_000_000);
     return json(200, await sanity(env).uploadImage(file, mime, filename));
   }
-  const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
+  const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish|archive|restore|delete))?$/i);
   if (match) {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
@@ -202,12 +202,16 @@ async function api(request, env) {
       return json(201, { id: newId });
     }
     if (request.method === "PUT" && id && !action) {
-      await client.saveDraft(type, id, fields(group, await data(request)));
+      await client.saveDraft(type, id, fields(group, await data(request)), true);
       return json(200, { id });
     }
     if (request.method === "POST" && id && action) {
+      if (["archive", "restore", "delete"].includes(action) && group === "team") return json(404, { error: "Nicht gefunden." });
       if (action === "publish") await client.publish(id);
-      else await client.unpublish(id);
+      else if (action === "unpublish") await client.unpublish(id);
+      else if (action === "archive") await client.archive(id, type);
+      else if (action === "restore") await client.restore(id, type);
+      else await client.deleteForever(id, type);
       return json(200, { ok: true });
     }
   }
