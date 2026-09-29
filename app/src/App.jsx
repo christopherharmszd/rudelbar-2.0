@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { ArrowRight, CalendarDays, ChevronDown, MapPin, Menu, Sparkles, UsersRound, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, MapPin, Menu, Sparkles, UsersRound, X } from "lucide-react";
 import { formattedDate, loadPublishedContent, newestPosts, nextEvent, orderedContent, publicConfig, upcomingEvents } from "./content.js";
 
 const routes = [["Start", "#/"], ["Termine", "#/termine"], ["Das Rudel", "#/das-rudel"], ["Für dein Event", "#/dein-event"], ["Kontakt", "#/kontakt"]];
@@ -14,7 +14,68 @@ const safePostImage = url => /^https:\/\/cdn\.sanity\.io\/images\//.test(url || 
 function PostCard({ post }) { const cover = post.images?.find(image => safePostImage(image.url)); return <article className="post-card"><a href={`#/aktuelles/${post._id}`} aria-label={`${post.title} lesen`}>{cover && <img src={cover.url} alt={cover.alt || ""} loading="lazy" />}<div className="post-card-copy"><p className="eyebrow gold">{formattedDate(post.date)}</p><h3>{post.title}</h3><p>{post.teaser}</p><span>Weiterlesen <ArrowRight size={17} aria-hidden="true" /></span></div></a></article>; }
 function LatestPosts({ posts }) { if (!posts.length) return null; return <section className="latest-posts" aria-labelledby="latest-posts-title"><div className="latest-posts-head"><div><p className="eyebrow gold">NEUES AUS DEM RUDEL</p><h2 id="latest-posts-title">Aktuelles.</h2></div><a className="text-link" href="#/aktuelles">Alle Beiträge <ArrowRight size={17} /></a></div><div className="post-grid">{newestPosts(posts).slice(0, 3).map(post => <PostCard key={post._id} post={post} />)}</div></section>; }
 function PostsPage({ posts }) { return <><PageIntro eyebrow="AKTUELLES" title="Neues aus dem Rudel.">Geschichten, Einblicke und Bilder von unterwegs.</PageIntro><section className="post-grid post-list" aria-label="Alle Beiträge">{newestPosts(posts).map(post => <PostCard key={post._id} post={post} />)}</section></>; }
-function PostPage({ post }) { if (!post) return null; return <article className="post-detail"><a className="text-link" href="#/aktuelles">← Alle Beiträge</a><p className="eyebrow gold">{formattedDate(post.date)}</p><h1>{post.title}</h1><p className="post-lead">{post.teaser}</p><div className="post-body">{String(post.body || "").split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>{post.images?.length > 0 && <div className="post-gallery">{post.images.filter(image => safePostImage(image.url)).map((image, index) => <figure key={image._key || index}><img src={image.url} alt={image.alt || ""} loading="lazy" />{image.caption && <figcaption>{image.caption}</figcaption>}</figure>)}</div>}</article>; }
+function PostGallery({ images }) {
+  const [activeIndex, setActiveIndex] = useState(null);
+  const closeButton = useRef(null);
+  const openingButton = useRef(null);
+  const touchStart = useRef(null);
+  const open = activeIndex !== null;
+  const move = direction => setActiveIndex(index => (index + direction + images.length) % images.length);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+    const onKeyDown = event => {
+      if (event.key === "Escape") { event.preventDefault(); setActiveIndex(null); }
+      else if (event.key === "ArrowLeft" && images.length > 1) { event.preventDefault(); move(-1); }
+      else if (event.key === "ArrowRight" && images.length > 1) { event.preventDefault(); move(1); }
+      else if (event.key === "Tab") {
+        const controls = [...document.querySelectorAll(".post-lightbox button")];
+        const first = controls[0], last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+      openingButton.current?.focus();
+    };
+  }, [open, images.length]);
+
+  return <>
+    <div className="post-gallery">{images.map((image, index) => <figure key={image._key || index}>
+      <button className="post-image-open" type="button" aria-label={`Bild ${index + 1} von ${images.length} groß ansehen`} onClick={event => { openingButton.current = event.currentTarget; setActiveIndex(index); }}>
+        <img src={image.url} alt={image.alt || ""} loading="lazy" />
+      </button>
+      {image.caption && <figcaption>{image.caption}</figcaption>}
+    </figure>)}</div>
+    {open && <div className="post-lightbox-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setActiveIndex(null); }}>
+      <section className="post-lightbox" role="dialog" aria-modal="true" aria-label="Bildergalerie">
+        <div className="post-lightbox-top"><span>Bild {activeIndex + 1} von {images.length}</span><button ref={closeButton} type="button" aria-label="Galerie schließen" onClick={() => setActiveIndex(null)}><X aria-hidden="true" /></button></div>
+        <div className="post-lightbox-stage" onTouchStart={event => { touchStart.current = [event.touches[0].clientX, event.touches[0].clientY]; }} onTouchEnd={event => {
+          if (!touchStart.current || images.length < 2) return;
+          const dx = event.changedTouches[0].clientX - touchStart.current[0];
+          const dy = event.changedTouches[0].clientY - touchStart.current[1];
+          if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) move(dx < 0 ? 1 : -1);
+          touchStart.current = null;
+        }}>
+          {images.length > 1 && <button className="post-lightbox-arrow previous" type="button" aria-label="Vorheriges Bild" onClick={() => move(-1)}><ChevronLeft aria-hidden="true" /></button>}
+          <img src={images[activeIndex].url} alt={images[activeIndex].alt || ""} />
+          {images.length > 1 && <button className="post-lightbox-arrow next" type="button" aria-label="Nächstes Bild" onClick={() => move(1)}><ChevronRight aria-hidden="true" /></button>}
+        </div>
+        {images[activeIndex].caption && <p className="post-lightbox-caption">{images[activeIndex].caption}</p>}
+      </section>
+    </div>}
+  </>;
+}
+function PostPage({ post }) {
+  const images = (post.images || []).filter(image => safePostImage(image.url));
+  return <article className="post-detail"><a className="text-link" href="#/aktuelles">← Alle Beiträge</a><p className="eyebrow gold">{formattedDate(post.date)}</p><h1>{post.title}</h1><p className="post-lead">{post.teaser}</p><div className="post-body">{String(post.body || "").split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>{images.length > 0 && <PostGallery images={images} />}</article>;
+}
 function EventDetails({ event }) { return <div className="event-details" aria-label={`Informationen zu ${event.title}`}><div><CalendarDays aria-hidden="true" /><p><strong>{formattedDate(event.date)}</strong><br />{event.time}</p></div><div><MapPin aria-hidden="true" /><p><strong>{event.venue}</strong>{event.address && <><br />{event.address}</>}</p></div></div>; }
 function EventCard({ event, home = false }) { return <section className={home ? "next-event" : "next-event compact-event"} aria-label={event.title}><div><p className="eyebrow gold">{home ? "NÄCHSTER RUDEL ABEND" : "RUDEL ABEND"}</p><h2>{event.title}</h2><p><strong>{formattedDate(event.date)} · {event.time}</strong><br />{event.description}</p>{event.mapUrl?.startsWith("https://") && <a className="button" href={event.mapUrl} target="_blank" rel="noreferrer">Route öffnen</a>}</div><EventDetails event={event} /></section>; }
 function EventPlaceholder({ error = false, home = false }) { return <section className={`next-event event-placeholder${home ? "" : " compact-event"}`} aria-label="Termine"><div><p className="eyebrow gold">RUDEL ABENDE</p><h2>{error ? "Termine gerade nicht verfügbar." : "Der nächste Ort kommt bald."}</h2><p>{error ? "Die Termine konnten nicht geladen werden. Versuch es bitte später noch einmal." : "Sobald ein neuer Rudel Abend feststeht, findest du hier alle Informationen."}</p><a href="#/dein-event" className="text-link">Einen Abend für deinen Ort planen <ArrowRight size={17} /></a></div><div className="placeholder-art" aria-hidden="true"><CalendarDays size={72} strokeWidth={1} /><span>Wir sehen uns bald.</span></div></section>; }
@@ -107,6 +168,6 @@ export function App() {
   const publicRoutes = posts.length ? [...routes.slice(0, 3), ["Aktuelles", "#/aktuelles"], ...routes.slice(3)] : routes;
   const articleId = window.location.hash.match(/^#\/aktuelles\/([a-z0-9-]+)$/i)?.[1];
   const article = posts.find(post => post._id === articleId);
-  const page = route === "termine" ? <EventsPage events={content.events} contentError={contentError} /> : route === "das-rudel" ? <TeamPage team={content.team} contentError={contentError} /> : route === "aktuelles" && posts.length ? <PostsPage posts={posts} /> : route === "beitrag" && article ? <PostPage post={article} /> : route === "dein-event" ? <EventBookingPage theme={theme} /> : route === "kontakt" ? <ContactPage /> : <Home theme={theme} event={nextEvent(content.events)} contentError={contentError} posts={posts} />;
+  const page = route === "termine" ? <EventsPage events={content.events} contentError={contentError} /> : route === "das-rudel" ? <TeamPage team={content.team} contentError={contentError} /> : route === "aktuelles" && posts.length ? <PostsPage posts={posts} /> : route === "beitrag" && article ? <PostPage key={article._id} post={article} /> : route === "dein-event" ? <EventBookingPage theme={theme} /> : route === "kontakt" ? <ContactPage /> : <Home theme={theme} event={nextEvent(content.events)} contentError={contentError} posts={posts} />;
   return <main>{previewThemes && <aside className="theme-switcher" aria-label="Farbvarianten-Vorschau"><span>Farbtest</span>{[["", "Original"], ["dusk", "Dämmerung"], ["evening", "Abend"], ["black", "Schwarz"]].map(([value, label]) => <button key={label} className={theme === value ? "is-active" : ""} type="button" onClick={() => chooseTheme(value)}>{label}</button>)}</aside>}<header className="site-header"><a className="brand" href="#/" aria-label="Rudel Bar Startseite"><img src="./assets/rudelbar-logo.png" alt="Rudelbar Logo" /><span>Rudel Bar<small>Die mobile Kneipe</small></span></a><nav className={menuOpen ? "primary-nav is-open" : "primary-nav"} aria-label="Hauptnavigation">{publicRoutes.map(([label, href]) => <a key={href} href={href} aria-current={href === "#/" ? route === "start" ? "page" : undefined : href === "#/aktuelles" ? ["aktuelles", "beitrag"].includes(route) ? "page" : undefined : href.endsWith(route) ? "page" : undefined} onClick={() => setMenuOpen(false)}>{label}</a>)}</nav><a className="button button-small header-cta" href="#/dein-event">Event anfragen</a><button className="menu-button" aria-label="Menü öffnen" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={23} /> : <Menu size={25} />}</button></header>{page}<footer className="site-footer"><div className="footer-brand"><a href="#/" aria-label="Rudel Bar Startseite"><img src="./assets/rudelbar-logo.png" alt="" /><span>Rudel Bar<small>Die mobile Kneipe</small></span></a><p>Für gute Abende und lebendige Dörfer.</p></div><nav className="footer-nav" aria-label="Footer-Navigation"><a href="#/termine">Termine</a><a href="#/das-rudel">Das Rudel</a>{posts.length > 0 && <a href="#/aktuelles">Aktuelles</a>}<a href="#/kontakt">Kontakt</a></nav><div className="footer-social"><a href="https://www.instagram.com/rudelbar/" target="_blank" rel="noopener noreferrer" aria-label="Rudelbar auf Instagram öffnen"><InstagramMark />Instagram <ArrowRight size={15} aria-hidden="true" /></a><a className="back-top" href="#/">Nach oben <ChevronDown size={16} aria-hidden="true" /></a></div><nav className="footer-legal" aria-label="Rechtliches"><a href="./impressum.html">Impressum</a><a href="./datenschutz.html">Datenschutz &amp; Cookies</a></nav></footer></main>;
 }

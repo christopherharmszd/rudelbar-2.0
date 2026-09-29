@@ -109,6 +109,20 @@ html[data-theme="black"] .booking-form input[type="date"],html[data-theme="dusk"
 .post-gallery figure{margin:0;min-width:0}.post-gallery figure:first-child{grid-column:1/-1}
 .post-gallery img{display:block;width:100%;height:auto;border-radius:5px}
 .post-gallery figcaption{color:var(--muted);font:.82rem/1.5 Arial,sans-serif;padding:.55rem 0}
+.post-image-open{display:block;width:100%;padding:0;border:0;border-radius:5px;background:transparent;cursor:zoom-in;overflow:hidden}
+.post-image-open img{transition:transform .2s ease}
+.post-image-open:hover img{transform:scale(1.015)}
+.post-image-open:focus-visible{outline:3px solid var(--ochre);outline-offset:4px}
+.post-lightbox-backdrop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:clamp(0px,3vw,32px);background:rgba(0,0,0,.92)}
+.post-lightbox{display:flex;flex-direction:column;width:min(1120px,100%);height:min(92dvh,900px);min-height:0;padding:16px;background:#111;color:#f5f1e9;border:1px solid #48443e;border-radius:9px;box-shadow:0 22px 70px #0009}
+.post-lightbox-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:48px;padding:0 4px 10px;font:700 .82rem Arial,sans-serif;letter-spacing:.04em}
+.post-lightbox button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #777;background:#202020;color:#f5f1e9;border-radius:50%;cursor:pointer}
+.post-lightbox button:hover,.post-lightbox button:focus-visible{background:#3b3427;border-color:var(--ochre);outline:2px solid var(--ochre);outline-offset:2px}
+.post-lightbox-stage{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-height:0;overflow:hidden;touch-action:pan-y}
+.post-lightbox-stage img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.post-lightbox-arrow{position:absolute;top:50%;z-index:1;transform:translateY(-50%)}
+.post-lightbox-arrow.previous{left:12px}.post-lightbox-arrow.next{right:12px}
+.post-lightbox-caption{flex:none;max-height:20dvh;overflow:auto;margin:0;padding:14px 6px 2px;text-align:center;color:#d5d0c6;font:normal .88rem/1.5 Arial,sans-serif}
 
 /* Site footer contains the same logo lockup as the header and plain links only. */
 .site-footer{display:grid;grid-template-columns:minmax(190px,1.4fr) minmax(130px,.75fr) minmax(180px,.8fr);gap:2rem;align-items:start;padding:3rem clamp(1.25rem,4vw,4.5rem) 1.4rem;background:var(--paper);font:normal .9rem/1.5 Arial,sans-serif}
@@ -124,4 +138,5 @@ html[data-theme="black"] .booking-form input[type="date"],html[data-theme="dusk"
 .site-footer .footer-legal{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:1.4rem;padding-top:1.2rem;border-top:1px solid var(--line);font-size:.78rem;color:var(--muted)}
 @media(max-width:820px){.post-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.site-footer{grid-template-columns:1fr 1fr}.site-footer .footer-brand{grid-column:1/-1}}
 @media(max-width:600px){.latest-posts{margin:3rem auto}.latest-posts-head{align-items:start;flex-direction:column}.post-grid{grid-template-columns:1fr}.post-list{padding:0 1.15rem}.post-detail{padding:3rem 1.15rem}.post-gallery{grid-template-columns:1fr}.post-gallery figure:first-child{grid-column:auto}.site-footer{grid-template-columns:1fr 1fr;gap:1.6rem 1rem;padding:2.5rem 1.15rem 1.3rem}.site-footer .footer-nav,.site-footer .footer-social{font-size:.84rem}}
+@media(max-width:600px){.post-lightbox-backdrop{padding:0}.post-lightbox{width:100%;height:100dvh;border:0;border-radius:0;padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.post-lightbox-arrow.previous{left:3px}.post-lightbox-arrow.next{right:3px}.post-lightbox button{width:42px;height:42px}.post-lightbox-stage img{max-width:100%;max-height:100%}}
 @media(min-width:821px) and (max-width:1050px){.site-header .primary-nav{display:none}.site-header .primary-nav.is-open{display:grid;position:absolute;top:74px;left:0;right:0;padding:1.25rem;background:var(--paper);border-bottom:1px solid var(--line);gap:1rem;box-shadow:0 10px 18px rgba(20,42,69,.08)}.site-header .header-cta{display:none}.site-header .menu-button{display:grid;place-items:center;margin-left:auto;color:#f8f5eb;background:none;border:0;padding:.3rem}}
