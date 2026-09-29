@@ -4,7 +4,12 @@ import { stdin, stdout } from "node:process";
 import { passwordVerifier } from "./worker.mjs";
 
 if (!process.env.SANITY_EDITOR_TOKEN) {
-  throw new Error("SANITY_EDITOR_TOKEN fehlt. Starte das Skript mit --env-file=admin/.env.local aus dem Repository.");
+  throw new Error("SANITY_EDITOR_TOKEN fehlt. Starte das Skript mit einer Git-ignorierten admin/.env-Datei aus dem Repository.");
+}
+
+const production = process.argv.includes("--production");
+if (production && (process.env.SANITY_PROJECT_ID !== "uywmld5e" || process.env.SANITY_DATASET !== "production")) {
+  throw new Error("Für --production muss die lokale Konfiguration das Projekt uywmld5e und das Dataset production wählen.");
 }
 
 const interactive = process.argv.includes("--prompt");
@@ -46,7 +51,8 @@ const secrets = {
   RUDELBAR_PASSWORD_VERIFIER: await passwordVerifier(secret, password),
 };
 
-const child = spawn(new URL("./node_modules/.bin/wrangler", import.meta.url).pathname, ["secret", "bulk"], {
+const config = production ? "wrangler.production.jsonc" : "wrangler.jsonc";
+const child = spawn(new URL("./node_modules/.bin/wrangler", import.meta.url).pathname, ["secret", "bulk", "--config", config], {
   cwd: new URL(".", import.meta.url).pathname,
   env: process.env,
   stdio: ["pipe", "inherit", "inherit"],

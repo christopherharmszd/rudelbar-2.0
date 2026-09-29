@@ -1,6 +1,6 @@
 # Rudelbar CMS
 
-Die öffentliche Staging-Website liegt auf GitHub Pages. Diese Redaktion wird als eigener Cloudflare Worker aus demselben Repository veröffentlicht. Beide lesen beziehungsweise schreiben das Sanity-Projekt `uywmld5e`, Dataset `staging`. Das `production`-Dataset und die bestehende Live-Website bleiben getrennt.
+Die öffentliche Staging-Website liegt auf GitHub Pages. Ihre Redaktion läuft als Cloudflare Worker `rudelbar-cms-staging` und nutzt das Sanity-Dataset `staging`. Für Produktion gibt es einen zweiten Worker `rudelbar-cms` mit eigenem Passwort und dem Dataset `production`. Die bestehende Live-Website bleibt bis zum freigegebenen Release getrennt.
 
 ## Für Redakteurinnen und Redakteure
 
@@ -42,7 +42,9 @@ node --env-file=admin/.env.local admin/configure-worker.mjs
 
 Das Skript erzeugt ein neues starkes Passwort und zeigt es **einmalig** nach erfolgreicher Übertragung an. Mit `--prompt` kann stattdessen ein selbst gewähltes Passwort im Terminal verborgen eingegeben werden; es muss mindestens 16 Zeichen lang sein. Bei jedem Lauf werden der Sitzungsschlüssel und der Passwortprüfwert gemeinsam ersetzt und alle bisherigen Sitzungen abgemeldet. `admin/.env.local` enthält den bereits eingerichteten Sanity Editor Token und ist von Git ausgeschlossen. Die Datei ist Voraussetzung für diesen Betreiberbefehl, nicht für Redakteure.
 
-Der Workername und die Sanity-Staging-Konfiguration stehen in `admin/wrangler.jsonc`. Ein künftiger Produktions-Worker braucht einen eigenen Namen, ein eigenes Dataset und eigene Geheimnisse. Die Cloudflare-Adresse unter `workers.dev` funktioniert ohne DNS-Änderung. Für `redaktion.rudelbar.de` muss die Domainanbindung separat eingerichtet und geprüft werden; die bestehende Website- und Mail-DNS-Konfiguration darf dabei nicht verändert werden.
+Die Worker-Konfigurationen stehen in `admin/wrangler.jsonc` und `admin/wrangler.production.jsonc`. Der Produktions-Worker wird mit `npm run deploy:production` veröffentlicht. Seine eigenen Secrets setzt `SANITY_DATASET=production node --env-file=admin/.env.local admin/configure-worker.mjs --production`. Dieser Befehl erzeugt ein neues Passwort und meldet bestehende Produktionssitzungen ab; nur für eine bewusste Passwortänderung erneut ausführen. Die Cloudflare-Adresse unter `workers.dev` funktioniert ohne DNS-Änderung. Für `redaktion.rudelbar.de` muss die Domainanbindung separat eingerichtet und geprüft werden; die bestehende Website- und Mail-DNS-Konfiguration darf dabei nicht verändert werden.
+
+Die erste Übernahme der veröffentlichten Inhalte aus Staging erfolgte mit `admin/migrate-staging-to-production.mjs`. Das Skript prüft sechs festgelegte Inhalte und ein leeres Ziel-Dataset. Es dient nicht der laufenden Synchronisierung; spätere Beiträge und Änderungen werden bewusst getrennt in der jeweiligen Redaktion gepflegt.
 
 ### Lokal testen
 

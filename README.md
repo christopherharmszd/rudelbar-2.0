@@ -13,9 +13,10 @@ Staging-Repository für die Weiterentwicklung der Rudelbar-Website und die CMS-A
 
 Im Repository-Verzeichnis `python3 -m http.server 8767 --directory site` starten und `http://127.0.0.1:8767/` öffnen. Für die bearbeitbare Version in `app/` `npm ci`, `npm run build` und danach im Repository-Verzeichnis `python3 -m http.server 8768 --directory app/dist/client` ausführen. Die Formulare nutzen bereits den echten Web3Forms-Endpunkt; Testanfragen werden tatsächlich versendet.
 
-## Nächste Schritte
+## Staging und Produktion
 
-1. Unter `admin/` liegen die Redaktionsoberfläche und ihr Cloudflare Worker für Termine und Teamprofile; Details stehen in `admin/README.md`.
-2. Änderungen an `app/` auf `main` lösen den GitHub-Pages-Build automatisch aus. Inhalte, die in der Redaktion veröffentlicht werden, liest die Website direkt aus Sanity; dafür ist kein neuer Push nötig.
-3. GitHub Pages hostet die öffentliche Website einschließlich der kurzen Weiterleitung `/redaktion`. Die eigentliche Anmeldung und alle Schreibzugriffe laufen über den Cloudflare Worker. Beim Produktions-Build muss `RUDELBAR_CMS_URL` auf die separate Produktions-Redaktion zeigen; ohne diesen Wert bricht ein Build für das `production`-Dataset ab.
-4. Erst nach ausdrücklicher Freigabe Änderungen nach `rudelbar-pages` und damit auf `rudelbar.de` übertragen. Das `production`-Dataset und ein eigener Produktions-Worker bleiben bis dahin getrennt von Staging.
+`rudelbar-2.0` bleibt der bearbeitbare Quellcode und die Staging-Website. Der veröffentlichte Produktions-Build wird zusätzlich im bestehenden Repository `christopherharmszd/rudelbar-pages` abgelegt. Dessen `main` steuert `rudelbar.de`. Änderungen an `app/` auf `main` hier lösen nur den Staging-Build aus.
+
+Staging nutzt das Sanity-Dataset `staging` und den Worker `rudelbar-cms-staging`. Produktion nutzt `production` und den Worker `rudelbar-cms`. Beide Bereiche sind getrennt; ein redaktioneller Testbeitrag erscheint nicht automatisch in Produktion. Die Website liest veröffentlichte Inhalte direkt aus dem jeweiligen Dataset, ohne dass für jede Inhaltsänderung ein neuer Website-Push nötig ist.
+
+Der Produktions-Build entsteht mit `cd app && npm run build:production && npm run test:production` in `app/dist/production`. Er enthält `CNAME` für `rudelbar.de` und die Weiterleitung `/redaktion` zur Produktions-Redaktion. Die Übernahme nach `rudelbar-pages/main` ist der eigentliche Go-live-Schritt und erfolgt erst nach der Freigabe des vorbereiteten Releases. Ablauf und Nachkontrolle stehen in [docs/production-release.md](docs/production-release.md).
