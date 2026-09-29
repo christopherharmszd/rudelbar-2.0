@@ -122,6 +122,27 @@ test("online login protects Sanity writes and revokes sessions when the password
     assert.equal((await worker.fetch(request(`/api/team/${teamId}/publish`, { method: "POST", cookie, csrf }), state.env)).status, 200);
     assert.equal((await (await worker.fetch(request("/api/team", { cookie }), state.env)).json()).items[0].published, true);
 
+    const postCreated = await worker.fetch(request("/api/posts", { method: "POST", cookie, csrf, body: {
+      title: "Ein Abend im Rudel", date: "2026-09-29", teaser: "Ein kurzer Einblick",
+      body: "Erster Absatz.\n\nZweiter Absatz.", images: [{
+        assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png",
+        alt: "Rudelbar am Abend", caption: "Ein guter Abend",
+      }],
+    } }), state.env);
+    assert.equal(postCreated.status, 201);
+    const { id: postId } = await postCreated.json();
+    assert.equal(state.docs.get(`drafts.${postId}`).images[0].alt, "Rudelbar am Abend");
+    assert.equal((await worker.fetch(request(`/api/posts/${postId}/publish`, { method: "POST", cookie, csrf }), state.env)).status, 200);
+    assert.equal((await (await worker.fetch(request("/api/posts", { cookie }), state.env)).json()).items[0].published, true);
+    assert.equal((await worker.fetch(request(`/api/posts/${postId}/unpublish`, { method: "POST", cookie, csrf }), state.env)).status, 200);
+    assert.equal(state.docs.has(postId), false);
+    const invalidPost = await worker.fetch(request("/api/posts", { method: "POST", cookie, csrf, body: {
+      title: "Ohne Bildbeschreibung", date: "2026-09-29", teaser: "Ein Blick", body: "Text", images: [{
+        assetId: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png", alt: "",
+      }],
+    } }), state.env);
+    assert.equal(invalidPost.status, 400);
+
     state.env.RUDELBAR_PASSWORD_VERIFIER = await passwordVerifier(secret, "A-new-test-password-2026!");
     const expired = await worker.fetch(request("/api/session", { cookie }), state.env);
     assert.equal((await expired.json()).user, null);

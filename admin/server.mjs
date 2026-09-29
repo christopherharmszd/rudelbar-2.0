@@ -61,6 +61,19 @@ function clean(value, max, required = false) {
   return result;
 }
 function fields(type, data) {
+  if (type === "posts") {
+    const date = clean(data.date, 10, true);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00Z`))) throw Object.assign(new Error("Bitte ein gültiges Beitragsdatum eingeben."), { status: 400 });
+    if (!Array.isArray(data.images) || data.images.length > 12) throw Object.assign(new Error("Maximal 12 Bilder pro Beitrag sind möglich."), { status: 400 });
+    const images = data.images.map(image => {
+      const assetId = clean(image.assetId, 200, true);
+      const url = clean(image.url, 1000, true);
+      if (!/^image-[a-zA-Z0-9-]+$/.test(assetId) || !/^https:\/\/cdn\.sanity\.io\/images\//.test(url)) throw Object.assign(new Error("Ungültiges Beitragsbild."), { status: 400 });
+      return { _key: randomUUID(), _type: "image", asset: { _type: "reference", _ref: assetId }, url,
+        alt: clean(image.alt, 180, true), caption: clean(image.caption, 240) };
+    });
+    return { title: clean(data.title, 120, true), date, teaser: clean(data.teaser, 300, true), body: clean(data.body, 12000, true), images };
+  }
   const order = Number(data.order ?? 0);
   if (!Number.isInteger(order) || order < 0 || order > 999) throw Object.assign(new Error("Ungültige Reihenfolge."), { status: 400 });
   if (type === "events") {
@@ -76,7 +89,7 @@ function fields(type, data) {
   if (photoUrl && !/^https:\/\/cdn\.sanity\.io\/images\//.test(photoUrl)) throw Object.assign(new Error("Ungültige Bildadresse."), { status: 400 });
   return { name: clean(data.name, 80, true), role: clean(data.role, 160, true), bio: clean(data.bio, 1200, true), order, ...(photoAssetId ? { photo: { _type: "image", asset: { _type: "reference", _ref: photoAssetId } }, photoUrl } : {}) };
 }
-function typeFromPath(value) { return value === "events" ? "rudelEvent" : value === "team" ? "rudelTeamMember" : null; }
+function typeFromPath(value) { return { events: "rudelEvent", team: "rudelTeamMember", posts: "rudelPost" }[value] || null; }
 function safeId(id) { return /^[a-z0-9-]{1,100}$/i.test(id); }
 
 async function handle(req, res) {
@@ -111,8 +124,9 @@ async function handle(req, res) {
     }
     if (!configured && req.method === "GET" && path === "/api/events") return reply(res, 200, { items: events, preview: true });
     if (!configured && req.method === "GET" && path === "/api/team") return reply(res, 200, { items: team, preview: true });
+    if (!configured && req.method === "GET" && path === "/api/posts") return reply(res, 200, { items: [], preview: true });
     if (!configured) return reply(res, 503, { error: "Nur Vorschau: Sanity und Anmeldung sind noch nicht eingerichtet." });
-    if (req.method === "GET" && ["/api/events", "/api/team"].includes(path)) {
+    if (req.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
       if (!session(req)) return reply(res, 401, { error: "Bitte anmelden." });
       return reply(res, 200, { items: await sanity.list(typeFromPath(path.split("/")[2])) });
     }
@@ -124,7 +138,7 @@ async function handle(req, res) {
       const file = await body(req, 8_000_000);
       return reply(res, 200, await sanity.uploadImage(file, mime, filename));
     }
-    const match = path.match(/^\/api\/(events|team)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
+    const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
     if (match) {
       const [, group, id, action] = match;
       const type = typeFromPath(group);

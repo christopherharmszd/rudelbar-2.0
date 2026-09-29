@@ -4,11 +4,13 @@ Die öffentliche Staging-Website liegt auf GitHub Pages. Diese Redaktion wird al
 
 ## Für Redakteurinnen und Redakteure
 
-In der Online-Redaktion steht das gemeinsame Konto **Redaktion** bereits fest. Es wird nur das Redaktionspasswort eingegeben; ein Sanity-Konto ist nicht nötig. Alle Angemeldeten können Termine und Teamprofile als Entwurf speichern, veröffentlichen und wieder von der Website nehmen. Teamfotos lassen sich hochladen. Einträge stehen zunächst als kompakte Liste da; das Formular öffnet sich nach Auswahl in einem Dialog, auf dem Handy bildschirmfüllend.
+In der Online-Redaktion steht das gemeinsame Konto **Redaktion** bereits fest. Es wird nur das Redaktionspasswort eingegeben; ein Sanity-Konto ist nicht nötig. Alle Angemeldeten können Termine, Teamprofile und Beiträge unter „Aktuelles“ als Entwurf speichern, veröffentlichen und wieder von der Website nehmen. Teamfotos und bis zu 12 Beitragsbilder mit Bildbeschreibung und optionaler Bildunterschrift lassen sich hochladen. Einträge stehen zunächst als kompakte Liste da; das Formular öffnet sich nach Auswahl in einem Dialog, auf dem Handy bildschirmfüllend.
 
 Für Termine entstehen Google-Maps-Suchlinks ohne kostenpflichtige API automatisch aus Ort und Adresse. Ein genauer Link aus Google Maps kann stattdessen eingefügt und vor der Veröffentlichung geprüft werden.
 
 Die Reihenfolge steuert die Termin- und Teamübersicht. Auf der Startseite erscheint unabhängig davon automatisch der nächste veröffentlichte Termin nach Datum. Änderungen werden erst nach **Entwurf speichern** und **Veröffentlichen** öffentlich sichtbar.
+
+Beiträge werden nach Datum sortiert. Solange kein Beitrag veröffentlicht ist, gibt es auf der Website weder den Menüpunkt noch den Abschnitt „Aktuelles“. Nach der ersten Veröffentlichung erscheinen Startseiten-Vorschau, Übersicht und die einzelnen Beiträge automatisch beim nächsten Laden.
 
 ## Onlinebetrieb
 

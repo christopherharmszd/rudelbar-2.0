@@ -18,6 +18,7 @@ export const todayLocal = (now = new Date()) => `${now.getFullYear()}-${String(n
 export const upcomingEvents = (events, today = todayLocal()) => events.filter(event => /^\d{4}-\d{2}-\d{2}$/.test(event.date || "") && event.date >= today);
 export const nextEvent = (events, today = todayLocal()) => [...upcomingEvents(events, today)].sort((a, b) => a.date.localeCompare(b.date) || (a.order ?? 0) - (b.order ?? 0))[0] || null;
 export const orderedContent = items => [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.date || a.name || "").localeCompare(String(b.date || b.name || "")));
+export const newestPosts = posts => [...posts].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(a.title || "").localeCompare(String(b.title || "")));
 export const formattedDate = date => /^\d{4}-\d{2}-\d{2}$/.test(date || "") ? new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00`)) : date;
 
 export function publicConfig(env) {
@@ -27,7 +28,7 @@ export function publicConfig(env) {
 }
 
 export async function loadPublishedContent(config, signal) {
-  if (!config) return { events: previewEvents, team: previewTeam, preview: true };
+  if (!config) return { events: previewEvents, team: previewTeam, posts: [], preview: true };
   const base = `https://${config.projectId}.api.sanity.io/v2025-02-19/data/query/${config.dataset}`;
   async function query(type) {
     const url = `${base}?perspective=published&query=${encodeURIComponent(`*[_type == "${type}"]`)}`;
@@ -36,6 +37,6 @@ export async function loadPublishedContent(config, signal) {
     const data = await response.json();
     return data.result || [];
   }
-  const [events, team] = await Promise.all([query("rudelEvent"), query("rudelTeamMember")]);
-  return { events, team, preview: false };
+  const [events, team, posts] = await Promise.all([query("rudelEvent"), query("rudelTeamMember"), query("rudelPost").catch(() => [])]);
+  return { events, team, posts, preview: false };
 }

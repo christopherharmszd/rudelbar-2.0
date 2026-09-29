@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 const built = (path) => new URL(`../dist/client/${path}`, import.meta.url);
@@ -23,7 +23,9 @@ test("build contains the public pages and brand assets", async () => {
 test("build does not claim the production domain", async () => {
   await assert.rejects(access(built("CNAME")));
   const index = await readFile(built("index.html"), "utf8");
-  assert.match(index, /Impressum/);
-  assert.match(index, /datenschutz\.html/);
   assert.match(index, /\.\/assets\/rudelbar-logo\.png/);
+  const scripts = (await readdir(built("assets"))).filter(file => /^index-.*\.js$/.test(file));
+  assert.equal(scripts.length, 1);
+  const app = await readFile(built(`assets/${scripts[0]}`), "utf8");
+  for (const text of ["Impressum", "datenschutz.html", "www.instagram.com/rudelbar/", "Aktuelles"]) assert.ok(app.includes(text));
 });

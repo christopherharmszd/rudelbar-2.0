@@ -101,6 +101,21 @@ function sanity(env) {
 }
 
 function fields(type, data) {
+  if (type === "posts") {
+    const date = clean(data.date, 10, true);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T12:00:00Z`))) throw Object.assign(new Error("Bitte ein gültiges Beitragsdatum eingeben."), { status: 400 });
+    if (!Array.isArray(data.images) || data.images.length > 12) throw Object.assign(new Error("Maximal 12 Bilder pro Beitrag sind möglich."), { status: 400 });
+    const images = data.images.map(image => {
+      const assetId = clean(image.assetId, 200, true);
+      const url = clean(image.url, 1000, true);
+      if (!/^image-[a-zA-Z0-9-]+$/.test(assetId) || !/^https:\/\/cdn\.sanity\.io\/images\//.test(url)) throw Object.assign(new Error("Ungültiges Beitragsbild."), { status: 400 });
+      return {
+        _key: crypto.randomUUID(), _type: "image", asset: { _type: "reference", _ref: assetId },
+        url, alt: clean(image.alt, 180, true), caption: clean(image.caption, 240),
+      };
+    });
+    return { title: clean(data.title, 120, true), date, teaser: clean(data.teaser, 300, true), body: clean(data.body, 12000, true), images };
+  }
   const order = Number(data.order ?? 0);
   if (!Number.isInteger(order) || order < 0 || order > 999) throw Object.assign(new Error("Ungültige Reihenfolge."), { status: 400 });
   if (type === "events") {
@@ -160,10 +175,10 @@ async function api(request, env) {
     if (auth.error) return auth.error;
     return json(200, { ok: true }, { "Set-Cookie": "rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0" });
   }
-  if (request.method === "GET" && ["/api/events", "/api/team"].includes(path)) {
+  if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
     const user = await session(request, env);
     if (!user) return json(401, { error: "Bitte anmelden." });
-    return json(200, { items: await sanity(env).list(path === "/api/events" ? "rudelEvent" : "rudelTeamMember") });
+    return json(200, { items: await sanity(env).list({ "/api/events": "rudelEvent", "/api/team": "rudelTeamMember", "/api/posts": "rudelPost" }[path]) });
   }
   if (request.method === "POST" && path === "/api/upload") {
     const auth = await authorized(request, env);
@@ -174,12 +189,12 @@ async function api(request, env) {
     const file = await body(request, 8_000_000);
     return json(200, await sanity(env).uploadImage(file, mime, filename));
   }
-  const match = path.match(/^\/api\/(events|team)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
+  const match = path.match(/^\/api\/(events|team|posts)(?:\/([a-z0-9-]+))?(?:\/(publish|unpublish))?$/i);
   if (match) {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
     const [, group, id, action] = match;
-    const type = group === "events" ? "rudelEvent" : "rudelTeamMember";
+    const type = { events: "rudelEvent", team: "rudelTeamMember", posts: "rudelPost" }[group];
     const client = sanity(env);
     if (request.method === "POST" && !id && !action) {
       const newId = crypto.randomUUID();

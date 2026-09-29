@@ -1,6 +1,6 @@
 const root = document.querySelector("#app");
 const state = { configured: false, user: null, section: "events", items: [], selected: null, message: "", error: false, busy: false };
-const labels = { events: { title: "Termine", description: "Rudel Abende anlegen, vorbereiten und veröffentlichen.", singular: "Termin" }, team: { title: "Das Rudel", description: "Menschen, Fotos und Beschreibungstexte pflegen.", singular: "Teammitglied" } };
+const labels = { events: { title: "Termine", description: "Rudel Abende anlegen, vorbereiten und veröffentlichen.", singular: "Termin" }, team: { title: "Das Rudel", description: "Menschen, Fotos und Beschreibungstexte pflegen.", singular: "Teammitglied" }, posts: { title: "Aktuelles", description: "Geschichten und Bilder aus dem Rudel veröffentlichen. Der Bereich erscheint erst mit dem ersten veröffentlichten Beitrag auf der Website.", singular: "Beitrag" } };
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const safeImg = url => /^(\/seed-assets\/|https:\/\/cdn\.sanity\.io\/images\/)/.test(url || "") ? url : "";
 let lastDialogTrigger = null;
@@ -32,7 +32,7 @@ async function start() {
 }
 
 function renderLogin() {
-  root.innerHTML = `<main class="login-wrap"><form class="login" id="login-form"><div class="brand-mark">R</div><p class="eyebrow">RUDELBAR REDAKTION</p><h1>Willkommen zurück.</h1><p>Melde dich an, um Termine und das Rudel zu verwalten.</p>${state.message ? `<p class="message error">${esc(state.message)}</p>` : ""}<div class="field"><span class="account-label">Konto</span><strong class="account-name">Redaktion</strong><input name="email" type="hidden" value="redaktion@rudelbar.local" autocomplete="username" /></div><div class="field"><label for="password">Passwort</label><input id="password" name="password" type="password" autocomplete="current-password" required /></div><button class="primary" type="submit">Anmelden</button><a class="privacy-link" href="/datenschutz.html">Datenschutz &amp; Cookies</a></form></main>`;
+  root.innerHTML = `<main class="login-wrap"><form class="login" id="login-form"><div class="brand-mark">R</div><p class="eyebrow">RUDELBAR REDAKTION</p><h1>Willkommen zurück.</h1><p>Melde dich an, um Termine, das Rudel und Aktuelles zu verwalten.</p>${state.message ? `<p class="message error">${esc(state.message)}</p>` : ""}<div class="field"><span class="account-label">Konto</span><strong class="account-name">Redaktion</strong><input name="email" type="hidden" value="redaktion@rudelbar.local" autocomplete="username" /></div><div class="field"><label for="password">Passwort</label><input id="password" name="password" type="password" autocomplete="current-password" required /></div><button class="primary" type="submit">Anmelden</button><a class="privacy-link" href="/datenschutz.html">Datenschutz &amp; Cookies</a></form></main>`;
   document.querySelector("#password")?.focus();
   document.querySelector("#login-form").addEventListener("submit", async event => {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget));
@@ -59,8 +59,36 @@ function status(item) {
   return item.published ? "Veröffentlicht" : "Nicht sichtbar";
 }
 function pill(item) { const label = status(item); return `<span class="pill ${item?.draft ? "draft" : !item?.published ? "offline" : ""}">${label}</span>`; }
-function itemTitle(item) { return state.section === "events" ? item.title : item.name; }
-function itemMeta(item) { return state.section === "events" ? item.date || "Ohne Datum" : item.role || "Ohne Rolle"; }
+function itemTitle(item) { return state.section === "team" ? item.name : item.title; }
+function itemMeta(item) { return state.section === "team" ? item.role || "Ohne Rolle" : item.date || "Ohne Datum"; }
+
+function postImageRow(image) {
+  if (!safeImg(image.url)) return "";
+  return `<div class="post-image-row" data-asset-id="${esc(image.asset?._ref || image.assetId)}" data-url="${esc(image.url)}">
+    <img src="${esc(image.url)}" alt="" />
+    <div class="post-image-fields"><label>Bildbeschreibung für Screenreader<input class="post-image-alt" maxlength="180" required value="${esc(image.alt)}" placeholder="Was zeigt das Bild?" /></label>
+      <label>Bildunterschrift (optional)<input class="post-image-caption" maxlength="240" value="${esc(image.caption)}" /></label>
+      <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
+}
+
+function renderPostForm(item) {
+  const disabled = !state.configured ? "disabled" : "";
+  const actions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
+  const today = new Date();
+  const localDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(item?.title || "Beitrag hinzufügen")}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
+    <form id="edit-form"><div class="form-body"><div class="form-columns"><div class="form-main post-fields">
+      <div class="field span"><label for="f-title">Überschrift</label><input id="f-title" name="title" maxlength="120" required value="${esc(item?.title)}" /></div>
+      <div class="field span"><label for="f-date">Beitragsdatum</label><input id="f-date" name="date" type="date" required value="${esc(item?.date || localDate)}" /><small>Neuere Beiträge stehen zuerst.</small></div>
+      <div class="field span"><label for="f-teaser">Kurztext für die Übersicht</label><textarea id="f-teaser" name="teaser" maxlength="300" required>${esc(item?.teaser)}</textarea></div>
+      <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen erzeugen Absätze. Bilder erscheinen als Galerie unter dem Text.</small></div>
+    </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Bis zu 12 Bilder pro Beitrag.</p>
+      <div id="post-images">${(item?.images || []).map(postImageRow).join("")}</div>
+      <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
+      <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Beschreibe jedes Bild vor dem Speichern.</small><p id="upload-status" role="status"></p>
+    </div></div></div></div>
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div></div></form>`;
+}
 
 function render() {
   const info = labels[state.section];
@@ -70,8 +98,8 @@ function render() {
   const drafts = state.items.filter(item => item.draft).length;
   const list = state.items.length ? state.items.map(item => `
     <button type="button" class="item ${state.selected === item._id ? "selected" : ""}" data-id="${esc(item._id)}" aria-label="${esc(itemTitle(item))} öffnen">
-      ${!isEvent && safeImg(item.photoUrl) ? `<img src="${esc(item.photoUrl)}" alt="" />` : `<span class="item-icon">${isEvent ? "◷" : "♙"}</span>`}
-      <span class="item-text"><strong>${esc(itemTitle(item))}</strong><small>${esc(itemMeta(item))} · Reihenfolge ${esc(item.order ?? 0)}</small></span>
+      ${safeImg(state.section === "posts" ? item.images?.[0]?.url : item.photoUrl) ? `<img src="${esc(state.section === "posts" ? item.images[0].url : item.photoUrl)}" alt="" />` : `<span class="item-icon">${isEvent ? "◷" : state.section === "posts" ? "✎" : "♙"}</span>`}
+      <span class="item-text"><strong>${esc(itemTitle(item))}</strong><small>${esc(itemMeta(item))}${state.section === "posts" ? "" : ` · Reihenfolge ${esc(item.order ?? 0)}`}</small></span>
       ${pill(item)}
       <span class="item-chevron" aria-hidden="true">›</span>
     </button>`).join("") : '<div class="empty">Noch keine Einträge. Lege den ersten Inhalt an.</div>';
@@ -88,7 +116,8 @@ function render() {
         <a class="brand" href="#"><span class="brand-mark">R</span><span><strong>Rudelbar</strong><small>Redaktion</small></span></a>
         <div><p class="side-label">Inhalte</p><nav class="nav" aria-label="Redaktionsbereiche">
           <button type="button" data-section="events" class="${isEvent ? "active" : ""}">Termine <span>↗</span></button>
-          <button type="button" data-section="team" class="${!isEvent ? "active" : ""}">Das Rudel <span>↗</span></button>
+          <button type="button" data-section="team" class="${state.section === "team" ? "active" : ""}">Das Rudel <span>↗</span></button>
+          <button type="button" data-section="posts" class="${state.section === "posts" ? "active" : ""}">Aktuelles <span>↗</span></button>
         </nav></div>
         <div class="side-foot">${state.configured ? "Veröffentlichte Inhalte werden in Sanity gespeichert." : "Lokale Vorschau mit dem aktuellen Rudelbar-Inhalt."}<br /><a href="/datenschutz.html">Datenschutz &amp; Cookies</a></div>
       </aside>
@@ -104,7 +133,7 @@ function render() {
           ${state.message ? `<p class="message ${state.error ? "error" : ""}" role="status">${esc(state.message)}</p>` : ""}
           <div class="stats"><div class="stat"><strong>${state.items.length}</strong><span>Einträge insgesamt</span></div><div class="stat"><strong>${live}</strong><span>Veröffentlicht</span></div><div class="stat"><strong>${drafts}</strong><span>Entwürfe / Änderungen</span></div></div>
           <div class="layout entries-layout">
-            <section class="panel" aria-label="Einträge"><div class="panel-head"><h2>${isEvent ? "Alle Termine" : "Alle Teammitglieder"}</h2><small>${state.items.length} ${state.items.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="list">${list}</div></section>
+            <section class="panel" aria-label="Einträge"><div class="panel-head"><h2>${isEvent ? "Alle Termine" : state.section === "team" ? "Alle Teammitglieder" : "Alle Beiträge"}</h2><small>${state.items.length} ${state.items.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="list">${list}</div></section>
           </div>
         </div>
       </div>
@@ -125,6 +154,7 @@ function closeDialog() {
 
 function renderForm(item) {
   if (!item && state.selected !== "new") return `<div class="empty">Wähle einen Eintrag oder lege einen neuen an.</div>`;
+  if (state.section === "posts") return renderPostForm(item);
   const isEvent = state.section === "events";
   const formTitle = item ? itemTitle(item) : `${labels[state.section].singular} hinzufügen`;
   const disabled = !state.configured ? "disabled" : "";
@@ -211,6 +241,12 @@ function bind() {
     state.busy = true; const form = event.currentTarget;
     try {
       const data = Object.fromEntries(new FormData(form));
+      if (state.section === "posts") {
+        data.images = [...form.querySelectorAll(".post-image-row")].map(row => ({
+          assetId: row.dataset.assetId, url: row.dataset.url,
+          alt: row.querySelector(".post-image-alt").value, caption: row.querySelector(".post-image-caption").value,
+        }));
+      }
       const path = state.selected === "new" ? state.section : `${state.section}/${state.selected}`;
       const result = await api(path, { method: state.selected === "new" ? "POST" : "PUT", body: JSON.stringify(data) });
       state.selected = result.id; state.message = "Entwurf gespeichert. Die öffentliche Website wurde nicht verändert."; state.error = false; await load();
@@ -234,6 +270,31 @@ function bind() {
       preview.id = "photo-preview"; preview.alt = "Neues Teamfoto"; preview.src = result.url;
       document.querySelector("#photo-placeholder")?.replaceWith(preview);
     } catch (error) { state.message = error.message; state.error = true; render(); }
+  });
+  document.querySelector("#post-images")?.addEventListener("click", event => {
+    if (event.target.closest(".remove-post-image")) event.target.closest(".post-image-row")?.remove();
+  });
+  document.querySelector("#post-image-upload")?.addEventListener("change", async event => {
+    const input = event.currentTarget;
+    const files = [...input.files];
+    const list = document.querySelector("#post-images");
+    const status = document.querySelector("#upload-status");
+    const submitButton = document.querySelector('#edit-form button[type="submit"]');
+    if (list.children.length + files.length > 12) { status.textContent = "Maximal 12 Bilder pro Beitrag."; input.value = ""; return; }
+    if (files.some(file => file.size > 8_000_000 || !["image/jpeg", "image/png", "image/webp"].includes(file.type))) {
+      status.textContent = "Bitte nur JPG, PNG oder WebP bis 8 MB je Bild wählen."; input.value = ""; return;
+    }
+    input.disabled = true;
+    submitButton.disabled = true;
+    try {
+      for (const [index, file] of files.entries()) {
+        status.textContent = `Bild ${index + 1} von ${files.length} wird hochgeladen …`;
+        const result = await api("upload", { method: "POST", headers: { "Content-Type": file.type, "X-File-Name": file.name }, body: file });
+        list.insertAdjacentHTML("beforeend", postImageRow({ assetId: result.assetId, url: result.url, alt: "", caption: "" }));
+      }
+      status.textContent = `${files.length} ${files.length === 1 ? "Bild" : "Bilder"} hochgeladen. Bitte Bildbeschreibungen ergänzen und den Entwurf speichern.`;
+    } catch (error) { status.textContent = error.message; }
+    finally { input.disabled = false; input.value = ""; submitButton.disabled = false; }
   });
 }
 
