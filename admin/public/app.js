@@ -71,6 +71,13 @@ function postImageRow(image) {
       <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
 }
 
+function unpublishConfirmation() {
+  return `<div class="unpublish-confirmation" id="unpublish-confirmation" role="group" aria-label="Veröffentlichung zurücknehmen" hidden>
+    <div><strong>Wirklich von der Website nehmen?</strong><p>Der Eintrag bleibt als Entwurf erhalten. Bereits geöffnete Seiten zeigen die Änderung nach dem Neuladen.</p></div>
+    <div class="unpublish-confirmation-actions"><button class="danger" id="confirm-unpublish" type="button">Ja, von Website nehmen</button><button class="secondary" id="cancel-unpublish" type="button">Abbrechen</button></div>
+  </div>`;
+}
+
 function renderPostForm(item) {
   const disabled = !state.configured ? "disabled" : "";
   const actions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
@@ -87,7 +94,7 @@ function renderPostForm(item) {
       <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
       <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Beschreibe jedes Bild vor dem Speichern.</small><p id="upload-status" role="status"></p>
     </div></div></div></div>
-    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div></div></form>`;
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div>${item ? unpublishConfirmation() : ""}</div></form>`;
 }
 
 function render() {
@@ -188,7 +195,7 @@ function renderForm(item) {
   const publicationActions = item ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" && item.draft ? "" : "disabled"}>Veröffentlichen</button><button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" && item.published ? "" : "disabled"}>Von Website nehmen</button>` : "";
   return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
     <form id="edit-form"><div class="form-body"><div class="form-columns"><div class="form-main">${mainFields}</div><div class="form-aside">${detailFields}</div></div></div>
-    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${item ? unpublishConfirmation() : ""}${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
 }
 
 function bind() {
@@ -253,12 +260,28 @@ function bind() {
     } catch (error) { state.message = error.message; state.error = true; render(); }
     finally { state.busy = false; }
   });
-  document.querySelectorAll("[data-action]").forEach(button => button.addEventListener("click", async () => {
-    const action = button.dataset.action;
-    if (action === "unpublish" && !confirm("Diesen Eintrag von der öffentlichen Website nehmen?")) return;
-    try { await api(`${state.section}/${state.selected}/${action}`, { method: "POST" }); state.message = action === "publish" ? "Veröffentlicht in Sanity. Die angebundene Website zeigt den Inhalt nach dem nächsten Laden." : "In Sanity nicht mehr veröffentlicht."; state.error = false; await load(); }
+  const publish = async action => {
+    if (state.busy) return;
+    state.busy = true;
+    try { await api(`${state.section}/${state.selected}/${action}`, { method: "POST" }); state.message = action === "publish" ? "Veröffentlicht in Sanity. Die angebundene Website zeigt den Inhalt nach dem nächsten Laden." : "In Sanity nicht mehr veröffentlicht. Die Website zeigt die Änderung nach dem nächsten Laden."; state.error = false; await load(); }
     catch (error) { state.message = error.message; state.error = true; render(); }
-  }));
+    finally { state.busy = false; }
+  };
+  const unpublishButton = document.querySelector('[data-action="unpublish"]');
+  const confirmation = document.querySelector("#unpublish-confirmation");
+  const actions = document.querySelector(".form-footer .actions");
+  document.querySelector('[data-action="publish"]')?.addEventListener("click", () => publish("publish"));
+  unpublishButton?.addEventListener("click", () => {
+    actions.hidden = true;
+    confirmation.hidden = false;
+    document.querySelector("#cancel-unpublish").focus();
+  });
+  document.querySelector("#cancel-unpublish")?.addEventListener("click", () => {
+    confirmation.hidden = true;
+    actions.hidden = false;
+    unpublishButton.focus();
+  });
+  document.querySelector("#confirm-unpublish")?.addEventListener("click", () => publish("unpublish"));
   document.querySelector("#photo-upload")?.addEventListener("change", async event => {
     const file = event.target.files?.[0]; if (!file) return;
     if (file.size > 8_000_000) { state.message = "Das Bild darf höchstens 8 MB groß sein."; state.error = true; render(); return; }

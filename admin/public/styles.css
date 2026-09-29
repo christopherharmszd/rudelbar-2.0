@@ -50,6 +50,12 @@
 .modal .photo-control input{width:100%;max-width:100%}
 .form-footer{flex:none;border-top:1px solid #edf0ea;padding:14px 0 19px;background:#fff}
 .form-footer .actions{margin:0;padding:0;border:0}
+.form-footer .actions[hidden],.unpublish-confirmation[hidden]{display:none}
+.unpublish-confirmation{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 15px;border:1px solid #d8b8ad;border-radius:9px;background:#fff6f2}
+.unpublish-confirmation strong{font-size:14px;color:#823b29}
+.unpublish-confirmation p{margin:4px 0 0;font-size:12px;line-height:1.4;color:#745b52}
+.unpublish-confirmation-actions{display:flex;flex-wrap:wrap;gap:8px;flex:none}
+.unpublish-confirmation-actions button{white-space:normal;text-align:center}
 .form-footer .hint{margin:10px 0 0}
 .login .account-label{font-size:12px;font-weight:800;color:#435346}.login .account-name{display:block;padding:12px;border:1px solid #d7ded5;border-radius:8px;background:#f7f9f5;font-size:15px}
 .login .privacy-link{display:block;margin-top:18px;text-align:center;color:#435346;font-size:13px;text-underline-offset:2px}.side-foot a{display:inline-block;margin-top:8px;color:#e4c18b;text-underline-offset:2px}
@@ -62,6 +68,8 @@
   .modal .edit-head{margin-bottom:14px}
   .form-columns{grid-template-columns:minmax(0,1fr);gap:16px}
   .form-footer{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  .unpublish-confirmation{align-items:stretch;flex-direction:column}
+  .unpublish-confirmation-actions{display:grid;grid-template-columns:1fr 1fr}
 }
 @media(max-width:480px){
   .modal .edit{padding:18px 18px 0}
