@@ -90,29 +90,37 @@
 .post-image-manager>strong{display:block;margin-bottom:4px}
 .post-image-manager>p,.post-image-manager>small{font-size:12px;line-height:1.45;color:#647466}
 .post-image-manager #post-images{display:grid;gap:12px;margin:15px 0}
-.post-image-row{display:grid;grid-template-columns:95px minmax(0,1fr);gap:12px;padding:11px;background:#fff;border:1px solid #d7ded5;border-radius:8px}
+.post-image-row{position:relative;display:grid;grid-template-columns:95px minmax(0,1fr);gap:12px;padding:11px;background:#fff;border:1px solid #d7ded5;border-radius:8px}
 .post-image-row.is-cover{background:#fff8e9;border:2px solid #b18c4a;box-shadow:0 2px 10px #b18c4a26}
-.post-image-row.is-dragging{opacity:.7;box-shadow:0 7px 20px #20312635}
-.post-image-row.is-drop-target{outline:3px dashed #b18c4a;outline-offset:2px}
+.post-image-row.is-dragging{opacity:.35}
+.post-image-row.is-drop-before::before,.post-image-row.is-drop-after::after{content:"Hier ablegen";position:absolute;z-index:3;left:0;right:0;height:26px;display:grid;place-items:center;border:2px dashed #a77a31;border-radius:6px;background:#fff5db;color:#694b20;font-size:11px;font-weight:800;pointer-events:none}
+.post-image-row.is-drop-before::before{top:-20px}
+.post-image-row.is-drop-after::after{bottom:-20px}
+.post-image-drag-preview{position:fixed;z-index:40;display:flex;align-items:center;gap:8px;width:150px;min-height:72px;padding:7px;border:2px solid #a77a31;border-radius:9px;background:#fff8e9;color:#4b3c23;box-shadow:0 10px 28px #10201655;font-size:11px;font-weight:800;pointer-events:none}
+.post-image-drag-preview img{width:64px;height:60px;object-fit:cover;border-radius:5px}
 .post-image-row-header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.post-image-row-header,.post-image-row>img{cursor:grab;touch-action:none;user-select:none;-webkit-user-drag:none}
+.post-image-row-header:active,.post-image-row>img:active{cursor:grabbing}
+.post-image-grab{display:flex;align-items:center;gap:6px}
+.post-image-grip{color:#90713f;font-size:20px;line-height:1}
 .post-image-position{font-size:12px;color:#435346}
 .post-image-row.is-cover .post-image-position{padding:5px 9px;border-radius:999px;background:#a77a31;color:#fff}
 .post-image-order-controls{display:flex;align-items:center;gap:5px}
 .post-image-order-controls button{min-width:36px;min-height:36px;padding:5px 8px;border:1px solid #c9d3c7;border-radius:6px;background:#fff;color:#27432f;font-weight:800;cursor:pointer}
 .post-image-order-controls button:disabled{opacity:.35;cursor:default}
 .post-image-order-controls button:focus-visible{outline:3px solid #b18c4a;outline-offset:2px}
-.post-image-order-controls .post-image-handle{cursor:grab;touch-action:none;user-select:none}
-.post-image-order-controls .post-image-handle:active{cursor:grabbing}
 .post-image-row img{width:95px;height:100px;object-fit:cover;border-radius:5px}
 .post-image-fields{display:grid;gap:8px;min-width:0}
 .post-image-fields label{display:grid;gap:4px;font-size:11px;font-weight:800;color:#435346}
 .post-image-fields label small{font-size:11px;font-weight:400;line-height:1.35;color:#647466}
 .post-image-fields input{min-width:0;width:100%;padding:8px;border:1px solid #d7ded5;border-radius:6px}
+.post-image-fields .use-teaser-for-alt{justify-self:start;padding:6px 9px;border:1px solid #c9d3c7;border-radius:6px;background:#f5f8f3;color:#27432f;font-size:11px;font-weight:800;cursor:pointer}
+.post-image-fields .use-teaser-for-alt:focus-visible{outline:3px solid #b18c4a}
 .post-image-fields .danger{justify-self:start;padding:6px 9px;font-size:11px}
 .post-upload-label{display:block;margin:12px 0 6px;font-size:12px;font-weight:800}
 .post-image-manager input[type="file"]{max-width:100%;font-size:12px}
 .post-image-manager #upload-status{margin:12px 0 0;color:#435346;font-size:12px}
-@media(max-width:480px){.post-image-row{grid-template-columns:1fr}.post-image-row img{width:100%;height:150px}.post-image-order-controls button{min-width:40px;min-height:40px}}
+@media(max-width:480px){.post-image-row{grid-template-columns:1fr}.post-image-row>img{width:100%;height:150px}.post-image-order-controls button{min-width:40px;min-height:40px}}
 
 .pill.archived{background:#e6e8e2;color:#536254}
 .entry-tabs{display:flex;gap:6px;margin:0 0 16px;padding:5px;width:max-content;max-width:100%;background:#e9eee7;border-radius:11px}

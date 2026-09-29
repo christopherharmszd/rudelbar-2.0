@@ -66,13 +66,13 @@ function itemMeta(item) { return state.section === "team" ? item.role || "Ohne R
 function postImageRow(image) {
   if (!safeImg(image.url)) return "";
   return `<div class="post-image-row" data-asset-id="${esc(image.asset?._ref || image.assetId)}" data-url="${esc(image.url)}">
-    <div class="post-image-row-header"><strong class="post-image-position"></strong><div class="post-image-order-controls">
-      <button type="button" class="post-image-handle" aria-label="Bild verschieben">⋮⋮ Ziehen</button>
+    <div class="post-image-row-header"><div class="post-image-grab"><span class="post-image-grip" aria-hidden="true">⠿</span><strong class="post-image-position"></strong></div><div class="post-image-order-controls">
       <button type="button" class="move-post-image-up" aria-label="Bild nach oben verschieben">↑</button>
       <button type="button" class="move-post-image-down" aria-label="Bild nach unten verschieben">↓</button>
     </div></div>
-    <img src="${esc(image.url)}" alt="" />
+    <img src="${esc(image.url)}" alt="" draggable="false" />
     <div class="post-image-fields"><label>Bildbeschreibung für Screenreader (optional)<input class="post-image-alt" maxlength="300" value="${esc(image.alt)}" /><small>Leer lassen: Der Kurztext wird beim Speichern übernommen.</small></label>
+      <button type="button" class="use-teaser-for-alt">Kurztext übernehmen</button>
       <label>Bildunterschrift (optional)<input class="post-image-caption" maxlength="240" value="${esc(image.caption)}" /></label>
       <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
 }
@@ -82,7 +82,7 @@ function refreshPostImageRows(list) {
   rows.forEach((row, index) => {
     row.classList.toggle("is-cover", index === 0);
     row.querySelector(".post-image-position").textContent = index === 0 ? "Titelbild · Bild 1" : `Bild ${index + 1}`;
-    row.querySelector(".post-image-handle").setAttribute("aria-label", `Bild ${index + 1} ziehen und verschieben`);
+    row.querySelector(".use-teaser-for-alt").setAttribute("aria-label", `Kurztext als Bildbeschreibung für Bild ${index + 1} übernehmen`);
     const up = row.querySelector(".move-post-image-up");
     const down = row.querySelector(".move-post-image-down");
     up.disabled = index === 0;
@@ -116,7 +116,7 @@ function renderPostForm(item) {
       <div class="field span"><label for="f-date">Beitragsdatum</label><input id="f-date" name="date" type="date" required value="${esc(item?.date || localDate)}" /><small>Neuere Beiträge stehen zuerst.</small></div>
       <div class="field span"><label for="f-teaser">Kurztext für die Übersicht</label><textarea id="f-teaser" name="teaser" maxlength="300" required>${esc(item?.teaser)}</textarea></div>
       <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen erzeugen Absätze. Bilder erscheinen als Galerie unter dem Text.</small></div>
-    </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Reihenfolge mit „Ziehen“ oder den Pfeilen ändern. Bis zu 12 Bilder pro Beitrag.</p>
+    </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Bild oder Kartenkopf anfassen und an die markierte Stelle ziehen. Auf dem Handy gehen auch die Pfeile. Bis zu 12 Bilder pro Beitrag.</p>
       <div id="post-images">${(item?.images || []).map(postImageRow).join("")}</div>
       <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
       <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Ohne eigene Bildbeschreibung wird der Kurztext verwendet.</small><p id="upload-status" role="status"></p>
@@ -378,6 +378,19 @@ function bind() {
       const row = event.target.closest(".post-image-row");
       if (!row) return;
       if (event.target.closest(".remove-post-image")) { row.remove(); refreshPostImageRows(imageList); return; }
+      if (event.target.closest(".use-teaser-for-alt")) {
+        const teaser = document.querySelector("#f-teaser");
+        if (!teaser.value.trim()) {
+          document.querySelector("#upload-status").textContent = "Bitte zuerst einen Kurztext für die Übersicht eingeben.";
+          teaser.focus();
+          return;
+        }
+        const alt = row.querySelector(".post-image-alt");
+        alt.value = teaser.value.trim();
+        alt.focus();
+        document.querySelector("#upload-status").textContent = "Kurztext übernommen. Du kannst die Bildbeschreibung noch anpassen.";
+        return;
+      }
       if (event.target.closest(".move-post-image-up") && row.previousElementSibling) {
         imageList.insertBefore(row, row.previousElementSibling); changed();
       }
@@ -386,34 +399,74 @@ function bind() {
       }
     });
     let drag = null;
+    let scrollFrame = 0;
+    const formBody = document.querySelector("#edit-form .form-body");
     imageList.addEventListener("pointerdown", event => {
-      const handle = event.target.closest(".post-image-handle");
-      if (!handle || !event.isPrimary || event.button !== 0) return;
-      drag = { handle, row: handle.closest(".post-image-row"), x: event.clientX, y: event.clientY, moved: false, target: null, before: true, startIndex: [...imageList.children].indexOf(handle.closest(".post-image-row")) };
-      handle.setPointerCapture(event.pointerId);
+      const row = event.target.closest(".post-image-row");
+      if (!row || !event.isPrimary || event.button !== 0 || event.target.closest("button,input,label,textarea,a")) return;
+      if (!event.target.closest(".post-image-row-header, .post-image-row > img")) return;
+      drag = { row, pointerId: event.pointerId, x: event.clientX, startY: event.clientY, y: event.clientY, moved: false, target: null, before: true,
+        startIndex: [...imageList.children].indexOf(row), previousStatus: document.querySelector("#upload-status").textContent, preview: null };
+      row.setPointerCapture(event.pointerId);
     });
-    const trackDrag = event => {
-      if (!drag || !drag.handle.hasPointerCapture(event.pointerId)) return;
-      if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6) return;
-      drag.moved = true;
-      drag.row.classList.add("is-dragging");
-      drag.target?.classList.remove("is-drop-target");
+    const updateDropTarget = () => {
+      if (!drag?.moved) return;
       const otherRows = [...imageList.children].filter(row => row !== drag.row);
-      drag.target = otherRows.find(row => event.clientY < row.getBoundingClientRect().bottom) || otherRows.at(-1) || null;
-      if (!drag.target) return;
-      const rect = drag.target.getBoundingClientRect();
-      drag.before = event.clientY < rect.top + rect.height / 2;
-      drag.target.classList.add("is-drop-target");
+      const target = otherRows.find(row => drag.y < row.getBoundingClientRect().bottom) || otherRows.at(-1) || null;
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const before = drag.y < rect.top + rect.height / 2;
+      if (target === drag.target && before === drag.before) return;
+      drag.target?.classList.remove("is-drop-before", "is-drop-after");
+      drag.target = target;
+      drag.before = before;
+      target.classList.add(before ? "is-drop-before" : "is-drop-after");
+      const targetPosition = target.querySelector(".post-image-position").textContent;
+      document.querySelector("#upload-status").textContent = `${before ? "Vor" : "Hinter"} ${targetPosition} ablegen.`;
+    };
+    const autoScroll = () => {
+      if (!drag?.moved) return;
+      const rect = formBody.getBoundingClientRect();
+      const edge = 70;
+      if (drag.y < rect.top + edge) formBody.scrollTop -= Math.min(16, Math.max(0, rect.top + edge - drag.y) / 3);
+      if (drag.y > rect.bottom - edge) formBody.scrollTop += Math.min(16, Math.max(0, drag.y - rect.bottom + edge) / 3);
+      updateDropTarget();
+      scrollFrame = requestAnimationFrame(autoScroll);
+    };
+    const trackDrag = event => {
+      if (!drag || event.pointerId !== drag.pointerId || !drag.row.hasPointerCapture(event.pointerId)) return;
+      drag.y = event.clientY;
+      if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.startY) < 8) return;
+      if (!drag.moved) {
+        drag.moved = true;
+        drag.row.classList.add("is-dragging");
+        const preview = document.createElement("div");
+        preview.className = "post-image-drag-preview";
+        const thumb = drag.row.querySelector("img").cloneNode();
+        thumb.alt = "";
+        preview.append(thumb, document.createTextNode(drag.row.querySelector(".post-image-position").textContent));
+        document.body.append(preview);
+        drag.preview = preview;
+        scrollFrame = requestAnimationFrame(autoScroll);
+      }
+      drag.preview.style.left = `${Math.min(event.clientX + 14, innerWidth - 170)}px`;
+      drag.preview.style.top = `${Math.min(event.clientY + 14, innerHeight - 130)}px`;
+      updateDropTarget();
     };
     imageList.addEventListener("pointermove", trackDrag);
     const finishDrag = event => {
-      if (!drag) return;
+      if (!drag || event.pointerId !== drag.pointerId) return;
       if (event.type === "pointerup") trackDrag(event);
+      cancelAnimationFrame(scrollFrame);
       drag.row.classList.remove("is-dragging");
-      drag.target?.classList.remove("is-drop-target");
+      drag.target?.classList.remove("is-drop-before", "is-drop-after");
+      drag.preview?.remove();
       if (event.type === "pointerup" && drag.moved && drag.target) {
         imageList.insertBefore(drag.row, drag.before ? drag.target : drag.target.nextElementSibling);
         if ([...imageList.children].indexOf(drag.row) !== drag.startIndex) changed();
+        else document.querySelector("#upload-status").textContent = drag.previousStatus;
+      } else if (drag.moved) {
+        document.querySelector("#upload-status").textContent = drag.previousStatus;
       }
       drag = null;
     };
