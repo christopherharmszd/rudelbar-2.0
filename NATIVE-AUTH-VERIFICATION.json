@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-11-01T21:25:26.688Z",
+  "iteration": 8,
+  "scope": "Own email/password authentication with shared account directory",
+  "dataset": "staging",
+  "workerVersion": "05a0eb60-8e2e-44a2-9819-34bf76ac6339",
+  "publicChecks": [
+    "Published source matches backstage.html",
+    "Published source matches backstage.css",
+    "Published source matches abendplan.js",
+    "Published source matches accounts-ui.js",
+    "Published source matches website-editor.js",
+    "Published source matches website-editor.css",
+    "Published source matches app.js",
+    "Published source matches live.html",
+    "Published source matches live-entry.js",
+    "Published source matches anmelden.html",
+    "Published source matches anmelden.js",
+    "Published source matches einladung.html",
+    "Published source matches einladung.js",
+    "Published source matches session-paths.js",
+    "Published source matches team.js",
+    "Original index.html remains unchanged",
+    "Original styles.css remains unchanged",
+    "Entry reachable /backstage",
+    "Entry reachable /live",
+    "Entry reachable /anmelden",
+    "Entry reachable /einladung",
+    "Entry reachable /abendplan",
+    "Entry reachable /team",
+    "Anonymous access rejected /api/events",
+    "Anonymous access rejected /api/posts",
+    "Anonymous access rejected /api/team",
+    "Anonymous access rejected /api/accounts",
+    "Anonymous access rejected /api/accounts/mail",
+    "Anonymous access rejected /api/abend/events",
+    "Own password login active; legacy kept; mail truthfully unconfigured",
+    "Foreign-origin password completion rejected",
+    "Unknown invitation rejected without identity disclosure",
+    "Unconfigured mailbox does not report a sent reset",
+    "Old external provider entry disabled",
+    "Existing guest evening remains open"
+  ],
+  "automatedTests": {
+    "passed": 48,
+    "failed": 0
+  },
+  "runtimeChecks": {
+    "passwordHashing": true,
+    "mailboxEncryption": true,
+    "pushRegression": true
+  },
+  "browser": {
+    "legacyCloudSessionStillValid": true,
+    "accountsPageOnCloud": true,
+    "mailSettingsOnCloud": true,
+    "personalLoginOnCloud": true,
+    "responsiveWidths": [
+      320,
+      390
+    ],
+    "horizontalOverflow": false
+  },
+  "database": {
+    "migration": "0004_native_accounts.sql",
+    "preservedVisitors": 3,
+    "preservedRequests": 5,
+    "preservedPushRegistrations": 1,
+    "personalAccountsCreated": 0
+  },
+  "pending": [
+    "Mailbox password must be entered by the administrator in Backstage",
+    "Real mailbox delivery and first real personal account acceptance"
+  ],
+  "emailSent": false
+}

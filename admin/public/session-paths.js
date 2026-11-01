@@ -1,4 +1,4 @@
-// Shared by browser entry points and the OIDC callback. Never accept arbitrary return URLs.
+// Shared by all browser entry points. Never accept arbitrary return URLs.
 export function safeReturnPath(value,fallback='/backstage'){
  if(typeof value!=='string'||!value.startsWith('/')||value.startsWith('//')||/[\\\u0000-\u0020]/.test(value))return fallback;
  try{

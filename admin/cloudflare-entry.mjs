@@ -1,4 +1,5 @@
 import {WorkerEntrypoint} from 'cloudflare:workers';
+import {connect} from 'cloudflare:sockets';
 import worker from './worker.mjs';
 import {createSanity} from './lib/sanity.mjs';
 import {createLiveService} from './lib/live-service.mjs';
@@ -19,4 +20,4 @@ export class VisitorContent extends WorkerEntrypoint {
     }catch(error){return {status:error.status||503,error:error.status?error.message:'Die Nachricht konnte gerade nicht verarbeitet werden.'};}
   }
 }
-export default {fetch:worker.fetch,async scheduled(event,env,ctx){const client=createSanity({projectId:env.SANITY_PROJECT_ID,dataset:env.SANITY_DATASET,token:env.SANITY_EDITOR_TOKEN});ctx.waitUntil(createLiveService(env,client).notices.flush());}};
+export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createSanity({projectId:env.SANITY_PROJECT_ID,dataset:env.SANITY_DATASET,token:env.SANITY_EDITOR_TOKEN});ctx.waitUntil(createLiveService(env,client).notices.flush());}};

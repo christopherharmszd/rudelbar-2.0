@@ -20,11 +20,11 @@ Live bleibt eine eigenständige Anwendung mit Eingängen, Wartelisten und Gespr�
 
 ## Anmeldung und Rechte
 
-Die neue gemeinsame Anmeldeseite `/anmelden` führt nach erfolgreicher Anmeldung zum ursprünglichen Arbeitsbereich zurück. Die Rücksprungadresse ist auf bekannte lokale Rudelbar-Oberflächen beschränkt; private Team-Zugangscodes werden nicht übernommen. Der OIDC-Anmeldevorgang speichert dieses Ziel zusammen mit State, Nonce und PKCE und verwendet es erst nach erfolgreicher Prüfung. Die bisherigen Anmeldeformulare bleiben als Übergangsweg verfügbar.
+Die gemeinsame Anmeldeseite `/anmelden` unterstützt persönliche E-Mail-/Passwort-Konten sowie den bisherigen Zugang Redaktion. Nach erfolgreicher Anmeldung führt sie zum ursprünglichen Arbeitsbereich zurück. Rücksprungadressen sind auf bekannte lokale Rudelbar-Oberflächen beschränkt; private Team-Zugangscodes werden nicht übernommen. Die bisherigen Anmeldeformulare bleiben als Übergangsweg verfügbar.
 
-Die gemeinsame Sitzung und die vorhandenen serverseitigen Berechtigungen gelten für Redaktion, Backstage und Live. Das Backstage zeigt nur die passenden Arbeitsbereiche. Personen ohne Verwaltungsaufgabe gelangen beim allgemeinen Einstieg direkt zum eigenständigen Live-Einstieg. Die Benutzerverwaltung liegt weiterhin nur bei der Administration.
+Die gemeinsame Sitzung und serverseitigen Berechtigungen gelten für Redaktion, Backstage und Live. Personen ohne Verwaltungsaufgabe gelangen beim allgemeinen Einstieg zum eigenständigen Live-Bereich. Die Benutzerverwaltung bleibt der Administration vorbehalten. Live behält seine eigene Oberfläche.
 
-Der gemeinsame Zugang Redaktion ist funktional. Persönliche Konten und Rollen sind vorbereitet, ihre Anmeldung ist noch nicht aktiviert. Bisher wurde dafür eine OIDC-Anbindung vorgesehen; Auth0 ist ein Vorschlag und keine Voraussetzung. Als Alternative wurde am 1. November der vorhandene Elbmafia-Code geprüft: eigene zentrale Passwortanmeldung, Einladungs- und Resetlinks sowie gemeinsame Konten für Studio und Backstage. Dieses Verfahren kann mit eigenständigen Rudelbar-Konten und eigenem Versand angepasst werden; es wurde in dieser Ausbaustufe noch nicht übernommen. Siehe [Konten und Einrichtung](ACCOUNTS.md). Diese Umstellung aktiviert keinen externen Dienst und verändert keine bestehenden Passwörter, Sitzungsschlüssel oder Push-Schlüssel.
+Die zuvor vorbereitete externe OIDC-Anmeldung wurde durch eigene Rudelbar-Konten nach dem Prinzip der Elbmafia-Anmeldung ersetzt. Einladungen und Passwort-Links sind funktional; Links können persönlich weitergegeben werden. Für automatischen E-Mail-Versand über `info@rudelbar.de` muss die Administration noch den Postfachzugang direkt in Backstage hinterlegen. Gemeinsames Redaktionspasswort, bestehende Sitzungen und Push-Schlüssel bleiben erhalten. Siehe [Konten und Einrichtung](ACCOUNTS.md) und [aktuellen Prüfbericht](NATIVE-AUTH-VERIFICATION.json).
 
 ## Erprobung
 

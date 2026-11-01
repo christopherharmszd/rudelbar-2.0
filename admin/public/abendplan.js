@@ -84,7 +84,7 @@ function confirmDiscard(){
 }
 function showAccount(){
  const user=state.user,labels={admin:'Administration',editor:'Redaktion',manager:'Abendleitung',station:'Stationsbetreuung',host:'Gastgeber & Moderation'};
- dialog('Dein Zugang',`<div class="account-profile"><span class="avatar">${esc(initial(user.name))}</span><div><h3>${esc(user.name)}</h3><p>${esc(user.email)}</p></div></div><h3>Deine Aufgaben</h3><div class="chips">${(user.roles||[]).map(r=>chip(labels[r.role]+(r.eventId?' · '+(state.events.find(e=>e.eventId===r.eventId)?.title||'Zugeordneter Abend'):''))).join('')}</div><p class="help-copy">${user.legacy?'Du nutzt den bisherigen gemeinsamen Zugang Redaktion. Er bleibt während der Umstellung erhalten.':'Dein persönlicher Zugang gilt für Backstage und Live. Die Administration verwaltet deine Aufgaben und Berechtigungen.'}</p>`,async()=>{},{saveLabel:'Fertig'});
+ dialog('Dein Zugang',`<div class="account-profile"><span class="avatar">${esc(initial(user.name))}</span><div><h3>${esc(user.name)}</h3><p>${esc(user.email)}</p></div></div><h3>Deine Aufgaben</h3><div class="chips">${(user.roles||[]).map(r=>chip(labels[r.role]+(r.eventId?' · '+(state.events.find(e=>e.eventId===r.eventId)?.title||'Zugeordneter Abend'):''))).join('')}</div><p class="help-copy">${user.legacy?'Du nutzt den bisherigen gemeinsamen Zugang Redaktion. Er bleibt während der Umstellung erhalten.':'Dein persönlicher Zugang gilt für Backstage und Live. Die Administration verwaltet deine Aufgaben und Berechtigungen.'}</p>${!user.legacy?'<a class="btn secondary" href="/anmelden?aktion=passwort">Passwort ändern</a>':''}<p><a class="back-link" href="/anmelden?wechsel=1">Mit anderem Konto anmelden</a></p>`,async()=>{},{saveLabel:'Fertig'});
 }
 function render(){
   if(!state.user)return renderLogin();
@@ -94,7 +94,7 @@ function render(){
 }
 function renderLogin(error=''){
   if(integrated){websiteEditor?.destroy();websiteEditor=null;location.replace(signInPath(location.pathname+location.search+location.hash)+(error?'&loginError='+encodeURIComponent(error):''));return;}
-  root.innerHTML=`<main class="login-wrap"><section class="login-card"><div class="brand"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR</strong></div><span class="eyebrow">Dein Backstage</span><h1>Gute Abende beginnen hier.</h1><p>Plane Veranstaltungen und bereite die App für eure Gäste vor.</p>${state.identityConfigured?'<a class="btn personal-login" href="/api/auth/start">Mit persönlichem Konto anmelden</a>':''}<details ${state.identityConfigured?'':'open'}><summary>Zugang Redaktion</summary><form id="login-form">${field('password','Redaktionspasswort','','type="password" autocomplete="current-password" required')}<p class="dialog-error" role="alert" ${error?'':'hidden'}>${esc(error)}</p><button class="btn" type="submit">Anmelden ${icon('arrow-right')}</button></form></details></section></main>`;icons();
+  root.innerHTML=`<main class="login-wrap"><section class="login-card"><div class="brand"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR</strong></div><span class="eyebrow">Dein Backstage</span><h1>Gute Abende beginnen hier.</h1><p>Plane Veranstaltungen und bereite die App für eure Gäste vor.</p>${state.identityConfigured?'<a class="btn personal-login" href="/anmelden?weiter=%2Fabendplan">Mit persönlichem Konto anmelden</a>':''}<details ${state.identityConfigured?'':'open'}><summary>Zugang Redaktion</summary><form id="login-form">${field('password','Redaktionspasswort','','type="password" autocomplete="current-password" required')}<p class="dialog-error" role="alert" ${error?'':'hidden'}>${esc(error)}</p><button class="btn" type="submit">Anmelden ${icon('arrow-right')}</button></form></details></section></main>`;icons();
 }
 function eventState(event){return chip(event.app.state==='open'?'App offen':'App geschlossen',event.app.state==='open'?'open':'closed',event.app.state==='open'?'radio':'moon');}
 function eventsPage(){
@@ -224,6 +224,7 @@ root.addEventListener('click',event=>{
   if(node.dataset.filter){state.filter=node.dataset.filter;render();return;}
   const {action,kind,id}=node.dataset;
   if(action==='new-account')return accountsUI.edit();
+  if(action==='mail-settings')return accountsUI.mailSettings();
   if(action==='edit-account')return accountsUI.edit(id);
   if(action==='invite-account')return run(()=>accountsUI.invite(id));
   if(action==='revoke-account')return accountsUI.revoke(id);

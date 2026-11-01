@@ -1,47 +1,55 @@
-# Persönliche Backstage-Konten, erste Ausbaustufe
+# Persönliche Rudelbar-Konten
 
-Aktueller Architekturabgleich: Die eigene zentrale Anmeldung aus Elbmafia Studio/Backstage wurde als Alternative geprüft. Auth0 ist keine technische Voraussetzung. Der vorhandene gemeinsame Rudelbar-Zugang funktioniert; die persönliche Anmeldung ist weiterhin vorbereitet, aber noch nicht aktiviert. Siehe [aktuellen Übergangsstand](BACKSTAGE.md).
+Stand: 1. November 2026. Rudelbar verwendet eine eigene zentrale Anmeldung mit E-Mail und Passwort nach dem Prinzip der bestehenden Elbmafia-Anmeldung. Konten und Zugangsdaten bleiben vollständig getrennt von Elbmafia. Ein externer Anmeldedienst ist nicht erforderlich; die frühere OIDC-Vorbereitung wurde ersetzt.
 
-Der gemeinsame Zugang **Redaktion bleibt aktiv**. Weder sein Passwort noch seine Sitzungen werden bei der Einführung persönlicher Konten verändert. Es gibt keine automatische Abschaltung und keine automatische Übernahme eines Personenprofils als Benutzerkonto.
+Der gemeinsame Zugang **Redaktion bleibt aktiv**. Sein Passwort, Verifier, Sitzungsschlüssel und bestehende Sitzungen wurden nicht verändert. Auch die bisherigen Oberflächen bleiben erreichbar. Die Verwaltung erfolgt parallel im neuen [Backstage](https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#accounts).
 
-## Bereits implementiert
+## Einrichtung durch die Administration
 
-- Backstage → Benutzer: Konto mit vorhandener aktiver Person und einer eindeutigen Anmelde-E-Mail verknüpfen, Aufgaben vergeben und Konto deaktivieren.
-- Administration: Konten und Rechte sowie alle Inhalte und Abende.
-- Redaktion: Webseiteninhalte, Angebotskatalog, Personen und alle Abende, ohne Benutzerverwaltung.
-- Abendleitung: Vorbereitung und Live-Betrieb ausgewählter Abende, ohne globale Inhalte oder Benutzerverwaltung.
+1. Unter Personen & Benutzer ein aktives Personenprofil anlegen oder auswählen.
+2. Unter Benutzer & Rechte ein Konto vorbereiten: Profil, eindeutige persönliche E-Mail, Freigabe und Aufgaben zuweisen.
+3. Einladung erstellen. Entweder den einmal angezeigten Link persönlich weitergeben oder ausdrücklich den Versand per E-Mail auswählen.
+4. Die Person öffnet den Link und wählt selbst ihr Passwort. Danach meldet sie sich unter `/anmelden` an. Einladungen gelten 24 Stunden.
+5. Dasselbe Konto gilt für Redaktion, Backstage und den eigenständigen Live-Bereich. Die serverseitigen Rechte bestimmen die sichtbaren Inhalte.
+
+Es gibt keine öffentliche Selbstregistrierung für interne Konten. Ein Personenprofil allein ist kein Benutzerkonto. Die Administration bestätigt die Zuordnung und gibt den Zugangslink an die Person weiter. Ein manuell weitergegebener Link bestätigt keine unabhängige E-Mail-Verifikation. Der Besitz dieses vertraulichen Links berechtigt einmalig zur Passworteinrichtung.
+
+## Aufgaben und Widerruf
+
+- Administration: Konten, Rechte, Inhalte und alle Abende.
+- Redaktion: Webseiteninhalte, Angebote, Personen und alle Abende ohne Benutzerverwaltung.
+- Abendleitung: Vorbereitung und Live-Betrieb zugeordneter Abende.
 - Stationsbetreuung: Zugeordnete Stationen und gemeinsame Eingänge ausgewählter Abende.
-- Gastgeber und Moderation: Live-Eingänge ausgewählter Abende. Die spätere Social-Wall- und Begegnungsmoderation ist noch nicht Bestandteil dieser Ausbaustufe.
-- Mehrere Aufgaben pro Person. Bei Veranstaltungsaufgaben muss das Personenprofil auch aktuell zum Abendteam gehören. Das Entfernen aus dem Team beendet den Zugriff beim nächsten Abruf.
-- Kontorechte und Profilstatus werden bei jedem Zugriff geprüft. Kontoänderungen beenden persönliche Sitzungen, alte Team-Links und offene Einladungen. Das Deaktivieren eines Kontos verhindert auch neue Team-Links.
-- Einladungen sind sieben Tage gültig, einmalig und an die bestätigte E-Mail gebunden. Eine neue Einladung ersetzt die vorherige. Links werden manuell weitergegeben, es wird keine E-Mail aus Rudelbar versendet.
-- Kontoaktivitäten werden mit der tatsächlichen Person protokolliert. Alte gemeinsame Aktionen bleiben Redaktion zugeordnet.
-- Persönliche Mitteilungen und Lesestände verwenden die eigene Konto-ID. Vor dem Versand werden aktuelle Sitzungen, Rechte und Stationszuordnungen erneut geprüft.
+- Gastgeber und Moderation: Live-Eingänge ausgewählter Abende.
 
-## Persönliche Anmeldung aktivieren
+Mehrere Aufgaben sind möglich. Veranstaltungsaufgaben setzen die aktuelle Mitgliedschaft im Abendteam voraus. Profilstatus und Rechte werden bei jedem Abruf kontrolliert. Änderungen am Konto beenden persönliche Sitzungen, Team-Links und offene Passwort-Links. Deaktivierte Konten können sich nicht anmelden und keine neuen Team-Links erhalten. Die eigene Administration kann sich nicht selbst deaktivieren oder ihre Administrationsrechte entfernen.
 
-Empfehlung: **Auth0 Universal Login** für Registrierung, E-Mail-Bestätigung und Passwort-Wiederherstellung. Die Rudelbar-Rechte bleiben in unserer Datenbank. Die Anbindung nutzt OpenID Connect mit Authorization Code, PKCE, State, Nonce und zusätzlicher Signaturprüfung. Eine andere kompatible OIDC-Lösung lässt sich später über die Konfiguration einsetzen.
+## Passwort und Wiederherstellung
 
-Noch nicht erledigt: Es wurde kein externer Mandant eingerichtet. Echte persönliche Anmeldungen und Einladungen sind bis zur Verbindung des Dienstes in Staging gesperrt. Konten und Aufgaben lassen sich bereits vorbereiten. Keine Passwörter werden in Rudelbar angelegt oder gespeichert.
+Passwörter haben 16 bis 1024 Zeichen; ein längerer Satz ist geeignet. Unter Mein Konto lässt sich das Passwort nach Eingabe des bisherigen Passworts ändern. Die Änderung beendet alle persönlichen Sitzungen und Team-Links. Das gemeinsame Redaktionspasswort wird dadurch nicht verändert.
 
-1. Einen Auth0-Mandanten in einer passenden EU-Region anlegen und eine Anwendung vom Typ **Regular Web Application** erstellen.
-2. Als Allowed Callback URL exakt `https://rudelbar-cms-staging.christopher-harms.workers.dev/api/auth/callback` hinterlegen. Client Authentication Method: **Post**. Für eine lokale Prüfung eine separate Testanwendung verwenden.
-3. Eine Datenbank-Verbindung für E-Mail und Passwort aktivieren, E-Mail-Verifizierung und Passwort-Wiederherstellung prüfen. Rudelbar lässt nur verifizierte E-Mails zu. Das Erstellen eines Auth0-Kontos allein verleiht keinerlei Rudelbar-Zugriff.
-4. Für die Auslieferung an echte Nutzer einen eigenen E-Mail-Anbieter und Absender im Auth0-Mandanten konfigurieren. Die eingebauten Test-E-Mails sind keine dauerhaft eingerichtete Rudelbar-Mailzustellung.
-5. `OIDC_ISSUER` (mit abschließendem Slash) und `OIDC_CLIENT_ID` als Worker-Konfiguration hinterlegen. `OIDC_CLIENT_SECRET` ausschließlich als Cloudflare-Secret hinterlegen. Niemals in Git oder Browsercode speichern. Nur Staging verbinden.
-6. In Backstage ein Konto mit der tatsächlichen persönlichen E-Mail vorbereiten, die Aufgaben prüfen und eine Einladung erstellen. Der Link erscheint nur einmal und wird direkt an die Person übergeben.
-7. In einem zweiten Browser anmelden: bestätigte E-Mail, Einladungsannahme, erlaubte und gesperrte Bereiche, Abmelden sowie Deaktivierung gegen eine bereits geöffnete Sitzung prüfen. Erst damit ist die externe Auth0-Verbindung abgenommen.
+Bei Passwort vergessen wird ein einmaliger Resetlink mit 30 Minuten Gültigkeit angefordert. Bis zum Abschluss bleibt das alte Passwort gültig. Die öffentliche Antwort verrät nicht, ob ein freigegebenes Konto existiert. Bei noch nicht eingerichtetem Versand wird ausdrücklich an die Administration verwiesen. Die Administration kann bis dahin einen Passwort-Link persönlich weitergeben.
 
-Ein Passwort-Reset wird im Anmeldedienst durchgeführt. Danach muss die Person sich erneut bei Rudelbar anmelden. Die Einführung betrifft zunächst das interne Team. Der QR-Einstieg für Gäste bleibt ohne Registrierung möglich.
+Mehrere noch gültige Links bleiben bis zur Verwendung oder zum Ablauf nutzbar. So führt eine unklare Versandbestätigung nicht dazu, dass eine bereits eingegangene E-Mail unbemerkt ungültig wird. Die erste erfolgreiche Passwortänderung entwertet atomar alle anderen Links dieses Kontos. Änderungen an Konto oder Rechten machen vorherige Links ebenfalls ungültig.
 
-## Daten und Migration
+## Versand über info@rudelbar.de
 
-Die additive D1-Migration `admin/migrations/0003_accounts.sql` ergänzt Konten, Identitäten, Einladungen, widerrufbare Sitzungen, kurzlebige Anmeldevorgänge und das Konto-Protokoll. Bestehende Abende, Personen, Besucher, Gespräche und Push-Registrierungen werden erhalten. Auth0-Identitäten werden über `(issuer, subject)` mit einer stabilen Rudelbar-Konto-ID verknüpft; Namen und E-Mail-Adressen sind keine technischen Identitäten.
+Der Nutzer hat `info@rudelbar.de` als Absender festgelegt. Die Domain verwendet STRATO-Mailserver. Verbindungsdaten: `smtp.strato.de`, Port 465, TLS, Benutzername `info@rudelbar.de`. Quelle: [STRATO-Verbindungsdaten](https://www.strato.de/faq/mail/e-mailserver-adressen-ports-ssl-tls/).
 
-Anmeldesitzungen gelten acht Stunden. Einladungs- und Sitzungstokens werden nur als SHA-256-Hash gespeichert. Anmeldecookies sind HttpOnly und Secure; Schreibzugriffe benötigen denselben Ursprung und den persönlichen CSRF-Token. Die Provider-Anmeldung ist mit einem simulierten OIDC-Anbieter samt echter RSA-Signatur getestet, einschließlich falscher Zielanwendung, Nonce, Aussteller, Signatur, unbestätigter E-Mail und wiederholtem Callback. Das ersetzt noch keinen Test mit einem echten Auth0-Mandanten.
+Unter Benutzer & Rechte → Versand einrichten gibt die Administration das bestehende Postfachpasswort direkt in Backstage ein und schaltet den Versand ein. Das Passwort wird nie zurückgeliefert oder im Browsercode gespeichert. Speichern allein sendet keine E-Mail. Eine tatsächliche Zustellung ist erst nach einer ausdrücklich ausgelösten Einladung oder Passwortanforderung prüfbar. Stand der Veröffentlichung: Postfachpasswort fehlt, Versand ist daher noch nicht aktiviert und mit dem echten Postfach noch nicht getestet.
 
-## Nächste Funktionsbausteine
+Mailversuche haben persistente Empfänger- und Gesamtlimits: mindestens 60 Sekunden Abstand, maximal fünf Versuche je Empfänger und 30 insgesamt pro Stunde. Bei nicht bestätigter SMTP-Annahme wird keine erfolgreiche Zustellung behauptet und nicht automatisch erneut gesendet. Eine bestätigte Annahme durch den Mailserver ist noch kein Beweis für die Zustellung im Posteingang.
 
-Auf dieser Identität und Rechteprüfung bauen optionale dauerhafte Gästekonten und bestätigte Kontakte auf. Danach folgen Begegnungsangebote mit verschiedenen Matching-Arten, moderierte Runden und Social Wall. Jedes Modul benötigt eine Backstage-Steuerung pro Abend; Dating bleibt standardmäßig aus und braucht einen eigenen ausdrücklichen Opt-in. Diese Funktionen sind weiterhin geplant und werden durch die Benutzerverwaltung noch nicht als fertig behauptet.
+## Speicherung und Betrieb
 
-Quellen: [Auth0 Authorization Code](https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-auth-code-flow), [Auth0 E-Mail-Vorlagen](https://auth0.com/docs/customize/email/email-templates), [oauth4webapi](https://github.com/panva/oauth4webapi).
+Die additive Migration `0004_native_accounts.sql` ergänzt Passwortnachweise, einmalige Links, persistente Limits und verschlüsselte Mailkonfiguration. Bisherige Daten, alte Identitätstabellen, Sitzungen und Push-Registrierungen werden nicht gelöscht. Historische OIDC-Tabellen bleiben ungenutzt bestehen.
+
+Passwortnachweise verwenden PBKDF2-SHA256 mit 100.000 Iterationen und 24 zufälligen Salt-Bytes sowie einen serverseitigen, getrennt abgeleiteten HMAC-Pepper. Der Wert folgt dem vorhandenen Elbmafia-Muster und ist in der Cloudflare-Laufzeit geprüft. Mailzugangsdaten sind mit AES-GCM, zufälligem Nonce und getrennt abgeleitetem Schlüssel verschlüsselt. Der vorhandene Worker-Sitzungsschlüssel dient als Wurzelschlüssel; eine spätere Rotation benötigt eine geplante Migration der Mailverschlüsselung und persönlichen Passwortnachweise. Diese Einführung rotiert keinerlei Schlüssel.
+
+Sitzungen gelten acht Stunden. Sitzungs- und Linktokens stehen nur als SHA-256-Hash in der Datenbank. Cookies sind HttpOnly, Secure und SameSite=Strict. Schreibzugriffe erfordern denselben Ursprung; angemeldete Kontoänderungen benötigen zusätzlich einen gültigen CSRF-Token. Login-Limits gelten am Netzwerkzugang und zusätzlich je normalisierter Anmeldeadresse. Linkverwendung und Passwortänderung sind atomar gegen gleichzeitige Kontoänderungen und Wiederverwendung geschützt.
+
+## Prüfung und Grenzen
+
+48 automatisierte Tests prüfen Anmeldung, alte Redaktion, Rollen, Stationsrechte, CSRF, Passwortänderung, Linkablauf, gleichzeitige Verwendung, Widerruf, Mailverschlüsselung, Limits, SMTP-Annahme und Header-Injection. Ein zusätzlicher Test in Workerd prüft Passwortableitung und Mailverschlüsselung. Der bestehende Push-Laufzeittest bleibt erfolgreich. Öffentliche Staging-Prüfungen und Browsernachweise stehen in `NATIVE-AUTH-VERIFICATION.json`.
+
+Noch ausstehend ist die Abnahme mit einem echten persönlichen Teamkonto und mit dem eingerichteten Postfach. Es wurden hierfür keine echten Benutzerkonten angelegt und keine echten E-Mails verschickt. Dauerhafte Gästekonten, Kontakte und weitere Begegnungsfunktionen sind keine bereits fertigen Bestandteile dieser Kontenumstellung. Der QR-Einstieg für Gäste bleibt ohne Anmeldung möglich.

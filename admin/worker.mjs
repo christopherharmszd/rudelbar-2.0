@@ -2,7 +2,7 @@ import { createSanity } from "./lib/sanity.mjs";
 import {liveApi} from "./lib/live-api.mjs";
 import { experienceApi } from "./lib/experience-api.mjs";
 import {createAccounts,cookieValue,accountCookie} from './lib/accounts.mjs';
-import {identityApi} from './lib/identity.mjs';
+import {passwordApi} from './lib/password-api.mjs';
 import {accountsApi} from './lib/accounts-api.mjs';
 import {peopleFor,eventList} from './lib/abend-service.mjs';
 import {publicUser,editsContent,requirePermission} from './lib/permissions.mjs';
@@ -159,7 +159,7 @@ async function api(request, env, execution) {
     const user = await session(request, env);
     return json(200, { configured: true, user: publicUser(user) });
   }
-  if(path.startsWith('/api/auth/'))return identityApi(request,env,{accounts:accountsFor(env),json,data});
+  if(path.startsWith('/api/auth/'))return passwordApi(request,env,{accounts:accountsFor(env),json,data,session,authorized,defer:execution?.waitUntil?.bind(execution)});
   if(path.startsWith('/api/accounts'))return accountsApi(request,env,{accounts:accountsFor(env),json,session,authorized,data});
   if (request.method === "POST" && path === "/api/login") {
     if (!sameOrigin(request)) return json(403, { error: "Ungültige Herkunft." });
@@ -167,6 +167,11 @@ async function api(request, env, execution) {
     const rate = await env.LOGIN_LIMITER.limit({ key: ip });
     if (!rate.success) return json(429, { error: "Zu viele Anmeldeversuche. Bitte später erneut versuchen." });
     const input = await data(request);
+    if(String(input.email||'').trim().toLowerCase()!==editorEmail){
+      const result=await accountsFor(env).signIn(input.email,input.password);
+      const headers=new Headers({'Set-Cookie':accountCookie(result.token)});headers.append('Set-Cookie','rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0');
+      return json(200,{ok:true},headers);
+    }
     const candidate = await passwordVerifier(env.RUDELBAR_SESSION_SECRET, String(input.password || ""));
     const valid = String(input.email || "").trim().toLowerCase() === editorEmail &&
       equal(fromBase64url(candidate), fromBase64url(env.RUDELBAR_PASSWORD_VERIFIER));

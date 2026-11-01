@@ -5,7 +5,7 @@ import {sqliteD1} from './sqlite-d1.mjs';
 import {createLiveService} from '../lib/live-service.mjs';
 import {liveApi} from '../lib/live-api.mjs';
 import visitorWorker from '../../event-app/worker.mjs';
-const schema=await readFile(new URL('../migrations/0001_live_stations.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0002_notifications.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0003_accounts.sql',import.meta.url),'utf8');
+const schema=await readFile(new URL('../migrations/0004_native_accounts.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0001_live_stations.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0002_notifications.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0003_accounts.sql',import.meta.url),'utf8');
 async function setup(){
  const db=sqliteD1();db.connection.exec(schema);
  const ctx={event:{eventId:'evening-a',visibility:'public',accessCode:'private-key',teamIds:['person-a','person-b']},release:{state:'open'},people:[{personId:'person-a',name:'Alex',archived:false},{personId:'person-b',name:'Nora',archived:false}],stations:[
