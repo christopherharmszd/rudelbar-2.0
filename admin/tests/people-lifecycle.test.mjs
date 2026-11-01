@@ -7,7 +7,7 @@ import {changePersonLifecycle} from '../lib/people-lifecycle.mjs';
 import {peopleFor,visitorPayload,catalogFor,configurationFor,eventList} from '../lib/abend-service.mjs';
 import {createLiveService} from '../lib/live-service.mjs';
 import {cleanCatalog,cleanExperience,DEFAULT_CATALOG,defaultExperience,experienceId,withoutDeletedPeople} from '../../shared/experience.mjs';
-const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
+const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
 const admin={name:'Redaktion'},editor={accountId:'other-editor',roles:[{role:'editor'}]},password='Local-only-profile-password-2026!';
 function setup(){
  const db=sqliteD1();db.connection.exec(schema);const docs=new Map();

@@ -5,7 +5,7 @@ import {createAccounts,cookieValue,accountCookie} from './lib/accounts.mjs';
 import {passwordApi} from './lib/password-api.mjs';
 import {accountsApi} from './lib/accounts-api.mjs';
 import {peopleFor,eventList} from './lib/abend-service.mjs';
-import {publicUser,editsContent,requirePermission} from './lib/permissions.mjs';
+import {publicUser,editsContent,writesPosts,requirePermission} from './lib/permissions.mjs';
 
 const editorEmail = "redaktion@rudelbar.local";
 const encoder = new TextEncoder();
@@ -193,13 +193,15 @@ async function api(request, env, execution) {
   if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
     const user = await session(request, env);
     if (!user) return json(401, { error: "Bitte anmelden." });
-    requirePermission(editsContent(user));
-    return json(200, { items: await sanity(env).list({ "/api/events": "rudelEvent", "/api/team": "rudelTeamMember", "/api/posts": "rudelPost" }[path]) });
+    requirePermission(path==='/api/posts'?writesPosts(user):editsContent(user));
+    let items=await sanity(env).list({ "/api/events": "rudelEvent", "/api/team": "rudelTeamMember", "/api/posts": "rudelPost" }[path]);
+    if(!editsContent(user)){const owned=new Set((await env.LIVE_DB.prepare('SELECT content_id FROM app_content_ownership WHERE owner_account_id=?').bind(user.accountId).all()).results.map(r=>r.content_id));items=items.filter(item=>owned.has(item._id));}
+    return json(200, { items });
   }
   if (request.method === "POST" && path === "/api/upload") {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
-    requirePermission(editsContent(auth.user));
+    requirePermission(writesPosts(auth.user));
     const mime = request.headers.get("content-type");
     if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return json(400, { error: "Bitte JPG, PNG oder WebP hochladen." });
     const filename = clean(request.headers.get("x-file-name"), 160, true).replace(/[^a-z0-9._-]/gi, "-");
@@ -210,13 +212,18 @@ async function api(request, env, execution) {
   if (match) {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
-    requirePermission(editsContent(auth.user));
     const [, group, id, action] = match;
+    requirePermission(group==='posts'?writesPosts(auth.user):editsContent(auth.user));
+    if(!editsContent(auth.user)){
+      requirePermission(!action);
+      if(id)requirePermission(!!await env.LIVE_DB.prepare('SELECT content_id FROM app_content_ownership WHERE content_id=? AND owner_account_id=?').bind(id,auth.user.accountId).first());
+    }
     const type = { events: "rudelEvent", team: "rudelTeamMember", posts: "rudelPost" }[group];
     const client = sanity(env);
     if (request.method === "POST" && !id && !action) {
-      const newId = crypto.randomUUID();
-      await client.saveDraft(type, newId, fields(group, await data(request)));
+      const newId = crypto.randomUUID(),newFields=fields(group, await data(request));
+      if(!editsContent(auth.user))await env.LIVE_DB.prepare('INSERT INTO app_content_ownership(content_id,owner_account_id,created_at) VALUES(?,?,?)').bind(newId,auth.user.accountId,Date.now()).run();
+      await client.saveDraft(type, newId, newFields);
       return json(201, { id: newId });
     }
     if (request.method === "PUT" && id && !action) {

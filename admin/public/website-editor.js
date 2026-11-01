@@ -27,10 +27,10 @@ async function api(path, options = {}) {
 }
 
 async function start() {
-  if(integrated){state.user=user;state.configured=true;await load();return;}
+  if(integrated){state.user=user;if(state.user.role==='writer')state.section='posts';state.configured=true;await load();return;}
   try {
     const data = await api("session");
-    state.configured = data.configured; state.user = data.user;
+    state.configured = data.configured; state.user = data.user;if(state.user?.role==='writer')state.section='posts';
     if (state.configured && !state.user) renderLogin();
     else await load();
   } catch (error) { root.innerHTML = `<p class="loading">${esc(error.message)}</p>`; }
@@ -170,8 +170,8 @@ function render() {
       <aside class="side">
         <a class="brand" href="#"><span class="brand-mark">R</span><span><strong>Rudelbar</strong><small>Redaktion</small></span></a>
         <div><p class="side-label">Inhalte</p><nav class="nav" aria-label="Redaktionsbereiche">
-          <button type="button" data-section="events" class="${isEvent ? "active" : ""}">Termine <span>↗</span></button>
-          <button type="button" data-section="team" class="${state.section === "team" ? "active" : ""}">Das Rudel <span>↗</span></button>
+          ${state.user?.role!=="writer"?`<button type="button" data-section="events" class="${isEvent ? "active" : ""}">Termine <span>↗</span></button>`:""}
+          ${state.user?.role!=="writer"?`<button type="button" data-section="team" class="${state.section === "team" ? "active" : ""}">Das Rudel <span>↗</span></button>`:""}
           <button type="button" data-section="posts" class="${state.section === "posts" ? "active" : ""}">Aktuelles <span>↗</span></button>
           <a href="/abendplan.html" class="abend-nav-link">Abendplanung <span>↗</span></a>
         </nav></div>
@@ -179,7 +179,7 @@ function render() {
       </aside>
       <div class="main">
         <header class="top"><div class="crumb">Rudelbar <span> / </span> <strong>${info.title}</strong></div>
-          <div class="account"><span class="avatar">R</span><span class="email">${state.user ? "Redaktion" : "Vorschau"}</span><a class="account-privacy" href="/datenschutz.html">Datenschutz</a>${state.user ? '<button id="logout" type="button">Abmelden</button>' : ""}</div>
+          <div class="account"><span class="avatar">R</span><span class="email">${state.user ? esc(state.user.name||"Redaktion") : "Vorschau"}</span><a class="account-privacy" href="/datenschutz.html">Datenschutz</a>${state.user ? '<button id="logout" type="button">Abmelden</button>' : ""}</div>
         </header>
         <div class="content">
 ${content}
@@ -239,7 +239,7 @@ function renderForm(item) {
   const publicationActions = item ? `${item.draft ? `<button class="secondary" type="button" data-action="publish" ${state.user?.role === "publisher" ? "" : "disabled"}>Veröffentlichen</button>` : ""}${item.published ? `<button class="danger" type="button" data-action="unpublish" ${state.user?.role === "publisher" ? "" : "disabled"}>Von Website nehmen</button>` : ""}${isEvent ? `<button class="secondary" type="button" data-action="archive" ${state.user?.role === "publisher" ? "" : "disabled"}>Archivieren</button>` : ""}` : "";
   return `<div class="edit-head"><div><h2 id="dialog-heading">${esc(formTitle)}</h2><p>${item ? status(item) : "Noch nicht gespeichert"}</p></div>${pill(item)}</div>
     <form id="edit-form"><div class="form-body"><div class="form-columns"><div class="form-main">${mainFields}</div><div class="form-aside">${detailFields}</div></div></div>
-    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${item ? actionConfirmation() : ""}${state.configured && state.user?.role === "editor" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
+    <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${publicationActions}</div>${item ? actionConfirmation() : ""}${state.configured && state.user?.role === "writer" ? '<p class="hint">Die Veröffentlichung übernimmt eine Person mit Veröffentlichungsrecht.</p>' : ""}</div></form>`;
 }
 
 function bind() {

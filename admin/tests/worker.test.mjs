@@ -369,3 +369,26 @@ test('profile and offer deletion routes require session and CSRF, protect revisi
   people=await(await worker.fetch(request('/api/abend/people',{cookie}),state.env)).json();assert.equal(people.people.length,1);assert.equal(people.people[0].archived,true);assert.equal(people.trash.length,0);
  }finally{state.restore();}
 });
+
+test('a post-only author can write only their own drafts, cannot publish, and cannot enter other Backstage data',async()=>{
+ const state=await setup();const {sqliteD1}=await import('./sqlite-d1.mjs'),{readFile}=await import('node:fs/promises'),{createAccounts}=await import('../lib/accounts.mjs'),{createSanity}=await import('../lib/sanity.mjs'),{peopleFor,eventList}=await import('../lib/abend-service.mjs');
+ const db=sqliteD1();state.env.LIVE_DB=db;
+ for(const name of ['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'])db.connection.exec(await readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8'));
+ try{
+  state.docs.set('drafts.person-writer',{_id:'drafts.person-writer',_type:'rudelAppPerson',_rev:'person-revision',personId:'person-writer',name:'Prüfautor',archived:false});
+  const client=createSanity({projectId:'project123',dataset:'staging',token:'private-test-token'}),accounts=createAccounts(state.env,{people:()=>peopleFor(client),events:()=>eventList(client)}),actor={name:'Redaktion'},a=(await accounts.save(actor,{personId:'person-writer',email:'writer@example.invalid',roles:[{role:'author'}]})).account;
+  const invitation=await accounts.invite(actor,a.id),personalPassword='Local-only-writer-password!';await accounts.complete({token:invitation.token,password:personalPassword});
+  const response=await worker.fetch(request('/api/login',{method:'POST',body:{email:a.email,password:personalPassword}}),state.env),cookie=response.headers.getSetCookie().find(v=>v.startsWith('rb_account='));assert.equal(response.status,200);
+  const user=(await(await worker.fetch(request('/api/session',{cookie}),state.env)).json()).user;assert.equal(user.role,'writer');
+  const call=(path,body,method=body?'POST':'GET')=>worker.fetch(request(path,{method,cookie,csrf:user.csrf,body}),state.env),post={title:'Eigener Beitrag',date:'2026-11-01',teaser:'Ein lokaler Entwurf.',body:'Ein vollständiger lokaler Prüfbeitrag.',images:[]};
+  const own=(await(await call('/api/posts',post)).json()).id;assert.ok(own);
+  state.docs.set('drafts.foreign-post',{_id:'drafts.foreign-post',_type:'rudelPost',...post,title:'Fremder Beitrag'});
+  const list=await(await call('/api/posts')).json();assert.equal(list.items.length,1);assert.equal(list.items[0]._id,own);
+  assert.equal((await call('/api/posts/'+own,{...post,title:'Überarbeitet'},'PUT')).status,200);
+  assert.equal((await call('/api/posts/foreign-post',post,'PUT')).status,403);
+  assert.equal((await call('/api/posts/'+own+'/publish',{})).status,403);
+  for(const path of ['/api/events','/api/team','/api/accounts','/api/abend/events','/api/abend/catalog','/api/abend/people','/api/abend/partners'])assert.equal((await call(path)).status,403,path);
+  const legacy=await login(state.env);assert.equal((await worker.fetch(request('/api/posts/'+own+'/publish',{method:'POST',cookie:legacy.cookie,csrf:legacy.csrf,body:{}}),state.env)).status,200);
+  assert.ok(!JSON.stringify(state.docs.get(own)).includes(a.id),'internal account ownership is not copied into the public Sanity post');
+ }finally{db.connection.close();state.restore();}
+});

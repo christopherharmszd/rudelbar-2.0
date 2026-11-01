@@ -9,7 +9,7 @@ import {editsContent,managesEvent,managesUsers} from '../lib/permissions.mjs';
 import {createLiveService} from '../lib/live-service.mjs';
 import {experienceApi} from '../lib/experience-api.mjs';
 import {liveApi} from '../lib/live-api.mjs';
-const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts'].map(name=>readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8')))).join('\n');
+const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'].map(name=>readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8')))).join('\n');
 const password='Local-only-personal-password-2026!',newPassword='Another-local-password-2026!';
 const legacy={sub:'redaktion@rudelbar.local',name:'Redaktion',csrf:'legacy-csrf'},origin='https://cms.example.test';
 const json=(status,body,headers={})=>Response.json(body,{status,headers}),status=expected=>error=>error.status===expected;
@@ -92,6 +92,7 @@ test('HTTP editorial routes filter events and contact fields for restricted acco
   docs.push({_type:'rudelAppEvent',...s.event,eventId:'other-event',teamIds:['person-b'],title:'Anderer Abend',_id:'drafts.other-event'});
   const events=await(await experienceApi(new Request(origin+'/api/abend/events'),s.env,args)).json();assert.equal(events.events.length,1);assert.equal(events.events[0].canManage,false);assert.ok(!JSON.stringify(events).includes('never-public'));assert.ok(!JSON.stringify(events).includes('other-event'));assert.ok(!JSON.stringify(events).includes('guestUrl'));
   await assert.rejects(()=>experienceApi(new Request(origin+'/api/abend/catalog',{method:'PUT',body:'{}'}),s.env,args),status(403));
+  await assert.rejects(()=>experienceApi(new Request(origin+'/api/abend/catalog'),s.env,args),status(403));
   await assert.rejects(()=>experienceApi(new Request(origin+'/api/abend/events',{method:'POST',body:'{}'}),s.env,args),status(403));
  }finally{s.close();}
 });

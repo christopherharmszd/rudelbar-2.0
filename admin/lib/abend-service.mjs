@@ -1,4 +1,5 @@
 import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor, stationsFor, withoutDeletedPeople } from '../../shared/experience.mjs';
+import {PARTNER_TYPE,affiliationFields,affiliationFor} from './profile-fields.mjs';
 
 export const APP_EVENT_TYPE='rudelAppEvent';
 export const PERSON_TYPE='rudelAppPerson';
@@ -10,11 +11,12 @@ const text=(v,max=160,required=false)=>{const s=String(v??'').trim();if(s.length
 const token=()=>Array.from(crypto.getRandomValues(new Uint8Array(24)),n=>n.toString(16).padStart(2,'0')).join('');
 export const strip=doc=>{if(!doc)return null;const {_id,_rev,_createdAt,_updatedAt,_type,id,published,draft,...fields}=doc;return fields;};
 export const catalogFor=async client=>{const doc=await client.getDocument(`drafts.${CATALOG_ID}`)||await client.getDocument(CATALOG_ID);return {...cleanCatalog(doc||{equipment:[],games:[],program:[],drinks:[]}),revision:doc?._rev||''};};
-export const peopleFor=async(client,{includeDeleted=false}={})=>(await client.list(PERSON_TYPE)).filter(p=>includeDeleted||!p.deletedAt).map(p=>({...strip(p),revision:p._rev||''}));
-export function cleanPerson(input,personId){
+export const peopleFor=async(client,{includeDeleted=false}={})=>(await client.list(PERSON_TYPE)).filter(p=>includeDeleted||!p.deletedAt).map(p=>({...strip(p),membershipType:p.membershipType||'rudelbar',partnerId:p.partnerId||'',avatarUrl:p.avatarUrl||'',revision:p._rev||''}));
+export const partnersFor=async client=>(await client.list(PARTNER_TYPE)).map(p=>({...strip(p),revision:p._rev||''}));
+export function cleanPerson(input,personId,partners=[]){
   const email=text(input.email,254),phone=text(input.phone,60);
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fail('Bitte eine gültige E-Mail-Adresse eingeben.');
-  return {personId:validId(personId),name:text(input.name,100,true),role:text(input.role,100),email,phone,archived:input.archived===true};
+  return {personId:validId(personId),name:text(input.name,100,true),role:text(input.role,100),email,phone,archived:input.archived===true,...affiliationFields(input,partners)};
 }
 export function cleanEvent(input,eventId,previous){
   const date=text(input.date,10,true);
@@ -44,7 +46,7 @@ export async function snapshotFor(client,event){
   return release||{eventId:event.eventId,state:published?'open':'closed',config:published?strip(published):null};
 }
 export function guestUrl(base,event){return `${String(base||'').replace(/\/$/,'')}/?abend=${encodeURIComponent(event.eventId)}${event.visibility==='private'?`&zugang=${encodeURIComponent(event.accessCode)}`:''}`;}
-export function visitorPayload(config,event,people){
+export function visitorPayload(config,event,people,partners=[]){
   const safeEvent={_id:event.eventId,title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''};
   const resolve=row=>{
     const person=row.hostId?people.find(p=>p.personId===row.hostId&&!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)):null;
@@ -57,7 +59,7 @@ export function visitorPayload(config,event,people){
   payload.program=payload.program.map(resolve);
   payload.stations=stationsFor(config).filter(s=>s.enabled!==false).map(({id,name,kind,description,place,offerType,offerId})=>({id,name,kind,description,place,offerType,offerId}));
   payload.schemaVersion=4;
-  payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role}));
+  payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role,avatarUrl:p.avatarUrl||'',affiliation:affiliationFor(p,partners)}));
   return payload;
 }
 export async function getVisitorExperience(client,{eventId='',accessCode=''}={}){
@@ -69,6 +71,6 @@ export async function getVisitorExperience(client,{eventId='',accessCode=''}={})
     const release=await snapshotFor(client,event);
     if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
-    return {status:200,state:'open',experience:{...visitorPayload(release.config,event,await peopleFor(client)),revision:release._rev||release.sourceRevision||''}};
+    return {status:200,state:'open',experience:{...visitorPayload(release.config,event,await peopleFor(client),await partnersFor(client)),revision:release._rev||release.sourceRevision||''}};
   }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}
 }

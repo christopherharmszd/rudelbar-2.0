@@ -24,6 +24,8 @@ Die gemeinsame Anmeldeseite `/anmelden` unterstützt persönliche E-Mail-/Passwo
 
 Die gemeinsame Sitzung und serverseitigen Berechtigungen gelten für Redaktion, Backstage und Live. Personen ohne Verwaltungsaufgabe gelangen beim allgemeinen Einstieg zum eigenständigen Live-Bereich. Die Benutzerverwaltung bleibt der Administration vorbehalten. Live behält seine eigene Oberfläche.
 
+Teammitglied einrichten führt jetzt durch einen gemeinsamen Assistenten für Profil, persönlichen Zugang, Rechte und Einladung. Reine Ansprechpartnerprofile bleiben ausdrücklich möglich. Profilfoto, Rudelbar-Team und Partner/Verein mit eigener Logokennzeichnung sind unabhängig von den Berechtigungen. Partner werden zentral verwaltet. Die neue Rolle Redaktion · Beiträge verfassen kann nur eigene Entwürfe bearbeiten; umfassende bisherige Redaktionsrechte heißen Backstage-Verwaltung. Live-Team und Empfang bleiben auf ihre zugeordneten Abende und Eingänge beschränkt. Details und Grenzen stehen in [ACCOUNTS.md](ACCOUNTS.md), die aktuelle Prüfung in [MEMBERS-VERIFICATION.json](MEMBERS-VERIFICATION.json).
+
 Die zuvor vorbereitete externe OIDC-Anmeldung wurde durch eigene Rudelbar-Konten nach dem Prinzip der Elbmafia-Anmeldung ersetzt. Einladungen und Passwort-Links sind funktional; Links können persönlich weitergegeben werden. Für automatischen E-Mail-Versand über `info@rudelbar.de` muss die Administration noch den Postfachzugang direkt in Backstage hinterlegen. Gemeinsames Redaktionspasswort, bestehende Sitzungen und Push-Schlüssel bleiben erhalten. Siehe [Konten und Einrichtung](ACCOUNTS.md) und [aktuellen Prüfbericht](NATIVE-AUTH-VERIFICATION.json).
 
 ## Prüfung und Datenhygiene

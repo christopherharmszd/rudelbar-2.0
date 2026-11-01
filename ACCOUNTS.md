@@ -6,18 +6,21 @@ Der gemeinsame Zugang **Redaktion bleibt aktiv**. Sein Passwort, Verifier, Sitzu
 
 ## Einrichtung durch die Administration
 
-1. Unter Personen & Benutzer ein aktives Personenprofil anlegen oder auswählen.
-2. Unter Benutzer & Rechte ein Konto vorbereiten: Profil, eindeutige persönliche E-Mail, Freigabe und Aufgaben zuweisen.
-3. Einladung erstellen. Entweder den einmal angezeigten Link persönlich weitergeben oder ausdrücklich den Versand per E-Mail auswählen.
+1. Unter Personen & Benutzer oder Benutzer & Rechte **Teammitglied einrichten** öffnen. Ein vorhandenes Profil kann dabei übernommen werden; es wird nicht dupliziert.
+2. Der Assistent führt durch Profil, Zugang, Berechtigungen und abschließende Prüfung. Profilfoto, Tätigkeit und Rudelbar-Team oder Partner/Verein werden am Profil hinterlegt. Partner können ein eigenes Logo erhalten; ohne Logo erscheint die neutrale Kennzeichnung Rudelbar-Partner.
+3. Persönlichen Zugang mit eindeutiger E-Mail und ausdrücklich gewählten Rechten einrichten oder bewusst nur ein Ansprechpartnerprofil anlegen. Bei einem Zugang gehört die Einladung zum selben Ablauf. E-Mail ist nur bei eingerichtetem Versand wählbar; alternativ wird ausdrücklich ein persönlich weiterzugebender Einladungslink erzeugt.
 4. Die Person öffnet den Link und wählt selbst ihr Passwort. Danach meldet sie sich unter `/anmelden` an. Einladungen gelten 24 Stunden.
 5. Dasselbe Konto gilt für Redaktion, Backstage und den eigenständigen Live-Bereich. Die serverseitigen Rechte bestimmen die sichtbaren Inhalte.
 
-Es gibt keine öffentliche Selbstregistrierung für interne Konten. Ein Personenprofil allein ist kein Benutzerkonto. Die Administration bestätigt die Zuordnung und gibt den Zugangslink an die Person weiter. Ein manuell weitergegebener Link bestätigt keine unabhängige E-Mail-Verifikation. Der Besitz dieses vertraulichen Links berechtigt einmalig zur Passworteinrichtung.
+Es gibt keine öffentliche Selbstregistrierung für interne Konten. Ein reines Ansprechpartnerprofil erzeugt ausdrücklich weder Benutzerkonto noch Einladung. Die Zugehörigkeit zu Rudelbar oder einem Partner vergibt keine Rechte. Die Administration bestätigt die Zuordnung und gibt den Zugangslink an die Person weiter. Ein manuell weitergegebener Link bestätigt keine unabhängige E-Mail-Verifikation. Der Besitz dieses vertraulichen Links berechtigt einmalig zur Passworteinrichtung.
+
+Der Einrichtungsauftrag wird mit einer eindeutigen Vorgangskennung gespeichert. Wiederholung nach einem Verbindungsabbruch erzeugt kein zweites Profil oder Konto. Nicht abgeschlossene Vorgänge lassen sich am Personenprofil fortsetzen. Bereits vom Mailserver angenommene oder unklar bestätigte Einladungen werden dabei nicht automatisch erneut versendet. Bilder werden erst beim abschließenden Speichern hochgeladen. Öffentliche Profilansichten enthalten Foto und Zugehörigkeit, aber keine internen E-Mail-Adressen oder Telefonnummern.
 
 ## Aufgaben und Widerruf
 
 - Administration: Konten, Rechte, Inhalte und alle Abende.
-- Redaktion: Webseiteninhalte, Angebote, Personen und alle Abende ohne Benutzerverwaltung.
+- Redaktion · Beiträge verfassen: ausschließlich eigene Beitragsentwürfe erstellen und bearbeiten. Keine Veröffentlichung, fremden Beiträge, Angebote, Personen, Abende oder Benutzerverwaltung. Die Freigabe übernimmt eine berechtigte Person.
+- Backstage-Verwaltung: Webseiteninhalte, Angebote, Personen und alle Abende ohne Benutzerverwaltung. Bestehende umfassende Redaktionsrechte bleiben unter dieser eindeutigen Bezeichnung erhalten.
 - Abendleitung: Vorbereitung und Live-Betrieb zugeordneter Abende.
 - Stationsbetreuung: Zugeordnete Stationen und gemeinsame Eingänge ausgewählter Abende.
 - Gastgeber und Moderation: Live-Eingänge ausgewählter Abende.
@@ -42,7 +45,7 @@ Mailversuche haben persistente Empfänger- und Gesamtlimits: mindestens 60 Sekun
 
 ## Speicherung und Betrieb
 
-Die additive Migration `0004_native_accounts.sql` ergänzt Passwortnachweise, einmalige Links, persistente Limits und verschlüsselte Mailkonfiguration. Bisherige Daten, alte Identitätstabellen, Sitzungen und Push-Registrierungen werden nicht gelöscht. Historische OIDC-Tabellen bleiben ungenutzt bestehen.
+Die additive Migration `0004_native_accounts.sql` ergänzt Passwortnachweise, einmalige Links, persistente Limits und verschlüsselte Mailkonfiguration. `0005_member_onboarding.sql` ergänzt wiederaufnehmbare Einrichtungsaufträge und interne Beitragseigentümer. Beitragseigentümer stehen nur in D1, nicht in veröffentlichten Sanity-Inhalten. Bisherige Daten, alte Identitätstabellen, Sitzungen und Push-Registrierungen werden nicht gelöscht. Historische OIDC-Tabellen bleiben ungenutzt bestehen.
 
 Passwortnachweise verwenden PBKDF2-SHA256 mit 100.000 Iterationen und 24 zufälligen Salt-Bytes sowie einen serverseitigen, getrennt abgeleiteten HMAC-Pepper. Der Wert folgt dem vorhandenen Elbmafia-Muster und ist in der Cloudflare-Laufzeit geprüft. Mailzugangsdaten sind mit AES-GCM, zufälligem Nonce und getrennt abgeleitetem Schlüssel verschlüsselt. Der vorhandene Worker-Sitzungsschlüssel dient als Wurzelschlüssel; eine spätere Rotation benötigt eine geplante Migration der Mailverschlüsselung und persönlichen Passwortnachweise. Diese Einführung rotiert keinerlei Schlüssel.
 
@@ -50,7 +53,7 @@ Sitzungen gelten acht Stunden. Sitzungs- und Linktokens stehen nur als SHA-256-H
 
 ## Prüfung und Grenzen
 
-48 automatisierte Tests prüfen Anmeldung, alte Redaktion, Rollen, Stationsrechte, CSRF, Passwortänderung, Linkablauf, gleichzeitige Verwendung, Widerruf, Mailverschlüsselung, Limits, SMTP-Annahme und Header-Injection. Ein zusätzlicher Test in Workerd prüft Passwortableitung und Mailverschlüsselung. Der bestehende Push-Laufzeittest bleibt erfolgreich. Öffentliche Staging-Prüfungen und Browsernachweise stehen in `NATIVE-AUTH-VERIFICATION.json`.
+66 automatisierte Tests prüfen Anmeldung, alte Redaktion, Rollen, Stationsrechte, reine Beitragsrechte, CSRF, Passwortänderung, Linkablauf, gleichzeitige Verwendung, Widerruf, Mailverschlüsselung, Limits, SMTP-Annahme, Header-Injection, Löschung und die gemeinsame Profileinrichtung einschließlich Wiederaufnahme. Ein zusätzlicher Test in Workerd prüft Passwortableitung und Mailverschlüsselung. Der bestehende Push-Laufzeittest bleibt erfolgreich. Aktuelle Veröffentlichungs- und Browsernachweise stehen in `MEMBERS-VERIFICATION.json`; `NATIVE-AUTH-VERIFICATION.json` dokumentiert die frühere Einführung.
 
 Noch ausstehend ist die Abnahme mit einem echten persönlichen Teamkonto und mit dem eingerichteten Postfach. Es wurden hierfür keine echten Benutzerkonten angelegt und keine echten E-Mails verschickt. Dauerhafte Gästekonten, Kontakte und weitere Begegnungsfunktionen sind keine bereits fertigen Bestandteile dieser Kontenumstellung. Der QR-Einstieg für Gäste bleibt ohne Anmeldung möglich.
 

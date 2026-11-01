@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-11-01T22:46:58.342Z",
+  "scope": "Unified member wizard, affiliations and distinct permissions",
+  "workers": {
+    "cms": "11771522-8a3e-4aae-b8dc-744ef64721ed",
+    "guest": "08737579-9ef5-4261-af7b-e64589ae8dc6"
+  },
+  "migration": "0005_member_onboarding.sql",
+  "publicChecks": [
+    "Published CMS source matches backstage.html",
+    "Published CMS source matches backstage.css",
+    "Published CMS source matches abendplan.js",
+    "Published CMS source matches accounts-ui.js",
+    "Published CMS source matches website-editor.js",
+    "Published CMS source matches member-wizard.js",
+    "Published CMS source matches app.js",
+    "Published CMS source matches anmelden.html",
+    "Published CMS source matches anmelden.js",
+    "Published guest source matches app.js",
+    "Published guest source matches styles.css",
+    "Published guest source matches assets/rudelbar-partner.svg",
+    "Anonymous access rejected /api/events",
+    "Anonymous access rejected /api/posts",
+    "Anonymous access rejected /api/accounts",
+    "Anonymous access rejected /api/abend/events",
+    "Anonymous access rejected /api/abend/people",
+    "Anonymous access rejected /api/abend/partners",
+    "Unauthenticated provisioning rejected",
+    "Personal password login and shared Redaktion remain enabled",
+    "Removed example evening no longer publicly accessible",
+    "Removed example evening no longer publicly accessible",
+    "15 catalog offers unchanged, 7 authorized example profiles recoverably deleted, genuine premiere retained"
+  ],
+  "automatedTests": {
+    "passed": 66,
+    "failed": 0
+  },
+  "browser": {
+    "cloudWizard": true,
+    "existingProfileSelectable": true,
+    "sharedRedaktionSessionPreserved": true,
+    "localIsolatedFullPartnerAccountFlow": true,
+    "responsiveWidths": [
+      320,
+      390
+    ],
+    "horizontalOverflow": false,
+    "cloudRolesAndFinalReview": true,
+    "emailChoiceDisabledWithoutMailbox": true,
+    "workingProfileUnchanged": true
+  },
+  "mailReady": false,
+  "workingData": {
+    "exampleEventsRemoved": 2,
+    "exampleProfilesInTrash": 7,
+    "catalogOffersPreserved": 15,
+    "testRecordsCreatedByThisIteration": 0,
+    "emailsSentByThisIteration": 0
+  },
+  "pending": [
+    "Administrator enters mailbox credentials in Backstage before email invitations can be sent",
+    "Acceptance with the first real personal account; explicit invitation link is available now"
+  ],
+  "screenshot": "../rudelbar-app-preview/member-wizard-staging.png",
+  "database": {
+    "preservedVisitors": 3,
+    "preservedRequests": 5,
+    "preservedGuestPushRegistrations": 1,
+    "newOnboardingOperations": 0,
+    "newPostOwners": 0
+  },
+  "screenshots": [
+    "../rudelbar-app-preview/member-wizard-staging.png",
+    "../rudelbar-app-preview/member-roles-staging.png"
+  ]
+}
