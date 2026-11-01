@@ -1,50 +1,66 @@
-import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor } from '../../shared/experience.mjs';
-
-export async function catalogFor(client){return cleanCatalog(await client.getDocument(`drafts.${CATALOG_ID}`)||await client.getDocument(CATALOG_ID)||DEFAULT_CATALOG);}
-
+import { CATALOG_ID, EXPERIENCE_TYPE, cleanCatalog, cleanExperience, experienceId, validId } from '../../shared/experience.mjs';
+import { APP_EVENT_TYPE, PERSON_TYPE, RELEASE_TYPE, catalogFor, peopleFor, cleanPerson, cleanEvent, eventList, loadEvent, configurationFor, snapshotFor, visitorPayload, eventDocId, releaseDocId, guestUrl, strip } from './abend-service.mjs';
+export {catalogFor};
+const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
-  const path=new URL(request.url).pathname;
-  const user=await session(request,env);
+  const path=new URL(request.url).pathname,user=await session(request,env);
   if(!user)return json(401,{error:'Bitte anmelden.'});
   if(request.method!=='GET'){const auth=await authorized(request,env);if(auth.error)return auth.error;}
   if(path==='/api/abend/catalog'){
     if(request.method==='GET')return json(200,{catalog:await catalogFor(client)});
     if(request.method==='PUT'){const catalog=cleanCatalog(await data(request));await client.saveDraft('rudelAppCatalog',CATALOG_ID,catalog);return json(200,{catalog});}
   }
-  if(path==='/api/abend/events'&&request.method==='GET'){
-    const [events,experiences]=await Promise.all([client.list('rudelEvent'),client.list(EXPERIENCE_TYPE)]);
-    return json(200,{events:events.filter(e=>!e.archived).map(event=>({...event,app:experiences.find(x=>x.eventId===event._id)||null})),visitorAppUrl:env.VISITOR_APP_URL||''});
+  if(path==='/api/abend/people'){
+    if(request.method==='GET')return json(200,{people:await peopleFor(client)});
+    if(request.method==='POST'){const input=await data(request),id=`person-${crypto.randomUUID()}`;const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id));return json(201,{person:{...strip(doc),revision:doc._rev||''}});}
   }
-  const match=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)(?:\/(publish|unpublish|preview))?$/i);
+  const personMatch=path.match(/^\/api\/abend\/people\/([a-z0-9-]+)$/i);
+  if(personMatch&&request.method==='PUT'){
+    const id=validId(personMatch[1]),input=await data(request),existing=await client.getDocument(`drafts.${id}`);
+    if(!existing||existing._type!==PERSON_TYPE)return json(404,{error:'Person nicht gefunden.'});
+    const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id),input.revision);
+    return json(200,{person:{...strip(doc),revision:doc._rev||''}});
+  }
+  if(path==='/api/abend/events'){
+    if(request.method==='GET')return json(200,{events:(await eventList(client)).map(e=>({...e,guestUrl:guestUrl(env.VISITOR_APP_URL,e)})),visitorAppUrl:env.VISITOR_APP_URL||''});
+    if(request.method==='POST'){
+      const input=await data(request),id=`app-${crypto.randomUUID()}`,fields=cleanEvent({...input,teamIds:input.teamIds||[]},id);
+      await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields);
+      return json(201,{id,event:await loadEvent(client,id)});
+    }
+  }
+  const match=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)(?:\/(details|publish|unpublish|preview|open|close))?$/i);
   if(!match)return json(404,{error:'Nicht gefunden.'});
-  const [,eventId,action]=match;
-  validId(eventId);
-  const id=experienceId(eventId);
-  const [events,items]=await Promise.all([client.list('rudelEvent'),client.list(EXPERIENCE_TYPE)]);
-  const event=events.find(e=>e._id===eventId&&!e.archived);
-  if(!event)return json(404,{error:'Termin nicht gefunden.'});
-  const item=items.find(x=>x.eventId===eventId);
+  const [,id,action]=match;validId(id);
+  const event=await loadEvent(client,id),current=await configurationFor(client,id);
   if(request.method==='GET'){
-    if(action==='preview')return json(200,{experience:publicExperience({...item,...(item||defaultExperience(eventId)),_id:id,eventId,enabled:true},{...event,_id:eventId})});
+    if(action==='preview')return json(200,{state:'open',experience:visitorPayload(current.experience,event,await peopleFor(client))});
     if(action)return json(404,{error:'Nicht gefunden.'});
-    return json(200,{event,experience:item?{...item,program:programFor(item)}:defaultExperience(eventId),published:item?.published===true,draft:item?.draft===true});
+    return json(200,{...current,event:{...event,guestUrl:guestUrl(env.VISITOR_APP_URL,event)}});
+  }
+  if(request.method==='PUT'&&action==='details'){
+    const input=await data(request),previous=await client.getDocument(`drafts.${eventDocId(id)}`);
+    const fields=cleanEvent({...event,...input},id,previous||event),people=await peopleFor(client);
+    if(fields.teamIds.some(pid=>!people.some(p=>p.personId===pid&&!p.archived)))fail('Bitte nur aktive Personen zum Team hinzufügen.');
+    await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields,input.revision);
+    return json(200,{event:{...await loadEvent(client,id),guestUrl:guestUrl(env.VISITOR_APP_URL,fields)}});
   }
   if(request.method==='PUT'&&!action){
-    const catalog=cleanCatalog(await catalogFor(client));
-    const fields=cleanExperience(await data(request),catalog,eventId);
-    await client.saveDraft(EXPERIENCE_TYPE,id,fields);
-    return json(200,{ok:true,experience:fields});
+    const input=await data(request),fields=cleanExperience(input,await catalogFor(client),id,await peopleFor(client),event.teamIds);
+    const doc=await client.savePrivate(EXPERIENCE_TYPE,experienceId(id),fields,input.revision);
+    return json(200,{ok:true,experience:{...strip(doc),revision:doc._rev||''}});
   }
-  if(request.method==='POST'&&action==='publish'){
-    const publishedEvent=await client.getDocument(eventId);
-    if(!publishedEvent||publishedEvent._type!=='rudelEvent'||publishedEvent.archived)return json(409,{error:'Bitte zuerst den Termin in der Redaktion veröffentlichen.'});
-    if(!item?.draft)return json(409,{error:'Bitte zuerst einen Entwurf speichern.'});
-    await client.publish(id);
-    return json(200,{ok:true,url:`${String(env.VISITOR_APP_URL||'').replace(/\/$/,'')}/?abend=${encodeURIComponent(eventId)}`});
-  }
-  if(request.method==='POST'&&action==='unpublish'){
-    if(!item?.published)return json(409,{error:'Dieser Abend ist nicht veröffentlicht.'});
-    await client.unpublish(id);return json(200,{ok:true});
+  if(request.method==='POST'&&['publish','open','close','unpublish'].includes(action)){
+    const release=await snapshotFor(client,event),config=action==='close'||action==='unpublish'?release.config:current.experience;
+    if(action==='publish'||action==='open'){
+      if(event.source==='website'&&!event.websitePublished&&!event.revision)fail('Bitte zuerst den Webseiten-Termin veröffentlichen oder einen eigenen Abend anlegen.',409);
+      if(!current.draft&&!release.config)fail('Bitte zuerst den Abend vorbereiten und speichern.',409);
+      // Re-check people and catalog references at release time as well.
+      const validated=cleanExperience(config,await catalogFor(client),id,await peopleFor(client),event.teamIds);
+      const fields={eventId:id,state:action==='open'?'open':release.state,config:validated,changedAt:new Date().toISOString(),sourceRevision:config.revision||''};
+      await client.savePrivate(RELEASE_TYPE,releaseDocId(id),fields,release._rev);
+    }else await client.savePrivate(RELEASE_TYPE,releaseDocId(id),{eventId:id,state:'closed',config:release.config||null,changedAt:new Date().toISOString(),sourceRevision:release.sourceRevision||''},release._rev);
+    return json(200,{ok:true,event:await loadEvent(client,id),url:guestUrl(env.VISITOR_APP_URL,event)});
   }
   return json(405,{error:'Diese Aktion ist nicht verfügbar.'});
 }

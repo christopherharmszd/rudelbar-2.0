@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import worker, { passwordVerifier } from "../worker.mjs";
+import { getVisitorExperience } from '../lib/abend-service.mjs';
 import { DEFAULT_CATALOG, defaultExperience, experienceId, CATALOG_ID } from '../../shared/experience.mjs';
 
 const origin = "https://rudelbar-cms-staging.example.workers.dev";
@@ -34,7 +35,9 @@ async function setup() {
     if (parsed.pathname.includes("/data/mutate/")) {
       const { mutations } = JSON.parse(options.body);
       for (const mutation of mutations) {
-        if (mutation.createOrReplace) docs.set(mutation.createOrReplace._id, mutation.createOrReplace);
+        if (mutation.createOrReplace) docs.set(mutation.createOrReplace._id, {...mutation.createOrReplace,_rev:crypto.randomUUID()});
+        if (mutation.createIfNotExists&&!docs.has(mutation.createIfNotExists._id))docs.set(mutation.createIfNotExists._id,{...mutation.createIfNotExists,_rev:crypto.randomUUID()});
+        if (mutation.patch){const old=docs.get(mutation.patch.id);if(mutation.patch.ifRevisionID&&old?._rev!==mutation.patch.ifRevisionID)return Response.json({error:{description:'Revision conflict'}},{status:409});docs.set(mutation.patch.id,{...old,...mutation.patch.set,_rev:crypto.randomUUID()});}
         if (mutation.delete) docs.delete(mutation.delete.id);
       }
       return Response.json({ results: [] });
@@ -257,18 +260,94 @@ test('evening planning requires login and CSRF, keeps drafts separate, and publi
     assert.equal((await write(`/api/abend/events/${id}/publish`,undefined,'POST')).status,409);
     assert.equal((await write(`/api/events/${id}/publish`,undefined,'POST')).status,200);
     assert.equal((await write(`/api/abend/events/${id}/publish`,undefined,'POST')).status,200);
-    assert.equal(state.docs.has(`drafts.${documentId}`),false);
-    assert.equal(state.docs.get(documentId).equipment.length,2);
+    assert.equal(state.docs.has(documentId),false);
+    assert.equal(state.docs.get(`drafts.rudel-app-release-${id}`).config.equipment.length,2);
     const changed=structuredClone(DEFAULT_CATALOG);changed.drinks[0].priceCents=900;
     assert.equal((await write('/api/abend/catalog',changed)).status,200);
-    assert.equal(state.docs.get(documentId).menu[0].priceCents,175);
+    assert.equal(state.docs.get(`drafts.rudel-app-release-${id}`).config.menu[0].priceCents,175);
     draft.welcomeTitle='Noch geheimer Entwurf';
     assert.equal((await write(`/api/abend/events/${id}`,draft)).status,200);
-    assert.notEqual(state.docs.get(documentId).welcomeTitle,draft.welcomeTitle);
+    assert.notEqual(state.docs.get(`drafts.rudel-app-release-${id}`).config.welcomeTitle,draft.welcomeTitle);
     assert.equal((await read(`/api/abend/events/${id}/preview`)).experience.welcomeTitle,draft.welcomeTitle);
     assert.equal((await write(`/api/abend/events/${id}/unpublish`,undefined,'POST')).status,200);
     assert.equal(state.docs.has(documentId),false);
     assert.equal(state.docs.get(`drafts.${documentId}`).welcomeTitle,draft.welcomeTitle);
     assert.equal((await write('/api/abend/events/missing',draft)).status,404);
+  }finally{state.restore();}
+});
+
+
+test('private app events stay out of the public calendar and require their guest link',async()=>{
+  const state=await setup();
+  try{
+    const {cookie,csrf}=await login(state.env);
+    const write=(path,body,method='POST')=>worker.fetch(request(path,{method,cookie,csrf,body}),state.env);
+    const create=await write('/api/abend/events',{title:'Privater Geburtstag',date:'2026-11-07',time:'18 Uhr',venue:'Privater Garten',visibility:'private',teamIds:[]});
+    assert.equal(create.status,201);const {id}=await create.json();
+    const list=await(await worker.fetch(request('/api/abend/events',{cookie}),state.env)).json();
+    const event=list.events.find(e=>e.eventId===id);assert.equal(event.app.state,'closed');assert.ok(event.guestUrl.includes('zugang='));
+    assert.equal([...state.docs.values()].filter(d=>d._type==='rudelEvent').length,0);
+    assert.ok([...state.docs.keys()].every(key=>key.startsWith('drafts.')));
+    assert.equal((await getVisitorExperience({list:async type=>[...state.docs.values()].filter(d=>d._type===type).map(d=>({...d,_id:d._id.slice(7),draft:true,published:false})),getDocument:async id=>state.docs.get(id)}, {eventId:id})).status,404);
+    const {createSanity}=await import('../lib/sanity.mjs');const client=createSanity({projectId:'project123',dataset:'staging',token:'private-test-token'});
+    assert.equal((await getVisitorExperience(client,{eventId:id,accessCode:'wrong'})).status,404);
+    const closed=await getVisitorExperience(client,{eventId:id,accessCode:event.accessCode});assert.equal(closed.state,'closed');assert.equal(closed.experience,null);
+    assert.equal((await getVisitorExperience(client)).status,404);
+    assert.equal((await write('/api/abend/events',{title:'Invalid',date:'2026-13-01',venue:'Ort',visibility:'private',teamIds:[]})).status,400);
+  }finally{state.restore();}
+});
+
+test('opening, applying content and closing are separate, durable operations with optional profile assignments',async()=>{
+  const state=await setup();
+  try{
+    const {cookie,csrf}=await login(state.env);
+    const call=async(path,body,method='POST')=>{const r=await worker.fetch(request(path,{method,cookie,csrf,body}),state.env);assert.equal(r.status<300,true,await r.clone().text());return r.json();};
+    const {id}=await call('/api/abend/events',{title:'Eigenständiger Abend',date:'2026-11-07',venue:'Scharnebeck',visibility:'public',teamIds:[]});
+    const {person}=await call('/api/abend/people',{name:'Alex',role:'Spiele',email:'internal-only@example.test',phone:'+49 123 456'});
+    let event=(await call(`/api/abend/events/${id}`,undefined,'GET')).event;
+    await call(`/api/abend/events/${id}/details`,{...event,teamIds:[person.personId]},'PUT');
+    let config=defaultExperience(id);config.welcomeTitle='Erste Fassung';config.equipment=[{id:'kicker-1',place:'Neben dem Wagen',hostId:person.personId}];
+    config=(await call(`/api/abend/events/${id}`,config,'PUT')).experience;
+    await call(`/api/abend/events/${id}/publish`);
+    const {createSanity}=await import('../lib/sanity.mjs');const client=createSanity({projectId:'project123',dataset:'staging',token:'private-test-token'});
+    assert.equal((await getVisitorExperience(client,{eventId:id})).state,'closed','applying content must not open the app');
+    assert.equal((await getVisitorExperience(client)).state,'closed','the root guest link also displays the closed state');
+    await call(`/api/abend/events/${id}/open`);
+    let guest=await getVisitorExperience(client,{eventId:id});assert.equal(guest.state,'open');assert.equal(guest.experience.equipment[0].host,'Alex');
+    assert.ok(!JSON.stringify(guest).includes('internal-only'));assert.ok(!JSON.stringify(guest).includes('+49 123'));assert.ok(!JSON.stringify(guest).includes('accessCode'));
+    await call('/api/abend/people/'+person.personId,{...person,name:'Alex Neu'},'PUT');
+    assert.equal((await getVisitorExperience(client,{eventId:id})).experience.equipment[0].host,'Alex Neu','a profile reference resolves the current profile rather than a stored free-text name');
+    config=(await call(`/api/abend/events/${id}`,{...config,welcomeTitle:'Nächster Entwurf'},'PUT')).experience;
+    assert.equal((await getVisitorExperience(client,{eventId:id})).experience.welcomeTitle,'Erste Fassung');
+    assert.equal((await call(`/api/abend/events/${id}/preview`,undefined,'GET')).experience.welcomeTitle,'Nächster Entwurf');
+    await call(`/api/abend/events/${id}/publish`);assert.equal((await getVisitorExperience(client,{eventId:id})).experience.welcomeTitle,'Nächster Entwurf');
+    await call(`/api/abend/events/${id}/close`);assert.equal((await getVisitorExperience(client,{eventId:id})).experience,null);
+    await call(`/api/abend/events/${id}/publish`);assert.equal((await getVisitorExperience(client,{eventId:id})).state,'closed');
+    assert.equal(state.docs.has(experienceId(id)),false,'no public Sanity copy is created');
+    assert.equal([...state.docs.values()].filter(d=>d._type==='rudelEvent').length,0);
+    assert.equal((await call(`/api/abend/events/${id}`,undefined,'GET')).event.app.hasDraft,false);
+  }finally{state.restore();}
+});
+
+test('profile references are optional, must belong to the event team, and reject stale edits',async()=>{
+  const state=await setup();
+  try{
+    const {cookie,csrf}=await login(state.env);
+    const write=(path,body,method='POST')=>worker.fetch(request(path,{method,cookie,csrf,body}),state.env);
+    const {id}=await(await write('/api/abend/events',{title:'Test',date:'2026-11-07',venue:'Ort',visibility:'public',teamIds:[]})).json();
+    const {person}=await(await write('/api/abend/people',{name:'Alex'})).json();
+    assert.equal((await write('/api/events/'+person.personId+'/publish')).status,404,'website publication routes cannot publish private profile documents');
+    assert.equal((await write('/api/events/rudel-app-event-'+id+'/publish')).status,404);
+    assert.equal(state.docs.has(person.personId),false);
+    const config=defaultExperience(id);config.games=[{id:'kniffel',hostId:person.personId}];
+    assert.equal((await write(`/api/abend/events/${id}`,config,'PUT')).status,400);
+    config.games[0].hostId='';config.games[0].host='Free text must not be stored';
+    const saved=await(await write(`/api/abend/events/${id}`,config,'PUT')).json();assert.equal(saved.experience.games[0].hostId,'');assert.equal(saved.experience.games[0].host,undefined);
+    const updated=await write('/api/abend/people/'+person.personId,{...person,name:'New name'},'PUT');assert.equal(updated.status,200);
+    assert.equal((await write('/api/abend/people/'+person.personId,{...person,name:'Stale name'},'PUT')).status,409);
+    const newer=await write(`/api/abend/events/${id}`,{...saved.experience,welcomeTitle:'New'},'PUT');assert.equal(newer.status,200);
+    assert.equal((await write(`/api/abend/events/${id}`,{...saved.experience,welcomeTitle:'Stale'},'PUT')).status,409);
+    assert.equal((await worker.fetch(request('/api/abend/people'),state.env)).status,401);
+    assert.ok([...state.docs.keys()].every(key=>key.startsWith('drafts.')));
   }finally{state.restore();}
 });

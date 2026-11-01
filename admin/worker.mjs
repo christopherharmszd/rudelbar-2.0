@@ -209,6 +209,8 @@ async function api(request, env) {
       return json(200, { id });
     }
     if (request.method === "POST" && id && action) {
+      const candidate = await client.getDocument(`drafts.${id}`) || await client.getDocument(id);
+      if (!candidate || candidate._type !== type) return json(404, { error: "Nicht gefunden." });
       if (["archive", "restore", "delete"].includes(action) && group === "team") return json(404, { error: "Nicht gefunden." });
       if (action === "publish") await client.publish(id);
       else if (action === "unpublish") await client.unpublish(id);

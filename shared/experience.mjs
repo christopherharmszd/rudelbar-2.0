@@ -18,7 +18,7 @@ export const DEFAULT_CATALOG={
 
 export function cleanCatalog(input){
   return {
-    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:integer(r.capacity,1,30),description:text(r.description,800),archived:r.archived===true};})),
+    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:r.capacity===null||r.capacity===''?null:integer(r.capacity,1,30),description:text(r.description,800),archived:r.archived===true};})),
     games:unique(array(input.games).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Spiele',80,true),capacity:integer(r.capacity,1,30),minutes:integer(r.minutes,0,300),description:text(r.description,800),rules:text(r.rules,2000),archived:r.archived===true};})),
     program:unique(array(input.program??DEFAULT_CATALOG.program).map(r=>{const id=validId(r.id);if(!['dj','karaoke','other'].includes(r.kind||'other'))fail('Ungültige Angebotsart.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Programm',80,true),kind:r.kind||'other',description:text(r.description,1000),archived:r.archived===true};})),
     drinks:unique(array(input.drinks).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category,80,true),unit:text(r.unit,40,true),priceCents:integer(r.priceCents,0,100000),imageUrl:image(r.imageUrl),archived:r.archived===true};}))
@@ -27,16 +27,18 @@ export function cleanCatalog(input){
 
 export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
 
-export function cleanExperience(input,catalog,eventId){
+export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   validId(eventId);
   const result={eventId,enabled:input.enabled!==false,welcomeTitle:text(input.welcomeTitle,160),welcomeText:text(input.welcomeText,1200),equipment:[],games:[],program:[],menu:[],modules:{}};
   for(const [key,source] of [['equipment','equipment'],['games','games'],['program','program'],['menu','drinks']]){
     result[key]=unique(array(key==='program'?programFor(input):(input[key]||[])).map(row=>{
       const id=validId(row.id),base=catalog[source].find(item=>item.id===id&&!item.archived);
       if(!base)fail('Ein ausgewählter Eintrag fehlt in den Stammdaten oder wurde archiviert.');
-      if(key==='program')return {...base,_key:id,time:text(row.time,80,true),place:text(row.place||'Am Musikbereich',160,true),host:text(row.host,100,true),description:text(row.description??base.description,1000)};
+      const hostId=row.hostId?validId(row.hostId):'';
+      if(hostId&&(!people.some(p=>p.personId===hostId&&!p.archived)||!teamIds.includes(hostId)))fail('Bitte eine aktive Person aus dem Team dieses Abends auswählen.');
+      if(key==='program')return {...base,_key:id,time:text(row.time,80),place:text(row.place,160),hostId,description:text(row.description??base.description,1000)};
       if(key==='menu')return {...base,_key:id,priceCents:integer(row.priceCents??base.priceCents,0,100000),available:row.available!==false};
-      return {...base,_key:id,capacity:integer(row.capacity??base.capacity,1,30),place:text(row.place,160,true),host:text(row.host,100,true)};
+      return {...base,_key:id,capacity:key==='equipment'&&(row.capacity===null||row.capacity==='')?null:integer(row.capacity??base.capacity,1,30),place:text(row.place,160),hostId};
     }));
   }
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};

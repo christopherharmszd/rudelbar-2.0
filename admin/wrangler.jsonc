@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "rudelbar-cms-staging",
   "account_id": "87e06345951a028223b167dd69056336",
-  "main": "./worker.mjs",
+  "main": "./cloudflare-entry.mjs",
   "compatibility_date": "2026-09-28",
   "workers_dev": true,
   "build": { "command": "node ../event-app/prepare.mjs" },

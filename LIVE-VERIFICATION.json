@@ -1,73 +1,88 @@
 {
-  "checkedAt": "2026-11-01T13:41:17.496Z",
+  "checkedAt": "2026-11-01T15:02:41.706Z",
+  "iteration": 2,
   "dataset": "staging",
-  "eventId": "fb726148-0852-44f1-ad77-a4c73c12c595",
+  "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan",
   "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
-  "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan.html",
-  "checks": [
-    {
-      "name": "anonymous catalog",
-      "status": 401
-    },
-    {
-      "name": "anonymous preview",
-      "status": 401
-    },
-    {
-      "name": "session endpoint configured",
-      "status": 200
-    },
-    {
-      "name": "live editorial password login",
-      "status": "not-tested",
-      "reason": "Existing live credentials preserved; local editorial workflow tested against staging data."
-    },
-    {
-      "name": "anonymous mutation protection",
-      "status": 401
-    },
-    {
-      "name": "published visitor configuration",
-      "status": 200
-    },
-    {
-      "name": "unpublished evening",
-      "status": 404
-    },
-    {
-      "name": "invalid identifier",
-      "status": 400
-    },
-    {
-      "name": "visitor script",
-      "status": 200,
-      "sha256": "a4434b047eb4995ab5d0d3999c765288480d97cf03d91a27f23528ed025aaa06"
-    },
-    {
-      "name": "editorial script",
-      "status": 200,
-      "sha256": "7f66ca4f79522bc8d43138caeb399cd8703ae3332cd0e23ca8cb3bf2e20a1732"
-    }
-  ],
   "workerVersions": {
-    "rudelbar-app-staging": "b193ac3e-54a3-43e7-aa59-e50608fda8f5",
-    "rudelbar-cms-staging": "b7058ee8-b21c-4f8b-803c-e3647d8f1cfb"
+    "rudelbar-cms-staging": "522abc5f-6b12-4ab4-b72e-c228ddc3c9ef",
+    "rudelbar-app-staging": "9a402eae-e584-4221-985a-d140e6dd3634"
   },
-  "editorPreviousVersion": "8381dd7c-a8a8-46cb-9214-5df7ca34c65f",
   "automatedTests": {
-    "passed": 8,
+    "passed": 11,
     "failed": 0
   },
-  "layoutChecks": {
-    "visitor": 25,
+  "responsive": {
+    "backstageViews": 28,
     "widths": [
       320,
       390,
-      430,
       768,
       1280
     ],
     "horizontalOverflow": false,
+    "smallDialogFooterFullyVisible": true,
     "physicalIphoneTested": false
-  }
+  },
+  "browser": {
+    "authenticatedLiveSession": true,
+    "privateEventCreated": true,
+    "profileCreatedAndAssigned": true,
+    "guestProfileVisible": true,
+    "cloudOpenCloseRoundtrip": true,
+    "privateExampleFinalState": "closed"
+  },
+  "checks": [
+    {
+      "name": "published public event over service binding",
+      "status": 200
+    },
+    {
+      "name": "public profile names resolved and internal fields absent",
+      "passed": true
+    },
+    {
+      "name": "private event without invitation is hidden",
+      "status": 404
+    },
+    {
+      "name": "private event with forged invitation is hidden",
+      "status": 404
+    },
+    {
+      "name": "anonymous profile access",
+      "status": 401
+    },
+    {
+      "name": "anonymous event access",
+      "status": 401
+    },
+    {
+      "name": "anonymous preview access",
+      "status": 401
+    },
+    {
+      "name": "raw Sanity query without credential",
+      "status": 200
+    },
+    {
+      "name": "private profiles, events and releases are absent from public Sanity",
+      "passed": true
+    },
+    {
+      "name": "backstage script",
+      "status": 200,
+      "sha256": "508a9a21c4cc69dd8fd5a99f0127aad0141befd5fc962c80e2fa00ef9095707c"
+    },
+    {
+      "name": "backstage stylesheet",
+      "status": 200,
+      "sha256": "1589093b5092d5d27c7599ea97e4c956c5ec8871ac12eb5a5ed17f69ba44f21d"
+    },
+    {
+      "name": "visitor script",
+      "status": 200,
+      "sha256": "c7c6a842d805e1eab25bda020e22a28aae4e694de0ac2f3b2c6e4aa5aae6776c"
+    }
+  ]
 }

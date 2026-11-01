@@ -10,11 +10,11 @@ test('event selection validates resources, capacities, money and enabled program
   const valid=cleanExperience(input,catalog,'test-abend');
   assert.equal(valid.equipment.length,2);assert.equal(valid.menu[0].priceCents,175);
   assert.throws(()=>cleanExperience({...input,equipment:[{...input.equipment[0],capacity:31}]},catalog,'test-abend'));
-  assert.throws(()=>cleanExperience({...input,equipment:[{...input.equipment[0],host:''}]},catalog,'test-abend'));
+  assert.equal(cleanExperience({...input,equipment:[{...input.equipment[0],hostId:''}]},catalog,'test-abend').equipment[0].hostId,'');
   assert.throws(()=>cleanExperience({...input,menu:[{id:'wasser',priceCents:1.5}]},catalog,'test-abend'));
   assert.throws(()=>cleanExperience({...input,menu:[{id:'missing'}]},catalog,'test-abend'));
   assert.throws(()=>cleanExperience({...input,equipment:[input.equipment[0],input.equipment[0]]},catalog,'test-abend'));
-  assert.throws(()=>cleanExperience({...input,program:[{id:'dj',time:'19 Uhr',host:''}]},catalog,'test-abend'));
+  assert.throws(()=>cleanExperience({...input,program:[{id:'dj',time:'19 Uhr',hostId:'unknown-person'}]},catalog,'test-abend'));
   const archived=structuredClone(catalog);archived.equipment[0].archived=true;
   assert.throws(()=>cleanExperience(input,archived,'test-abend'));
   assert.equal(valid.equipment[0].name,'Kicker 1');
@@ -32,21 +32,14 @@ test('only published valid events become public, with no editorial metadata',()=
   assert.equal(publicExperience(doc,event).privateField,undefined);
 });
 
-test('visitor endpoint uses published perspective, rejects invalid ids, and exposes upstream failures safely',async()=>{
-  const original=globalThis.fetch;
-  const env={SANITY_PROJECT_ID:'project123',SANITY_DATASET:'staging',ASSETS:{fetch:()=>new Response('app')}};
+test('visitor endpoint delegates to the private content binding and rejects invalid identifiers',async()=>{
   let calls=0;
-  globalThis.fetch=async url=>{calls++;const u=new URL(url);assert.equal(u.searchParams.get('perspective'),'published');assert.equal(JSON.parse(u.searchParams.get('$id')),'test-abend');return Response.json({result:[{...defaultExperience('test-abend'),_id:'app-test',event:{_id:'test-abend',title:'Rudelabend',date:'2026-11-01',venue:'Scharnebeck'}}]});};
-  try{
-    const request=new Request('https://app.example/api/experience?abend=test-abend');
-    assert.equal((await worker.fetch(request,env)).status,200);
-    assert.equal((await worker.fetch(new Request('https://app.example/api/experience?abend=drafts.test'),env)).status,400);
-    assert.equal(calls,1);
-    assert.equal((await worker.fetch(new Request('https://app.example/api/experience',{method:'POST'}),env)).status,405);
-    globalThis.fetch=async()=>Response.json({error:'secret token internal'}, {status:403});
-    const failed=await worker.fetch(request,env);assert.equal(failed.status,503);assert.ok(!(await failed.text()).includes('secret'));
-    globalThis.fetch=async()=>Response.json({result:[]});assert.equal((await worker.fetch(request,env)).status,404);
-  }finally{globalThis.fetch=original;}
+  const env={ASSETS:{fetch:()=>new Response('app')},CONTENT:{getExperience:async input=>{calls++;assert.equal(input.eventId,'test-abend');assert.equal(input.accessCode,'private-link');return {status:200,state:'closed',event:{title:'Testabend'},experience:null};}}};
+  const request=new Request('https://app.example/api/experience?abend=test-abend&zugang=private-link');
+  const result=await worker.fetch(request,env);assert.equal(result.status,200);assert.equal((await result.json()).state,'closed');
+  assert.equal((await worker.fetch(new Request('https://app.example/api/experience?abend=drafts.test'),env)).status,400);assert.equal(calls,1);
+  assert.equal((await worker.fetch(new Request('https://app.example/api/experience',{method:'POST'}),env)).status,405);
+  assert.equal((await worker.fetch(request,{ASSETS:env.ASSETS})).status,503);
 });
 
  test('custom programs and custom categories survive saving and legacy evenings remain readable',()=>{

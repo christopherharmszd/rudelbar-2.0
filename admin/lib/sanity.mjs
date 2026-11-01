@@ -12,7 +12,7 @@ export function createSanity({ projectId, dataset, token }) {
       headers: { Authorization: `Bearer ${token}`, ...options.headers },
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error?.description || data.message || `Sanity: HTTP ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error(response.status === 409 ? "Der Eintrag wurde inzwischen geändert. Bitte neu laden." : data.error?.description || data.message || `Sanity: HTTP ${response.status}`), {status: response.status === 409 ? 409 : 502});
     return data;
   }
 
@@ -99,11 +99,21 @@ export function createSanity({ projectId, dataset, token }) {
     await mutate([{ delete: { id } }, { delete: { id: `drafts.${id}` } }]);
   }
 
+  async function savePrivate(type, id, fields, expectedRevision) {
+    const docId = `drafts.${id}`;
+    const existing = await getDocument(docId);
+    if (existing && existing._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), {status:404});
+    if (existing && expectedRevision !== undefined && existing._rev !== expectedRevision) throw Object.assign(new Error("Der Eintrag wurde inzwischen geändert. Bitte neu laden."), {status:409});
+    if (existing) await mutate([{patch:{id:docId, ifRevisionID:existing._rev, set:fields}}]);
+    else await mutate([{createIfNotExists:{_id:docId,_type:type,...fields}}]);
+    return getDocument(docId);
+  }
+
   async function uploadImage(buffer, mime, filename) {
     const path = `/assets/images/${dataset}?filename=${encodeURIComponent(filename)}`;
     const data = await request(path, { method: "POST", headers: { "Content-Type": mime }, body: buffer });
     return { assetId: data.document?._id, url: data.document?.url };
   }
 
-  return { list, getDocument, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
+  return { list, getDocument, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
 }
