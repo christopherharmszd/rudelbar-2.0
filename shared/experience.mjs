@@ -25,11 +25,11 @@ export function cleanCatalog(input){
   };
 }
 
-export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
+export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
 
 export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   validId(eventId);
-  const result={eventId,enabled:input.enabled!==false,welcomeTitle:text(input.welcomeTitle,160),welcomeText:text(input.welcomeText,1200),equipment:[],games:[],program:[],menu:[],modules:{}};
+  const result={eventId,enabled:input.enabled!==false,welcomeTitle:text(input.welcomeTitle,160),welcomeText:text(input.welcomeText,1200),equipment:[],games:[],program:[],menu:[],stations:[],modules:{}};
   for(const [key,source] of [['equipment','equipment'],['games','games'],['program','program'],['menu','drinks']]){
     result[key]=unique(array(key==='program'?programFor(input):(input[key]||[])).map(row=>{
       const id=validId(row.id),base=catalog[source].find(item=>item.id===id&&!item.archived);
@@ -41,6 +41,16 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
       return {...base,_key:id,capacity:key==='equipment'&&(row.capacity===null||row.capacity==='')?null:integer(row.capacity??base.capacity,1,30),place:text(row.place,160),hostId};
     }));
   }
+  result.stations=unique(array(stationsFor(input),40).map(row=>{
+    const id=validId(row.id),kind=row.kind||'message';
+    if(!['music','karaoke','message'].includes(kind))fail('Bitte eine gültige Stationsart wählen.');
+    const operatorIds=[...new Set(array(row.operatorIds||[],100).map(validId))];
+    if(operatorIds.some(pid=>!people.some(p=>p.personId===pid&&!p.archived)||!teamIds.includes(pid)))fail('Stationszuständige müssen zum aktiven Abendteam gehören.');
+    const offerType=row.offerType||'',offerId=row.offerId||'';
+    if(offerType&&!['equipment','games','program','menu'].includes(offerType))fail('Ungültige Angebotsverknüpfung.');
+    if(offerId&&(!offerType||!result[offerType].some(item=>item.id===offerId)))fail('Bitte ein für diesen Abend ausgewähltes Angebot verknüpfen.');
+    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false};
+  }));
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};
   result.modules.help={enabled:input.modules?.help?.enabled!==false};
   return result;
@@ -50,6 +60,13 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
 export function programFor(doc){
   if(Array.isArray(doc.program))return doc.program;
   return ['dj','karaoke','band'].filter(id=>doc.modules?.[id]?.enabled).map(id=>({id,_key:id,name:doc.modules[id].title,category:'Musik & Bühne',kind:id==='band'?'other':id,time:doc.modules[id].time,host:doc.modules[id].host,place:'Am Musikbereich',description:doc.modules[id].description||''}));
+}
+
+export function stationsFor(config){
+  if(Array.isArray(config.stations))return config.stations;
+  const stations=programFor(config).filter(p=>['dj','karaoke'].includes(p.kind)).map(p=>({id:`station-${p.id.slice(0,70)}`,name:p.name,kind:p.kind==='dj'?'music':'karaoke',description:p.description||'',place:p.place||'',operatorIds:p.hostId?[p.hostId]:[],offerType:'program',offerId:p.id,enabled:true}));
+  if(config.modules?.help?.enabled!==false)stations.push({id:'station-team',name:'Rudelbar-Team',kind:'message',description:'Fragen, Unterstützung und ein persönliches Hallo.',place:'Am Rudelbar-Wagen',operatorIds:[],offerType:'',offerId:'',enabled:true});
+  return stations;
 }
 
 export function publicExperience(doc,event){

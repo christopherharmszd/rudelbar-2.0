@@ -1,4 +1,4 @@
-import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor } from '../../shared/experience.mjs';
+import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor, stationsFor } from '../../shared/experience.mjs';
 
 export const APP_EVENT_TYPE='rudelAppEvent';
 export const PERSON_TYPE='rudelAppPerson';
@@ -36,7 +36,7 @@ export async function loadEvent(client,id){const event=(await eventList(client))
 export async function configurationFor(client,id){
   const draft=await client.getDocument(`drafts.${experienceId(id)}`),published=await client.getDocument(experienceId(id));
   const config=draft||published;
-  return {experience:config?{...strip(config),program:programFor(config),revision:draft?._rev||''}: {...defaultExperience(id),revision:''},draft:!!draft,published:!!published};
+  return {experience:config?{...strip(config),program:programFor(config),stations:stationsFor(config),revision:draft?._rev||''}: {...defaultExperience(id),revision:''},draft:!!draft,published:!!published};
 }
 export async function snapshotFor(client,event){
   const [release,published]=await Promise.all([client.getDocument(`drafts.${releaseDocId(event.eventId)}`),client.getDocument(experienceId(event.eventId))]);
@@ -54,7 +54,8 @@ export function visitorPayload(config,event,people){
   if(!payload)return null;
   for(const kind of ['equipment','games'])payload[kind]=payload[kind].map(resolve);
   payload.program=payload.program.map(resolve);
-  payload.schemaVersion=3;
+  payload.stations=stationsFor(config).filter(s=>s.enabled!==false).map(({id,name,kind,description,place,offerType,offerId})=>({id,name,kind,description,place,offerType,offerId}));
+  payload.schemaVersion=4;
   payload.team=people.filter(p=>!p.archived&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role}));
   return payload;
 }
@@ -65,7 +66,7 @@ export async function getVisitorExperience(client,{eventId='',accessCode=''}={})
     const event=eventId?all.find(e=>e.eventId===eventId):all.find(e=>e.visibility==='public'&&e.app.state==='open'&&e.app.hasRelease)||all.find(e=>e.visibility==='public'&&e.app.hasRelease)||all.find(e=>e.visibility==='public');
     if(!event||(event.visibility==='private'&&(!accessCode||accessCode!==event.accessCode)))return {status:404,error:'Dieser Abend ist nicht verfügbar. Bitte nutze den Gäste-Link deiner Veranstaltung.'};
     const release=await snapshotFor(client,event);
-    if(release.state!=='open')return {status:200,state:'closed',event:{title:event.title,venue:event.venue},experience:null};
+    if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
     return {status:200,state:'open',experience:{...visitorPayload(release.config,event,await peopleFor(client)),revision:release._rev||release.sourceRevision||''}};
   }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}

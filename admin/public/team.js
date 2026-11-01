@@ -1,0 +1,84 @@
+const root=document.querySelector('#live-app'),params=new URLSearchParams(location.search),eventParam=params.get('abend')||'',stationParam=params.get('station')||'';
+const state={context:null,requests:[],selected:'',detail:null,station:stationParam,status:'open',drafts:{},busy:false,connected:false};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
+const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
+const closed=['done','declined','cancelled'];
+let toastTimer,sessionKey=params.get('s')||'',interactionVersion=0,backgroundLoading=false;
+function toast(text,error=false){const n=document.querySelector('#toast');n.textContent=text;n.className='visible'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.className='',error?8500:3200);}
+async function api(path,method='GET',body){const query=new URLSearchParams();if(eventParam)query.set('abend',eventParam);if(sessionKey)query.set('s',sessionKey);const suffix=query.size?'?'+query.toString():'';const r=await fetch('/api/live'+path+suffix,{method,credentials:'same-origin',cache:'no-store',headers:{...(state.context?{'X-CSRF-Token':state.context.csrf}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok){if(r.status===401||r.status===403){state.context=null;login(data.error);}throw new Error(data.error||'Gerade nicht erreichbar.');}return data;}
+function label(row){if(row.status==='done')return row.kind==='music'?'Gespielt':row.kind==='karaoke'?'Gesungen':'Erledigt';return {new:'Neu',queued:row.kind==='karaoke'?'Auf der Liste':'Eingeplant',in_progress:row.kind==='karaoke'?'Jetzt dran':'In Arbeit',declined:'Nicht möglich',cancelled:'Zurückgezogen'}[row.status]||row.status;}
+function badge(row){return `<span class="chip ${row.status}">${esc(label(row))}</span>`;}
+const btn=(label,action,style='',extra='')=>`<button type="button" class="btn ${style}" data-action="${action}" ${extra}>${label}</button>`;
+function login(error=''){
+ root.innerHTML=`<main class="live-login"><a class="brand" href="/team"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar"><strong>RUDEL BAR<span class="brand-sub">Team</span></strong></a><span class="eyebrow">Dein Abend. Deine Stationen.</span><h1>Willkommen im Live-Team.</h1><p>Öffne deinen persönlichen Team-Link. Du erhältst ihn von der Organisation des Abends.</p>${error?`<p class="live-error" role="alert">${esc(error)}</p>`:''}<form id="team-login"><label class="field"><span>Persönlicher Team-Link oder Zugangscode</span><input name="code" autocomplete="off" spellcheck="false" required></label><button class="btn" type="submit">Team-Bereich öffnen ${icon('arrow-right')}</button></form></main>`;globalThis.lucide?.createIcons();
+}
+async function refresh(){
+ const selected=state.selected;
+ const context=await api('/session'),listing=await api('/requests');state.context=context;state.requests=listing.requests;state.connected=true;
+ if(selected){try{const detail=await api('/requests/'+selected);if(state.selected===selected&&(!state.detail||detail.request.revision>=state.detail.request.revision))state.detail=detail;}catch(e){if(state.context&&state.selected===selected){state.selected='';state.detail=null;toast(e.message,true);}}}
+ render();
+}
+function filtered(){return state.requests.filter(r=>(!state.station||r.stationId===state.station)&&(state.status==='all'||state.status==='open'&&!closed.includes(r.status)||state.status==='done'&&closed.includes(r.status)));}
+function render(){
+ if(!state.context)return;
+ if(state.detail&&state.detail.request.id!==state.selected)state.detail=null;
+ const previous=document.activeElement,editing=previous?.name==='reply',selection=editing?previous.selectionStart:null,scroll=window.scrollY;
+ const c=state.context,station=c.stations.find(s=>s.id===state.station),rows=filtered(),count=state.requests.filter(r=>!closed.includes(r.status)).length;
+ document.title=`${count?'('+count+') ':''}Rudelbar · Team`;
+ root.innerHTML=`<header class="app-header"><a class="brand" href="/team${eventParam?'?abend='+eventParam:sessionKey?'?s='+sessionKey:''}"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR<span class="brand-sub">Live-Team</span></strong></a><div class="header-actions"><span class="session-name">${esc(c.person.name)}</span><button type="button" class="icon-btn" data-action="refresh" aria-label="Eingang aktualisieren">${icon('refresh-cw')}</button>${c.publisher?`<a class="icon-btn" href="/abendplan#event/${c.event.id}/overview" aria-label="Zur Abendplanung">${icon('settings-2')}</a>`:`<button type="button" class="icon-btn" data-action="logout" aria-label="Abmelden">${icon('log-out')}</button>`}</div></header><main class="live-workspace"><div class="live-heading"><div><span class="eyebrow">${esc(c.person.name)} · Live-Team</span><h1>${esc(c.event.title)}</h1><p>${esc(c.event.venue)} · ${c.event.state==='open'?'Die Gäste-App ist offen.':'Die Gäste-App ist geschlossen. Bisherige Anfragen bleiben bearbeitbar.'}</p></div><span class="connection">Aktualisiert sich automatisch</span></div><div class="station-tabs" aria-label="Deine Stationen"><button type="button" class="station-tab" data-station="" aria-pressed="${!state.station}">${icon('inbox')}Alle Eingänge<small>${count}</small></button>${c.stations.map(s=>`<button type="button" class="station-tab" data-station="${s.id}" aria-pressed="${state.station===s.id}">${icon(s.kind==='music'?'disc-3':s.kind==='karaoke'?'mic-vocal':'messages-square')}${esc(s.name)}<small>${state.requests.filter(r=>r.stationId===s.id&&!closed.includes(r.status)).length}</small></button>`).join('')}</div><div class="station-controls"><span>${station?esc(station.name):'Deine zugeordneten Stationen und gemeinsamen Eingänge'}</span>${station?btn(station.accepting?'Neue Anfragen pausieren':'Eingang wieder öffnen','pause','secondary small',`data-id="${station.id}"`):''}</div>${station&&!station.accepting?'<div class="pause-banner">Neue Anfragen sind pausiert. Bestehende Gespräche und Wartelisten laufen weiter.</div>':''}<div class="live-layout ${state.selected?'has-selection':''}"><section class="inbox-column"><div class="inbox-filters">${[['open','Offen'],['done','Abgeschlossen'],['all','Alle']].map(([key,name])=>`<button type="button" class="filter" data-status="${key}" aria-pressed="${state.status===key}">${name}</button>`).join('')}</div><div class="inbox-items">${rows.length?rows.map(row=>requestCard(row)).join(''):`<div class="empty-state">${icon('inbox')}<h3>Alles im Blick.</h3><p>Hier erscheinen die passenden Gästeanfragen.</p></div>`}</div></section><section class="detail-pane">${state.detail?detailView():`<div class="detail-empty">${icon('messages-square')}<h2>Für ein gutes Miteinander.</h2><p>Öffne eine Anfrage, antworte einem Gast oder kümmere dich um die Warteliste.</p></div>`}</section></div></main>`;
+ globalThis.lucide?.createIcons();
+ if(state.busy)root.querySelectorAll('button').forEach(button=>button.disabled=true);
+ if(editing){const input=root.querySelector('[name=reply]');input?.focus({preventScroll:true});if(input&&selection!==null)input.setSelectionRange(selection,selection);}
+ window.scrollTo({top:scroll,behavior:'instant'});
+}
+function requestCard(row){const queue=state.requests.filter(r=>r.stationId===row.stationId&&!closed.includes(r.status));const position=queue.findIndex(r=>r.id===row.id)+1;return `<button type="button" class="inbox-item" data-request="${row.id}" aria-current="${state.selected===row.id}"><div class="item-top"><span>${row.kind!=='message'&&!closed.includes(row.status)?`<span class="queue-number">${position}</span>`:''}${esc(row.visitorName)}</span><span>${time(row.createdAt)}</span></div><h3>${esc(row.subject)}</h3><p>${esc(row.stationName)}${row.location?' · '+esc(row.location):''}</p><div class="chips request-chips">${badge(row)}</div></button>`;}
+function detailView(){
+ const {request:r,messages}=state.detail,draft=state.drafts[r.id]||{text:'',internal:false};
+ const actionButtons=r.status==='cancelled'?'':closed.includes(r.status)?btn('Wieder öffnen','status','secondary',`data-value="new"`):[...(r.kind!=='message'?[btn(r.kind==='karaoke'?'Auf die Liste':'Einplanen','status','secondary',`data-value="queued"`),btn('Als Nächstes','promote','secondary')]:[]),btn(r.kind==='karaoke'?'Jetzt dran':'Übernehmen','status','secondary',`data-value="in_progress"`),btn(r.kind==='music'?'Gespielt':r.kind==='karaoke'?'Gesungen':'Erledigen','status','',`data-value="done"`),btn('Nicht möglich','status','secondary',`data-value="declined"`)].join('');
+ const note=r.kind==='message'?r.payload.text:[r.payload.artist?'Interpret:in: '+r.payload.artist:'',r.kind==='karaoke'?{solo:'Besetzung: allein',duet:'Besetzung: Duett',group:'Besetzung: Gruppe'}[r.payload.format]:'',r.payload.note].filter(Boolean).join('\n');
+ return `<div class="detail-header">${btn(icon('chevron-left')+' Zurück zum Eingang','back','quiet mobile-back')}<div class="chips">${badge(r)}<span class="chip">${esc(r.stationName)}</span></div><h2>${esc(r.subject)}</h2><div class="metadata"><span>${icon('user-round')}${esc(r.visitorName)}</span><span>${icon('clock-3')}${time(r.createdAt)}</span>${r.location?`<span>${icon('map-pin')}${esc(r.location)}</span>`:''}</div><div class="detail-actions">${actionButtons}${btn(icon('forward')+' Weiterleiten','forward','secondary')}</div></div>${note?`<div class="request-content">${esc(note)}</div>`:''}<div class="thread" aria-label="Gesprächsverlauf">${messages.map(m=>`<div class="bubble ${m.direction}">${m.direction!=='system'?`<div class="bubble-head"><span>${esc(m.author)}${m.direction==='internal'?' · Interne Notiz':''}</span><span>${time(m.createdAt)}</span></div>`:''}<p>${esc(m.body)}</p></div>`).join('')||'<p class="muted">Noch keine weiteren Nachrichten.</p>'}</div><form class="reply-form" id="reply-form"><label class="field"><span>${draft.internal?'Interne Notiz':'Antwort an '+esc(r.visitorName)}</span><textarea name="reply" maxlength="2000" rows="3" placeholder="${draft.internal?'Nur für das Team sichtbar.':'Schreib dem Gast eine Antwort.'}" required>${esc(draft.text)}</textarea></label><div class="reply-bottom"><label class="check-line"><input type="checkbox" name="internal" ${draft.internal?'checked':''}>Nur intern</label><button type="submit" class="btn">${icon('send')}${draft.internal?'Notiz speichern':'Antwort senden'}</button></div></form>`;
+}
+async function mutate(input){if(!state.detail||state.detail.request.id!==state.selected)throw new Error('Bitte die Anfrage zuerst vollständig öffnen.');const id=state.detail.request.id;const result=await api('/requests/'+id,'POST',{...input,revision:state.detail.request.revision});if(state.selected===id){if(state.context.publisher||state.context.stations.some(s=>s.id===result.request.stationId))state.detail=result;else{state.selected='';state.detail=null;}}state.requests=(await api('/requests')).requests;render();}
+async function run(action){if(state.busy)return;interactionVersion++;state.busy=true;root.setAttribute('aria-busy','true');root.querySelectorAll('button').forEach(button=>button.disabled=true);try{await action();}catch(error){toast(error.message,true);if(state.context)try{await refresh();}catch{}}finally{state.busy=false;root.removeAttribute('aria-busy');root.querySelectorAll('button').forEach(button=>button.disabled=false);}}
+root.addEventListener('click',event=>{
+ const node=event.target.closest('[data-action],[data-station],[data-status],[data-request]');if(!node)return;interactionVersion++;
+ if(node.hasAttribute('data-station')){state.station=node.dataset.station;state.selected='';state.detail=null;render();return;}
+ if(node.dataset.status){state.status=node.dataset.status;render();return;}
+ if(node.dataset.request){const id=node.dataset.request;state.selected=id;state.detail=null;render();api('/requests/'+id).then(detail=>{if(state.selected===id&&(!state.detail||detail.request.revision>=state.detail.request.revision)){state.detail=detail;render();window.scrollTo({top:0,behavior:'instant'});}}).catch(error=>toast(error.message,true));return;}
+ run(async()=>{
+  const action=node.dataset.action;
+  if(action==='refresh')await refresh();
+  if(action==='back'){state.selected='';state.detail=null;render();window.scrollTo({top:0,behavior:'instant'});}
+  if(action==='status'){await mutate({status:node.dataset.value});toast('Status aktualisiert.');}
+  if(action==='promote'){await mutate({status:'queued',promote:true});toast('In der Warteliste vorgezogen.');}
+  if(action==='pause'){const station=state.context.stations.find(s=>s.id===node.dataset.id);await api('/stations/'+station.id,'POST',{accepting:!station.accepting,revision:station.revision});await refresh();toast(station.accepting?'Neue Anfragen pausiert.':'Eingang wieder geöffnet.');}
+  if(action==='forward'){
+    const dialog=document.createElement('dialog');dialog.className='dialog';dialog.setAttribute('aria-label','Anfrage weiterleiten');dialog.innerHTML=`<div class="dialog-head"><h2>Anfrage weiterleiten</h2><button class="icon-btn" data-close aria-label="Dialog schließen">${icon('x')}</button></div><form><div class="dialog-body"><label class="field"><span>Zielstation</span><select name="stationId">${state.context.destinations.filter(s=>s.id!==state.detail.request.stationId).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></label></div><div class="dialog-foot"><button class="btn" type="submit">Weiterleiten</button></div></form>`;dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove());dialog.querySelector('form').onsubmit=async e=>{e.preventDefault();const stationId=new FormData(e.target).get('stationId');if(!stationId)return;try{await mutate({stationId});dialog.close();toast('Anfrage weitergeleitet.');await refresh();}catch(error){toast(error.message,true);}};document.body.append(dialog);dialog.showModal();globalThis.lucide?.createIcons();
+  }
+  if(action==='logout'){await api('/logout','POST',{});state.context=null;login();}
+ });
+});
+root.addEventListener('input',event=>{if(event.target.name==='reply'&&state.selected){state.drafts[state.selected]={...(state.drafts[state.selected]||{internal:false}),text:event.target.value};}});
+root.addEventListener('change',event=>{if(event.target.name==='internal'&&state.selected){state.drafts[state.selected]={...(state.drafts[state.selected]||{text:''}),internal:event.target.checked};render();}});
+root.addEventListener('submit',event=>{
+ event.preventDefault();
+ if(event.target.id==='reply-form')return run(async()=>{const id=state.selected,draft=state.drafts[id]||{};await mutate({reply:draft.text,internal:draft.internal});state.drafts[id]={text:'',internal:false};render();toast(draft.internal?'Interne Notiz gespeichert.':'Antwort gesendet.');});
+ if(event.target.id==='team-login')return run(async()=>{let code=new FormData(event.target).get('code').trim();try{code=new URL(code).searchParams.get('zugang')||code;}catch{}const result=await api('/login','POST',{code});sessionKey=result.sessionId;history.replaceState(null,'','/team?s='+sessionKey);await refresh();});
+});
+try{
+ const code=params.get('zugang');if(code){history.replaceState(null,'','/team');const result=await api('/login','POST',{code});sessionKey=result.sessionId;history.replaceState(null,'','/team?s='+sessionKey);}
+ await refresh();
+}catch(error){login(error.message);}
+async function backgroundRefresh(){
+ if(!state.context||state.busy||backgroundLoading||document.visibilityState==='hidden')return;
+ backgroundLoading=true;const version=interactionVersion,selected=state.selected;
+ try{
+  const context=await api('/session'),listing=await api('/requests');let detail=null;
+  if(selected)detail=await api('/requests/'+selected);
+  if(version!==interactionVersion||state.busy||selected!==state.selected)return;
+  state.context=context;state.requests=listing.requests;if(detail)state.detail=detail;render();
+ }catch(error){if(state.context)toast(error.message,true);}finally{backgroundLoading=false;}
+}
+setInterval(backgroundRefresh,5000);
+document.addEventListener('visibilitychange',backgroundRefresh);

@@ -1,4 +1,5 @@
 import { createSanity } from "./lib/sanity.mjs";
+import {liveApi} from "./lib/live-api.mjs";
 import { experienceApi } from "./lib/experience-api.mjs";
 
 const editorEmail = "redaktion@rudelbar.local";
@@ -177,6 +178,7 @@ async function api(request, env) {
     if (auth.error) return auth.error;
     return json(200, { ok: true }, { "Set-Cookie": "rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0" });
   }
+  if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data});
   if(path.startsWith('/api/abend/'))return experienceApi(request,env,{client:sanity(env),json,session,authorized,data});
   if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
     const user = await session(request, env);

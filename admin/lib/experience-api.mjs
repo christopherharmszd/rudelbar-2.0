@@ -1,6 +1,7 @@
 import { CATALOG_ID, EXPERIENCE_TYPE, cleanCatalog, cleanExperience, experienceId, validId } from '../../shared/experience.mjs';
 import { APP_EVENT_TYPE, PERSON_TYPE, RELEASE_TYPE, catalogFor, peopleFor, cleanPerson, cleanEvent, eventList, loadEvent, configurationFor, snapshotFor, visitorPayload, eventDocId, releaseDocId, guestUrl, strip } from './abend-service.mjs';
 export {catalogFor};
+import {createLiveService} from './live-service.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
   const path=new URL(request.url).pathname,user=await session(request,env);
@@ -28,6 +29,13 @@ export async function experienceApi(request,env,{client,json,session,authorized,
       await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields);
       return json(201,{id,event:await loadEvent(client,id)});
     }
+  }
+  const access=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)\/access(?:\/([a-z0-9-]+)\/revoke)?$/i);
+  if(access){
+    const eventId=validId(access[1]),service=createLiveService(env,client);
+    if(request.method==='GET'&&!access[2])return json(200,await service.grants(eventId));
+    if(request.method==='POST'&&access[2])return json(200,await service.revoke(eventId,validId(access[2])));
+    if(request.method==='POST'){const input=await data(request),grant=await service.issueGrant(eventId,validId(input.personId));return json(201,{id:grant.id,expiresAt:grant.expiresAt,url:`${new URL(request.url).origin}/team?zugang=${grant.code}`});}
   }
   const match=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)(?:\/(details|publish|unpublish|preview|open|close))?$/i);
   if(!match)return json(404,{error:'Nicht gefunden.'});

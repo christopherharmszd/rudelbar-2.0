@@ -1,19 +1,20 @@
 {
-  "checkedAt": "2026-11-01T15:02:41.706Z",
-  "iteration": 2,
+  "checkedAt": "2026-11-01T16:52:51.270Z",
+  "iteration": 3,
   "dataset": "staging",
   "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan",
   "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
   "workerVersions": {
-    "rudelbar-cms-staging": "522abc5f-6b12-4ab4-b72e-c228ddc3c9ef",
-    "rudelbar-app-staging": "9a402eae-e584-4221-985a-d140e6dd3634"
+    "rudelbar-cms-staging": "4938b6b9-ff39-4ba0-bae0-9adfc163b5d0",
+    "rudelbar-app-staging": "63ed0b2b-e8b2-4acc-b123-b50e380ccc93"
   },
   "automatedTests": {
-    "passed": 11,
+    "passed": 21,
     "failed": 0
   },
   "responsive": {
-    "backstageViews": 28,
+    "previousBackstageViews": 28,
+    "liveViewsAndDialogs": 20,
     "widths": [
       320,
       390,
@@ -26,11 +27,19 @@
   },
   "browser": {
     "authenticatedLiveSession": true,
-    "privateEventCreated": true,
-    "profileCreatedAndAssigned": true,
-    "guestProfileVisible": true,
-    "cloudOpenCloseRoundtrip": true,
-    "privateExampleFinalState": "closed"
+    "cloudMusicRoundtrip": true,
+    "cloudKaraokeRoundtrip": true,
+    "customStationCreatedInEditor": true,
+    "cloudCustomStationRoundtrip": true,
+    "cloudVisitorReply": true,
+    "cloudInternalNoteHiddenFromGuest": true,
+    "cloudForwardAcrossOperatorScopes": true,
+    "personalTeamSessionsRemainSeparate": true,
+    "guestHistoryReadableAfterClosure": true,
+    "directProgramStationLinks": true,
+    "rapidThreadSwitchVerifiedLocally": true,
+    "privateExampleFinalState": "closed",
+    "cloudGrantRevocation": true
   },
   "checks": [
     {
@@ -48,6 +57,22 @@
     {
       "name": "private event with forged invitation is hidden",
       "status": 404
+    },
+    {
+      "name": "anonymous live inbox",
+      "status": 401
+    },
+    {
+      "name": "anonymous guest inbox",
+      "status": 401
+    },
+    {
+      "name": "cross-origin guest write",
+      "status": 403
+    },
+    {
+      "name": "cross-origin team login",
+      "status": 403
     },
     {
       "name": "anonymous profile access",
@@ -72,17 +97,37 @@
     {
       "name": "backstage script",
       "status": 200,
-      "sha256": "508a9a21c4cc69dd8fd5a99f0127aad0141befd5fc962c80e2fa00ef9095707c"
+      "sha256": "93ea9aab36d07d54056083a77903a9f8146fe7356b0f6223a6f050b595eeeccc"
     },
     {
       "name": "backstage stylesheet",
       "status": 200,
-      "sha256": "1589093b5092d5d27c7599ea97e4c956c5ec8871ac12eb5a5ed17f69ba44f21d"
+      "sha256": "41e465f6518ffc0f800758585b6f3ac2c2fdcb4befc4cf6bf2ba70ef0e29989b"
     },
     {
       "name": "visitor script",
       "status": 200,
-      "sha256": "c7c6a842d805e1eab25bda020e22a28aae4e694de0ac2f3b2c6e4aa5aae6776c"
+      "sha256": "c96e42265b2ff51df8bc189ffe78c5d3bd7ac538dcfaf67cf887a6d05b06141d"
+    },
+    {
+      "name": "visitor communications",
+      "status": 200,
+      "sha256": "39148dd8a1bd0b9cc0c8a650ee23d6917917be9428a07752ad8e354b9e5cda0e"
+    },
+    {
+      "name": "live team script",
+      "status": 200,
+      "sha256": "c6ad76a27a374b3d451d449a2c3b13a0ac7e61977c8d731bfa6ff2061800ec3b"
+    },
+    {
+      "name": "live team stylesheet",
+      "status": 200,
+      "sha256": "62fa5d3152893b0d89172a51d573980c6a54cf51f2e6f94d5aecdd7fb6414cb7"
+    },
+    {
+      "name": "editorial preview communications",
+      "status": 200,
+      "sha256": "39148dd8a1bd0b9cc0c8a650ee23d6917917be9428a07752ad8e354b9e5cda0e"
     }
   ]
 }
