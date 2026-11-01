@@ -2,29 +2,38 @@ import { CATALOG_ID, EXPERIENCE_TYPE, cleanCatalog, cleanExperience, experienceI
 import { APP_EVENT_TYPE, PERSON_TYPE, RELEASE_TYPE, catalogFor, peopleFor, cleanPerson, cleanEvent, eventList, loadEvent, configurationFor, snapshotFor, visitorPayload, eventDocId, releaseDocId, guestUrl, strip } from './abend-service.mjs';
 export {catalogFor};
 import {createLiveService} from './live-service.mjs';
+import {editsContent,managesEvent,seesEvent,requirePermission} from './permissions.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
   const path=new URL(request.url).pathname,user=await session(request,env);
   if(!user)return json(401,{error:'Bitte anmelden.'});
   if(request.method!=='GET'){const auth=await authorized(request,env);if(auth.error)return auth.error;}
   if(path==='/api/abend/catalog'){
+    if(request.method!=='GET')requirePermission(editsContent(user));
     if(request.method==='GET')return json(200,{catalog:await catalogFor(client)});
     if(request.method==='PUT'){const catalog=cleanCatalog(await data(request));await client.saveDraft('rudelAppCatalog',CATALOG_ID,catalog);return json(200,{catalog});}
   }
   if(path==='/api/abend/people'){
-    if(request.method==='GET')return json(200,{people:await peopleFor(client)});
+    if(request.method==='GET'){
+      const people=await peopleFor(client);if(editsContent(user))return json(200,{people});
+      const events=(await eventList(client)).filter(e=>seesEvent(user,e.eventId)&&e.teamIds.includes(user.personId)),ids=new Set(events.flatMap(e=>e.teamIds));
+      return json(200,{people:people.filter(p=>ids.has(p.personId)).map(({personId,name,role,archived})=>({personId,name,role,archived}))});
+    }
+    requirePermission(editsContent(user));
     if(request.method==='POST'){const input=await data(request),id=`person-${crypto.randomUUID()}`;const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id));return json(201,{person:{...strip(doc),revision:doc._rev||''}});}
   }
   const personMatch=path.match(/^\/api\/abend\/people\/([a-z0-9-]+)$/i);
   if(personMatch&&request.method==='PUT'){
+    requirePermission(editsContent(user));
     const id=validId(personMatch[1]),input=await data(request),existing=await client.getDocument(`drafts.${id}`);
     if(!existing||existing._type!==PERSON_TYPE)return json(404,{error:'Person nicht gefunden.'});
     const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id),input.revision);
     return json(200,{person:{...strip(doc),revision:doc._rev||''}});
   }
   if(path==='/api/abend/events'){
-    if(request.method==='GET')return json(200,{events:(await eventList(client)).map(e=>({...e,guestUrl:guestUrl(env.VISITOR_APP_URL,e)})),visitorAppUrl:env.VISITOR_APP_URL||''});
+    if(request.method==='GET')return json(200,{events:(await eventList(client)).filter(e=>seesEvent(user,e.eventId)&&(editsContent(user)||e.teamIds.includes(user.personId))).map(e=>managesEvent(user,e.eventId)?({...e,canManage:true,guestUrl:guestUrl(env.VISITOR_APP_URL,e)}):({eventId:e.eventId,title:e.title,date:e.date,time:e.time,venue:e.venue,visibility:e.visibility,app:e.app,canManage:false})),visitorAppUrl:env.VISITOR_APP_URL||''});
     if(request.method==='POST'){
+      requirePermission(editsContent(user));
       const input=await data(request),id=`app-${crypto.randomUUID()}`,fields=cleanEvent({...input,teamIds:input.teamIds||[]},id);
       await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields);
       return json(201,{id,event:await loadEvent(client,id)});
@@ -33,6 +42,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   const access=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)\/access(?:\/([a-z0-9-]+)\/revoke)?$/i);
   if(access){
     const eventId=validId(access[1]),service=createLiveService(env,client);
+    const event=await loadEvent(client,eventId);requirePermission(managesEvent(user,eventId)&&(editsContent(user)||event.teamIds.includes(user.personId)));
     if(request.method==='GET'&&!access[2])return json(200,await service.grants(eventId));
     if(request.method==='POST'&&access[2])return json(200,await service.revoke(eventId,validId(access[2])));
     if(request.method==='POST'){const input=await data(request),grant=await service.issueGrant(eventId,validId(input.personId));return json(201,{id:grant.id,expiresAt:grant.expiresAt,url:`${new URL(request.url).origin}/team?zugang=${grant.code}`});}
@@ -41,6 +51,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   if(!match)return json(404,{error:'Nicht gefunden.'});
   const [,id,action]=match;validId(id);
   const event=await loadEvent(client,id),current=await configurationFor(client,id);
+  requirePermission(managesEvent(user,id)&&(editsContent(user)||event.teamIds.includes(user.personId)));
   if(request.method==='GET'){
     if(action==='preview')return json(200,{state:'open',experience:visitorPayload(current.experience,event,await peopleFor(client))});
     if(action)return json(404,{error:'Nicht gefunden.'});

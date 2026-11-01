@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {sqliteD1} from './sqlite-d1.mjs';
 import {createLiveService} from '../lib/live-service.mjs';
 import {createNotifications,cleanSubscription} from '../lib/notifications.mjs';
-const schema=(await Promise.all(['0001_live_stations.sql','0002_notifications.sql'].map(name=>readFile(new URL('../migrations/'+name,import.meta.url),'utf8')))).join('\n');
+const schema=(await Promise.all(['0001_live_stations.sql','0002_notifications.sql','0003_accounts.sql'].map(name=>readFile(new URL('../migrations/'+name,import.meta.url),'utf8')))).join('\n');
 const b64=bytes=>Buffer.from(bytes).toString('base64url');
 const bytes=value=>new Uint8Array(Buffer.from(value,'base64url'));
 const vapidPair=await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']),jwk=await crypto.subtle.exportKey('jwk',vapidPair.privateKey);

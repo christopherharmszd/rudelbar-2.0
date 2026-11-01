@@ -1,5 +1,7 @@
 # Rudelbar Backstage und Besucher-App · Live-Stationen und Mitteilungen
 
+Persönliche Backstage-Konten: siehe [Einrichtung und Berechtigungen](../ACCOUNTS.md) und [Prüfnachweis der Ausbaustufe](../ACCOUNTS-VERIFICATION.json). Der Zugang Redaktion bleibt aktiv.
+
 Stand: 1. November 2026. Quellzweig `codex/rudelbar-push-runtime-fix` im Repository `christopherharmszd/rudelbar-2.0`. Diese Erweiterung ist ausschließlich in der Entwicklungsumgebung bereitgestellt.
 
 ## Öffnen

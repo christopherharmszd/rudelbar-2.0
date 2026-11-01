@@ -1,6 +1,7 @@
 import {validId,stationsFor} from '../../shared/experience.mjs';
 import {loadEvent,snapshotFor,peopleFor} from './abend-service.mjs';
 import {createNotifications} from './notifications.mjs';
+import {managesEvent,runsEvent,seesEvent,editsContent,requirePermission} from './permissions.mjs';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const text=(value,max,required=false)=>{if(typeof value!=='string'&&value!==undefined&&value!==null)fail('Bitte gültige Texte eingeben.');const s=String(value??'').trim();if(s.length>max||(required&&!s))fail(`Bitte die Angaben prüfen (maximal ${max} Zeichen).`);return s;};
@@ -31,7 +32,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     return {event,release,people,stations:release.config?stationsFor(release.config):[]};
   }
   const notices=createNotifications(env,{context,defer,transport});
-  const recipient=actor=>({id:actor.publisher?'publisher':'p:'+actor.personId,eventId:actor.eventId,audience:'team',publisher:actor.publisher,personId:actor.personId,grantId:actor.grantId,expiresAt:actor.expiresAt,authVersion:actor.authVersion,stations:stations(actor).map(s=>s.id)});
+  const recipient=actor=>({id:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId,eventId:actor.eventId,audience:'team',publisher:actor.publisher,personId:actor.personId,grantId:actor.accountSessionId||actor.grantId,expiresAt:actor.expiresAt,authVersion:actor.authVersion,stations:stations(actor).map(s=>s.id)});
   const guestRecipient=person=>({id:'v:'+person.id,eventId:person.event_id,audience:'guest',expiresAt:person.expires_at});
   function activity(row,audience,actor,kind,operation){return database().prepare('INSERT INTO live_activity(event_id,request_id,audience,actor,kind,created_at) SELECT ?,?,?,?,?,? FROM live_requests WHERE id=? AND last_operation=?').bind(row.event_id,row.id,audience,actor,kind,Date.now(),row.id,operation);}
   function guestAccess(ctx,accessCode){if(ctx.event.visibility==='private'&&(!accessCode||accessCode!==ctx.event.accessCode))fail('Bitte nutze den Gäste-Link dieses Abends.',404);}
@@ -82,7 +83,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     const direction=actor.visitor?'visitor':internal?'internal':'team';
     if(reply)statements.push(database().prepare('INSERT INTO live_messages(id,request_id,direction,author_name,body,created_at) SELECT ?,?,?,?,?,? FROM live_requests WHERE id=? AND last_operation=?').bind(crypto.randomUUID(),row.id,direction,actor.name,reply,now,row.id,operation));
     if(status!==row.status||stationId!==row.station_id){const labels={new:'Neu eingegangen',queued:'Eingeplant',in_progress:'In Bearbeitung',done:row.kind==='music'?'Gespielt':row.kind==='karaoke'?'Gesungen':'Erledigt',declined:'Nicht möglich',cancelled:'Zurückgezogen'};const body=stationId!==row.station_id?`Weitergeleitet an ${stationName}.`:`Status: ${labels[status]}.`;statements.push(database().prepare("INSERT INTO live_messages(id,request_id,direction,author_name,body,created_at) SELECT ?,?,'system',?,?,? FROM live_requests WHERE id=? AND last_operation=?").bind(crypto.randomUUID(),row.id,actor.name,body,now,row.id,operation));}
-    const author=actor.visitor?'v:'+actor.id:actor.publisher?'publisher':'p:'+actor.personId;
+    const author=actor.visitor?'v:'+actor.id:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId;
     if(actor.visitor)statements.push(activity(row,'team',author,reply?'reply':'status',operation));
     else{
       if((reply&&!internal)||status!==row.status||stationId!==row.station_id)statements.push(activity(row,'guest',author,reply&&!internal?'reply':'status',operation));
@@ -102,6 +103,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     const saved=await update(row,{visitor:true,id:person.id,name:person.name},{revision:input.revision,reply,status:input.cancel?'cancelled':row.kind==='message'&&done.includes(row.status)?'new':row.status});return {request:dto(saved),messages:await messages(id,false),activitySeq:await notices.sequence(id,'guest')};
   }
   async function issueGrant(eventId,personId){
+    if(await first('SELECT id FROM app_accounts WHERE person_id=? AND enabled=0',[personId]))fail('Das Benutzerkonto dieser Person ist deaktiviert.',403);
     const ctx=await context(eventId);if(!ctx.event.teamIds.includes(personId)||!ctx.people.some(p=>p.personId===personId&&!p.archived))fail('Bitte eine aktive Person aus dem Abendteam wählen.');
     const id=crypto.randomUUID(),code=random(),now=Date.now(),expiresAt=now+7*86400000;
     await run('INSERT INTO live_grants(id,event_id,person_id,secret_hash,created_at,expires_at) VALUES(?,?,?,?,?,?)',[id,eventId,personId,await digest(code),now,expiresAt]);
@@ -114,14 +116,20 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     const grant=await first('SELECT * FROM live_grants WHERE secret_hash=? AND revoked=0 AND expires_at>?',[await digest(code),Date.now()]);if(!grant)fail('Dieser Team-Zugang ist abgelaufen oder wurde zurückgenommen.',401);
     const ctx=await context(grant.event_id),person=ctx.people.find(p=>p.personId===grant.person_id&&!p.archived&&ctx.event.teamIds.includes(p.personId));
     if(!person)fail('Dieses Profil gehört aktuell nicht zum Abendteam.',403);
+    if(await first('SELECT id FROM app_accounts WHERE person_id=? AND enabled=0',[person.personId]))fail('Das Benutzerkonto dieser Person ist deaktiviert.',403);
     return {publisher:false,grantId:grant.id,eventId:grant.event_id,name:person.name,personId:person.personId,ctx,expiresAt:grant.expires_at};
   }
   async function publisher(eventId,name='Redaktion'){return {publisher:true,eventId,name,personId:null,ctx:await context(eventId)};}
+  async function accountActor(eventId,user){
+    const ctx=await context(eventId);requirePermission(seesEvent(user,eventId));
+    if(!editsContent(user))requirePermission(ctx.event.teamIds.includes(user.personId)&&ctx.people.some(p=>p.personId===user.personId&&!p.archived));
+    return {publisher:runsEvent(user,eventId),canManage:managesEvent(user,eventId),eventId,name:user.name,personId:user.personId,accountId:user.accountId,accountSessionId:user.sessionId,authVersion:user.ver,expiresAt:user.exp,ctx};
+  }
   const allowed=(actor,station)=>actor.publisher||!station.operatorIds?.length||station.operatorIds.includes(actor.personId);
   function stations(actor){return actor.ctx.stations.filter(s=>allowed(actor,s));}
   async function staffContext(actor){
     const flags=await all('SELECT station_id,accepting,revision FROM live_station_state WHERE event_id=?',[actor.eventId]);
-    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
+    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
   }
   async function staffRow(actor,id){const row=await first(select+' WHERE r.id=? AND r.event_id=?',[id,actor.eventId]);if(!row||(!actor.publisher&&!stations(actor).some(s=>s.id===row.station_id)))fail('Diese Anfrage gehört nicht zu deinen Stationen.',404);return row;}
   async function inbox(actor,{id}={}){
@@ -149,5 +157,5 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   async function availability(eventId){const rows=await all('SELECT station_id,accepting FROM live_station_state WHERE event_id=?',[eventId]);return rows;}
   async function guestNotice({eventId,sessionToken,action,input={}}){const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);if(action==='list')return {expiresAt:person.expires_at,...await notices.list(who,input),...await notices.settings(who)};return {expiresAt:person.expires_at,...await notices[action](who,input)};}
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}
-  return {session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient};
+  return {session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient};
 }

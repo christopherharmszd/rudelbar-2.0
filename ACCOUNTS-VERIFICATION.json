@@ -1,0 +1,76 @@
+{
+  "checkedAt": "2026-11-01T20:06:33.353Z",
+  "iteration": 6,
+  "scope": "Internal accounts and authorization foundation",
+  "dataset": "staging",
+  "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan#accounts",
+  "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
+  "workerVersions": {
+    "rudelbar-cms-staging": "4f2fcf04-9601-4ae1-81db-d0f0e76a025b",
+    "rudelbar-app-staging": "60b4398e-a0d4-42d6-b19b-012959ec9fe2"
+  },
+  "automatedTests": {
+    "passed": 36,
+    "failed": 0
+  },
+  "runtime": {
+    "encryptedPush": true,
+    "redirectsRefused": true,
+    "productionDependencyAuditVulnerabilities": 0
+  },
+  "browser": {
+    "legacySessionPreservedOnStaging": true,
+    "publishedAccountsPageLoaded": true,
+    "publishedAccountDialogLoaded": true,
+    "localAccountCreateEditDisableAndReload": true,
+    "responsiveWidths": [
+      320,
+      390,
+      1280
+    ],
+    "horizontalOverflow": false,
+    "publishedMobileWidth": 390
+  },
+  "migration": {
+    "name": "0003_accounts.sql",
+    "applied": true,
+    "before": {
+      "visitors": 3,
+      "conversations": 5,
+      "devices": 1
+    },
+    "after": {
+      "visitors": 3,
+      "conversations": 5,
+      "devices": 1,
+      "accounts": 0
+    }
+  },
+  "identity": {
+    "recommendedProvider": "Auth0",
+    "configured": false,
+    "simulatedOidcFlowVerified": true,
+    "realProviderLoginTested": false,
+    "emailSent": false
+  },
+  "notIncludedYet": [
+    "Permanent guest accounts and saved contacts",
+    "Social wall",
+    "Social and dating matching and moderated rounds"
+  ],
+  "publicChecks": [
+    "Published source matches abendplan.js",
+    "Published source matches accounts-ui.js",
+    "Published source matches abendplan.css",
+    "Published source matches einladung.html",
+    "Published source matches einladung.js",
+    "Published source matches team.js",
+    "Anonymous access rejected /api/accounts",
+    "Anonymous access rejected /api/accounts/audit",
+    "Anonymous access rejected /api/abend/people",
+    "External personal sign-in correctly disabled until configured",
+    "Unconfigured sign-in does not redirect to a fake provider",
+    "Existing public guest evening remains open without internal assignments",
+    "Private guest evening remains inaccessible without an invitation"
+  ]
+}

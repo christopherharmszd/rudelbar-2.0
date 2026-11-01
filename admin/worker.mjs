@@ -1,21 +1,19 @@
 import { createSanity } from "./lib/sanity.mjs";
 import {liveApi} from "./lib/live-api.mjs";
 import { experienceApi } from "./lib/experience-api.mjs";
+import {createAccounts,cookieValue,accountCookie} from './lib/accounts.mjs';
+import {identityApi} from './lib/identity.mjs';
+import {accountsApi} from './lib/accounts-api.mjs';
+import {peopleFor,eventList} from './lib/abend-service.mjs';
+import {publicUser,editsContent,requirePermission} from './lib/permissions.mjs';
 
 const editorEmail = "redaktion@rudelbar.local";
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 function json(status, data, headers = {}) {
-  return Response.json(data, {
-    status,
-    headers: {
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "no-referrer",
-      ...headers,
-    },
-  });
+  const output=new Headers(headers);output.set('Cache-Control','no-store');output.set('X-Content-Type-Options','nosniff');output.set('Referrer-Policy','no-referrer');
+  return Response.json(data,{status,headers:output});
 }
 
 function base64url(bytes) {
@@ -62,6 +60,7 @@ function cookie(request) {
 }
 
 async function session(request, env) {
+  if(cookieValue(request,'rb_account'))return accountsFor(env).session(request);
   const [body, signature, extra] = cookie(request).split(".");
   if (!body || !signature || extra || body.length > 2048) return null;
   const actual = fromBase64url(signature);
@@ -101,6 +100,7 @@ function clean(value, max, required = false) {
 function sanity(env) {
   return createSanity({ projectId: env.SANITY_PROJECT_ID, dataset: env.SANITY_DATASET, token: env.SANITY_EDITOR_TOKEN });
 }
+function accountsFor(env){const client=sanity(env);return createAccounts(env,{people:()=>peopleFor(client),events:()=>eventList(client)});}
 
 function fields(type, data) {
   if (type === "posts") {
@@ -157,8 +157,10 @@ async function api(request, env, execution) {
   }
   if (request.method === "GET" && path === "/api/session") {
     const user = await session(request, env);
-    return json(200, { configured: true, user: user ? { email: user.sub, role: "publisher", csrf: user.csrf } : null });
+    return json(200, { configured: true, user: publicUser(user) });
   }
+  if(path.startsWith('/api/auth/'))return identityApi(request,env,{accounts:accountsFor(env),json,data});
+  if(path.startsWith('/api/accounts'))return accountsApi(request,env,{accounts:accountsFor(env),json,session,authorized,data});
   if (request.method === "POST" && path === "/api/login") {
     if (!sameOrigin(request)) return json(403, { error: "Ungültige Herkunft." });
     const ip = request.headers.get("cf-connecting-ip") || "unknown";
@@ -171,23 +173,28 @@ async function api(request, env, execution) {
     if (!valid) return json(401, { error: "E-Mail oder Passwort stimmt nicht." });
     const csrf = base64url(crypto.getRandomValues(new Uint8Array(24)));
     const token = await signSession(env, { sub: editorEmail, csrf, ver: env.RUDELBAR_PASSWORD_VERIFIER, exp: Date.now() + 8 * 3600000 });
-    return json(200, { ok: true }, { "Set-Cookie": `rb_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800` });
+    const headers=new Headers({"Set-Cookie":`rb_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`});headers.append('Set-Cookie',accountCookie('',0));
+    return json(200, { ok: true }, headers);
   }
   if (request.method === "POST" && path === "/api/logout") {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
-    return json(200, { ok: true }, { "Set-Cookie": "rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0" });
+    await accountsFor(env).logout(auth.user);
+    const headers=new Headers({'Set-Cookie':'rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'});headers.append('Set-Cookie',accountCookie('',0));
+    return json(200, { ok: true }, headers);
   }
   if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data,defer:execution?.waitUntil?.bind(execution)});
   if(path.startsWith('/api/abend/'))return experienceApi(request,env,{client:sanity(env),json,session,authorized,data});
   if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
     const user = await session(request, env);
     if (!user) return json(401, { error: "Bitte anmelden." });
+    requirePermission(editsContent(user));
     return json(200, { items: await sanity(env).list({ "/api/events": "rudelEvent", "/api/team": "rudelTeamMember", "/api/posts": "rudelPost" }[path]) });
   }
   if (request.method === "POST" && path === "/api/upload") {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
+    requirePermission(editsContent(auth.user));
     const mime = request.headers.get("content-type");
     if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return json(400, { error: "Bitte JPG, PNG oder WebP hochladen." });
     const filename = clean(request.headers.get("x-file-name"), 160, true).replace(/[^a-z0-9._-]/gi, "-");
@@ -198,6 +205,7 @@ async function api(request, env, execution) {
   if (match) {
     const auth = await authorized(request, env);
     if (auth.error) return auth.error;
+    requirePermission(editsContent(auth.user));
     const [, group, id, action] = match;
     const type = { events: "rudelEvent", team: "rudelTeamMember", posts: "rudelPost" }[group];
     const client = sanity(env);
