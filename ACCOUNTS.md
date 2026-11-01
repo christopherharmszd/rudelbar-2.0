@@ -53,3 +53,5 @@ Sitzungen gelten acht Stunden. Sitzungs- und Linktokens stehen nur als SHA-256-H
 48 automatisierte Tests prüfen Anmeldung, alte Redaktion, Rollen, Stationsrechte, CSRF, Passwortänderung, Linkablauf, gleichzeitige Verwendung, Widerruf, Mailverschlüsselung, Limits, SMTP-Annahme und Header-Injection. Ein zusätzlicher Test in Workerd prüft Passwortableitung und Mailverschlüsselung. Der bestehende Push-Laufzeittest bleibt erfolgreich. Öffentliche Staging-Prüfungen und Browsernachweise stehen in `NATIVE-AUTH-VERIFICATION.json`.
 
 Noch ausstehend ist die Abnahme mit einem echten persönlichen Teamkonto und mit dem eingerichteten Postfach. Es wurden hierfür keine echten Benutzerkonten angelegt und keine echten E-Mails verschickt. Dauerhafte Gästekonten, Kontakte und weitere Begegnungsfunktionen sind keine bereits fertigen Bestandteile dieser Kontenumstellung. Der QR-Einstieg für Gäste bleibt ohne Anmeldung möglich.
+
+Profilverwaltung: Personen können mit Bestätigung in den Papierkorb verschoben werden. Das deaktiviert verknüpfte Konten und beendet ihre Zugänge. Wiederherstellung allein reaktiviert keine Anmeldung. Details stehen in [BACKSTAGE.md](BACKSTAGE.md).

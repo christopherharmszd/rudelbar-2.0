@@ -16,12 +16,14 @@ export const DEFAULT_CATALOG={
   drinks:[{id:'wasser',name:'Wasser',category:'Alkoholfrei',unit:'0,33 l',priceCents:200,imageUrl:''},{id:'schorle',name:'Apfelschorle',category:'Alkoholfrei',unit:'0,33 l',priceCents:250,imageUrl:''},{id:'cola',name:'Cola / Orange / Zitrone',category:'Alkoholfrei',unit:'0,33 l',priceCents:250,imageUrl:''},{id:'bier',name:'Bier / Alster',category:'Bier & Wein',unit:'0,33 l',priceCents:300,imageUrl:''},{id:'weinschorle',name:'Weinschorle',category:'Bier & Wein',unit:'0,2 l',priceCents:400,imageUrl:''}]
 };
 
+const catalogLifecycle=row=>({archived:!!row.deletedAt||row.archived===true,...(row.deletedAt?{deletedAt:text(row.deletedAt,40)}:{})});
+
 export function cleanCatalog(input){
   return {
-    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:r.capacity===null||r.capacity===''?null:integer(r.capacity,1,30),description:text(r.description,800),archived:r.archived===true};})),
-    games:unique(array(input.games).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Spiele',80,true),capacity:integer(r.capacity,1,30),minutes:integer(r.minutes,0,300),description:text(r.description,800),rules:text(r.rules,2000),archived:r.archived===true};})),
-    program:unique(array(input.program??DEFAULT_CATALOG.program).map(r=>{const id=validId(r.id);if(!['dj','karaoke','other'].includes(r.kind||'other'))fail('Ungültige Angebotsart.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Programm',80,true),kind:r.kind||'other',description:text(r.description,1000),archived:r.archived===true};})),
-    drinks:unique(array(input.drinks).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category,80,true),unit:text(r.unit,40,true),priceCents:integer(r.priceCents,0,100000),imageUrl:image(r.imageUrl),archived:r.archived===true};}))
+    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:r.capacity===null||r.capacity===''?null:integer(r.capacity,1,30),description:text(r.description,800),...catalogLifecycle(r)};})),
+    games:unique(array(input.games).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Spiele',80,true),capacity:integer(r.capacity,1,30),minutes:integer(r.minutes,0,300),description:text(r.description,800),rules:text(r.rules,2000),...catalogLifecycle(r)};})),
+    program:unique(array(input.program??DEFAULT_CATALOG.program).map(r=>{const id=validId(r.id);if(!['dj','karaoke','other'].includes(r.kind||'other'))fail('Ungültige Angebotsart.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Programm',80,true),kind:r.kind||'other',description:text(r.description,1000),...catalogLifecycle(r)};})),
+    drinks:unique(array(input.drinks).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category,80,true),unit:text(r.unit,40,true),priceCents:integer(r.priceCents,0,100000),imageUrl:image(r.imageUrl),...catalogLifecycle(r)};}))
   };
 }
 
@@ -29,6 +31,7 @@ export function defaultExperience(eventId){return {eventId,enabled:true,welcomeT
 
 export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   validId(eventId);
+  input=withoutDeletedPeople(input,people);people=people.filter(p=>!p.deletedAt);
   const result={eventId,enabled:input.enabled!==false,welcomeTitle:text(input.welcomeTitle,160),welcomeText:text(input.welcomeText,1200),equipment:[],games:[],program:[],menu:[],stations:[],modules:{}};
   for(const [key,source] of [['equipment','equipment'],['games','games'],['program','program'],['menu','drinks']]){
     result[key]=unique(array(key==='program'?programFor(input):(input[key]||[])).map(row=>{
@@ -49,11 +52,22 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
     const offerType=row.offerType||'',offerId=row.offerId||'';
     if(offerType&&!['equipment','games','program','menu'].includes(offerType))fail('Ungültige Angebotsverknüpfung.');
     if(offerId&&(!offerType||!result[offerType].some(item=>item.id===offerId)))fail('Bitte ein für diesen Abend ausgewähltes Angebot verknüpfen.');
-    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false};
+    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,...(!operatorIds.length&&row.assignmentRequired?{assignmentRequired:true}:{}),offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false};
   }));
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};
   result.modules.help={enabled:input.modules?.help?.enabled!==false};
   return result;
+}
+
+// Retain historic IDs in storage but never require a deleted profile when preparing an evening.
+export function withoutDeletedPeople(config,people){
+ const deleted=new Set(people.filter(p=>p.deletedAt).map(p=>p.personId));if(!deleted.size)return config;
+ const next={...config};
+ for(const kind of ['equipment','games','program'])next[kind]=(kind==='program'?programFor(config):config[kind]||[]).map(row=>deleted.has(row.hostId)?{...row,hostId:'',host:''}:row);
+ next.stations=stationsFor(config).map(station=>{
+  const previous=station.operatorIds||[],operatorIds=previous.filter(id=>!deleted.has(id));
+  return {...station,operatorIds,...(previous.length&&!operatorIds.length?{assignmentRequired:true}:{})};
+ });return next;
 }
 
 // Read the first development format without changing existing published evenings.

@@ -7,7 +7,8 @@ const loginPath='/anmelden?weiter='+encodeURIComponent(target);
 document.querySelector('#forgot-link').href=loginPath+'&aktion=reset';document.querySelector('#return-link').href=loginPath;
 if(params.get('loginError'))showError(params.get('loginError'));
 if(params.has('eingerichtet'))message('Dein Passwort ist gespeichert. Melde dich jetzt mit deinem persönlichen Konto an.');
-if(action){personal.hidden=true;document.querySelector('#forgot-link').hidden=true;document.querySelector('#return-link').hidden=false;document.querySelector('#legacy-access').hidden=true;document.querySelector('#access-hint').hidden=true;}
+if(params.has('eingerichtet'))document.querySelector('#legacy-access').open=false;
+if(action){document.querySelector('#personal-label').hidden=true;personal.hidden=true;document.querySelector('#forgot-link').hidden=true;document.querySelector('#return-link').hidden=false;document.querySelector('#legacy-access').hidden=true;document.querySelector('#access-hint').hidden=true;}
 if(action==='reset'){forgot.hidden=false;document.querySelector('#title').textContent='Wieder dabei.';document.querySelector('#purpose').textContent='Fordere einen Link an, um ein neues Passwort zu wählen.';}
 if(action==='passwort'){change.hidden=false;document.querySelector('#title').textContent='Dein neues Passwort.';document.querySelector('#purpose').textContent='Nach der Änderung meldest du dich auf deinen Geräten erneut an.';}
 try{

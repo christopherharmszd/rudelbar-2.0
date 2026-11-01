@@ -70,12 +70,12 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
    const user={accountId:account.id,personId:account.person_id,roles:JSON.parse(account.roles_json)};
    if(!cache.has(row.event_id))cache.set(row.event_id,context(row.event_id));const ctx=await cache.get(row.event_id);
    if(!seesEvent(user,row.event_id)||!ctx.people.some(p=>p.personId===user.personId&&!p.archived)||!editsContent(user)&&!ctx.event.teamIds.includes(user.personId))return null;
-   const publisher=runsEvent(user,row.event_id);return {id:row.recipient,eventId:row.event_id,audience:'team',publisher,stations:ctx.stations.filter(s=>publisher||!s.operatorIds?.length||s.operatorIds.includes(user.personId)).map(s=>s.id)};
+   const publisher=runsEvent(user,row.event_id);return {id:row.recipient,eventId:row.event_id,audience:'team',publisher,stations:ctx.stations.filter(s=>publisher||(!s.operatorIds?.length&&!s.assignmentRequired)||s.operatorIds?.includes(user.personId)).map(s=>s.id)};
   }
   const grant=await first('SELECT person_id FROM live_grants WHERE id=? AND event_id=? AND revoked=0 AND expires_at>?',[row.grant_id,row.event_id,Date.now()]);if(!grant||grant.person_id!==row.person_id)return null;
   if(!cache.has(row.event_id))cache.set(row.event_id,context(row.event_id));const ctx=await cache.get(row.event_id);
   if(!ctx.event.teamIds.includes(row.person_id)||!ctx.people.some(p=>p.personId===row.person_id&&!p.archived))return null;
-  return {id:row.recipient,eventId:row.event_id,audience:'team',stations:ctx.stations.filter(s=>!s.operatorIds?.length||s.operatorIds.includes(row.person_id)).map(s=>s.id)};
+  return {id:row.recipient,eventId:row.event_id,audience:'team',stations:ctx.stations.filter(s=>(!s.operatorIds?.length&&!s.assignmentRequired)||s.operatorIds?.includes(row.person_id)).map(s=>s.id)};
  }
  function message(recipient,items,path){
   const item=items[0],guest=recipient.audience==='guest';

@@ -2,6 +2,8 @@ import { CATALOG_ID, EXPERIENCE_TYPE, cleanCatalog, cleanExperience, experienceI
 import { APP_EVENT_TYPE, PERSON_TYPE, RELEASE_TYPE, catalogFor, peopleFor, cleanPerson, cleanEvent, eventList, loadEvent, configurationFor, snapshotFor, visitorPayload, eventDocId, releaseDocId, guestUrl, strip } from './abend-service.mjs';
 export {catalogFor};
 import {createLiveService} from './live-service.mjs';
+import {changePersonLifecycle} from './people-lifecycle.mjs';
+import {changeCatalogLifecycle} from './catalog-lifecycle.mjs';
 import {editsContent,managesEvent,seesEvent,requirePermission} from './permissions.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
@@ -11,22 +13,32 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   if(path==='/api/abend/catalog'){
     if(request.method!=='GET')requirePermission(editsContent(user));
     if(request.method==='GET')return json(200,{catalog:await catalogFor(client)});
-    if(request.method==='PUT'){const catalog=cleanCatalog(await data(request));await client.saveDraft('rudelAppCatalog',CATALOG_ID,catalog);return json(200,{catalog});}
+    if(request.method==='PUT'){
+      const input=await data(request),current=await catalogFor(client);
+      if(current.revision&&input.revision!==current.revision)fail('Die Angebote wurden inzwischen geändert. Bitte aktualisieren.',409);
+      await client.savePrivate('rudelAppCatalog',CATALOG_ID,cleanCatalog(input),current.revision||undefined);
+      return json(200,{catalog:await catalogFor(client)});
+    }
   }
+  const catalogAction=path.match(/^\/api\/abend\/catalog\/(equipment|games|program|drinks)\/([a-z0-9-]+)\/(delete|restore)$/i);
+  if(catalogAction&&request.method==='POST')return json(200,await changeCatalogLifecycle(client,user,catalogAction[1],validId(catalogAction[2]),await data(request),catalogAction[3]));
   if(path==='/api/abend/people'){
     if(request.method==='GET'){
-      const people=await peopleFor(client);if(editsContent(user))return json(200,{people});
+      const allPeople=await peopleFor(client,{includeDeleted:true}),people=allPeople.filter(p=>!p.deletedAt);if(editsContent(user))return json(200,{people,trash:allPeople.filter(p=>p.deletedAt)});
       const events=(await eventList(client)).filter(e=>seesEvent(user,e.eventId)&&e.teamIds.includes(user.personId)),ids=new Set(events.flatMap(e=>e.teamIds));
       return json(200,{people:people.filter(p=>ids.has(p.personId)).map(({personId,name,role,archived})=>({personId,name,role,archived}))});
     }
     requirePermission(editsContent(user));
     if(request.method==='POST'){const input=await data(request),id=`person-${crypto.randomUUID()}`;const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id));return json(201,{person:{...strip(doc),revision:doc._rev||''}});}
   }
+  const lifecycle=path.match(/^\/api\/abend\/people\/([a-z0-9-]+)\/(delete|restore)$/i);
+  if(lifecycle&&request.method==='POST')return json(200,await changePersonLifecycle(env,client,user,validId(lifecycle[1]),await data(request),lifecycle[2]));
   const personMatch=path.match(/^\/api\/abend\/people\/([a-z0-9-]+)$/i);
   if(personMatch&&request.method==='PUT'){
     requirePermission(editsContent(user));
     const id=validId(personMatch[1]),input=await data(request),existing=await client.getDocument(`drafts.${id}`);
     if(!existing||existing._type!==PERSON_TYPE)return json(404,{error:'Person nicht gefunden.'});
+    if(existing.deletedAt)return json(409,{error:'Bitte das Profil zuerst aus dem Papierkorb wiederherstellen.'});
     const doc=await client.savePrivate(PERSON_TYPE,id,cleanPerson(input,id),input.revision);
     return json(200,{person:{...strip(doc),revision:doc._rev||''}});
   }
@@ -65,7 +77,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
     return json(200,{event:{...await loadEvent(client,id),guestUrl:guestUrl(env.VISITOR_APP_URL,fields)}});
   }
   if(request.method==='PUT'&&!action){
-    const input=await data(request),fields=cleanExperience(input,await catalogFor(client),id,await peopleFor(client),event.teamIds);
+    const input=await data(request),fields=cleanExperience(input,await catalogFor(client),id,await peopleFor(client,{includeDeleted:true}),event.teamIds);
     const doc=await client.savePrivate(EXPERIENCE_TYPE,experienceId(id),fields,input.revision);
     return json(200,{ok:true,experience:{...strip(doc),revision:doc._rev||''}});
   }

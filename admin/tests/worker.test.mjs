@@ -9,7 +9,7 @@ const secret = "a-local-test-session-secret-with-more-than-32-characters";
 const password = "A-long-test-password-2026!";
 
 async function setup() {
-  const docs = new Map();
+  const docs = new Map([[`drafts.${CATALOG_ID}`,{_id:`drafts.${CATALOG_ID}`,_type:"rudelAppCatalog",_rev:"initial-catalog",...structuredClone(DEFAULT_CATALOG)}]]);
   const calls = [];
   const env = {
     SANITY_PROJECT_ID: "project123",
@@ -249,7 +249,7 @@ test('evening planning requires login and CSRF, keeps drafts separate, and publi
     const write=(path,body,method='PUT')=>worker.fetch(request(path,{method,cookie,csrf,body}),state.env);
     const read=async path=>(await worker.fetch(request(path,{cookie}),state.env)).json();
     assert.equal((await worker.fetch(request('/api/abend/catalog',{method:'PUT',cookie,body:DEFAULT_CATALOG}),state.env)).status,403);
-    assert.equal((await write('/api/abend/catalog',DEFAULT_CATALOG)).status,200);
+    assert.equal((await write('/api/abend/catalog',{...DEFAULT_CATALOG,revision:state.docs.get(`drafts.${CATALOG_ID}`)._rev})).status,200);
     assert.ok(state.docs.has(`drafts.${CATALOG_ID}`));
     const id='planning-test',documentId=experienceId(id);
     state.docs.set(`drafts.${id}`,{_id:`drafts.${id}`,_type:'rudelEvent',title:'Testabend',date:'2026-11-01',venue:'Scharnebeck',time:'18 Uhr'});
@@ -263,7 +263,7 @@ test('evening planning requires login and CSRF, keeps drafts separate, and publi
     assert.equal(state.docs.has(documentId),false);
     assert.equal(state.docs.get(`drafts.rudel-app-release-${id}`).config.equipment.length,2);
     const changed=structuredClone(DEFAULT_CATALOG);changed.drinks[0].priceCents=900;
-    assert.equal((await write('/api/abend/catalog',changed)).status,200);
+    assert.equal((await write('/api/abend/catalog',{...changed,revision:state.docs.get(`drafts.${CATALOG_ID}`)._rev})).status,200);
     assert.equal(state.docs.get(`drafts.rudel-app-release-${id}`).config.menu[0].priceCents,175);
     draft.welcomeTitle='Noch geheimer Entwurf';
     assert.equal((await write(`/api/abend/events/${id}`,draft)).status,200);
@@ -350,4 +350,22 @@ test('profile references are optional, must belong to the event team, and reject
     assert.equal((await worker.fetch(request('/api/abend/people'),state.env)).status,401);
     assert.ok([...state.docs.keys()].every(key=>key.startsWith('drafts.')));
   }finally{state.restore();}
+});
+
+test('profile and offer deletion routes require session and CSRF, protect revisions and support restoration',async()=>{
+ const state=await setup();try{
+  const {cookie,csrf}=await login(state.env),call=(path,body,method='POST',token=csrf)=>worker.fetch(request(path,{method,cookie,csrf:token,body}),state.env);
+  const offer='/api/abend/catalog/equipment/kicker-1';
+  assert.equal((await call(offer+'/delete',{revision:'initial-catalog'},'POST','wrong')).status,403);
+  let response=await call(offer+'/delete',{revision:'initial-catalog'});assert.equal(response.status,200);let catalog=(await response.json()).catalog;assert.ok(catalog.equipment.find(r=>r.id==='kicker-1').deletedAt);
+  assert.equal((await call('/api/abend/catalog',{...DEFAULT_CATALOG,revision:'initial-catalog'},'PUT')).status,409,'a stale full-catalog edit cannot resurrect a deleted offer');
+  response=await call(offer+'/restore',{revision:catalog.revision});assert.equal(response.status,200);catalog=(await response.json()).catalog;assert.ok(!catalog.equipment.find(r=>r.id==='kicker-1').deletedAt);
+  const person=(await(await call('/api/abend/people',{name:'Lokale Prüfperson'})).json()).person,path='/api/abend/people/'+person.personId;
+  assert.equal((await call(path+'/delete',{revision:person.revision},'POST','wrong')).status,403);
+  assert.equal((await call(path+'/delete',{revision:person.revision})).status,200);
+  let people=await(await worker.fetch(request('/api/abend/people',{cookie}),state.env)).json();assert.equal(people.people.length,0);assert.equal(people.trash.length,1);
+  assert.equal((await call(path,{...person,name:'Cannot edit trash'},'PUT')).status,409);
+  assert.equal((await call(path+'/restore',{revision:people.trash[0].revision})).status,200);
+  people=await(await worker.fetch(request('/api/abend/people',{cookie}),state.env)).json();assert.equal(people.people.length,1);assert.equal(people.people[0].archived,true);assert.equal(people.trash.length,0);
+ }finally{state.restore();}
 });

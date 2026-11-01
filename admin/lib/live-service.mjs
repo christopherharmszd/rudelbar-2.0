@@ -125,7 +125,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     if(!editsContent(user))requirePermission(ctx.event.teamIds.includes(user.personId)&&ctx.people.some(p=>p.personId===user.personId&&!p.archived));
     return {publisher:runsEvent(user,eventId),canManage:managesEvent(user,eventId),eventId,name:user.name,personId:user.personId,accountId:user.accountId,accountSessionId:user.sessionId,authVersion:user.ver,expiresAt:user.exp,ctx};
   }
-  const allowed=(actor,station)=>actor.publisher||!station.operatorIds?.length||station.operatorIds.includes(actor.personId);
+  const allowed=(actor,station)=>actor.publisher||(!station.operatorIds?.length&&!station.assignmentRequired)||station.operatorIds?.includes(actor.personId);
   function stations(actor){return actor.ctx.stations.filter(s=>allowed(actor,s));}
   async function staffContext(actor){
     const flags=await all('SELECT station_id,accepting,revision FROM live_station_state WHERE event_id=?',[actor.eventId]);
