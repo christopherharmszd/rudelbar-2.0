@@ -1,6 +1,6 @@
 # Rudelbar Backstage und Besucher-App · Live-Stationen und Mitteilungen
 
-Stand: 1. November 2026. Quellzweig `codex/rudelbar-notifications` im Repository `christopherharmszd/rudelbar-2.0`. Diese Erweiterung ist ausschließlich in der Entwicklungsumgebung bereitgestellt.
+Stand: 1. November 2026. Quellzweig `codex/rudelbar-push-runtime-fix` im Repository `christopherharmszd/rudelbar-2.0`. Diese Erweiterung ist ausschließlich in der Entwicklungsumgebung bereitgestellt.
 
 ## Öffnen
 
@@ -57,7 +57,7 @@ node --test admin/tests/*.test.mjs event-app/tests/*.test.mjs
 node event-app/prepare.mjs
 ```
 
-Die bisherigen elf Tests bleiben Teil der insgesamt 27 erfolgreichen Tests. Geprüft sind bestehende Redaktionsabläufe, Anmeldung/CSRF, unabhängige private Veranstaltungen, Gäste-Link-Prüfung, öffentliche Datenfilterung, optionale Profilreferenzen, Namensänderungen über Profile, Revisionskonflikte sowie Öffnen/Schließen getrennt von der Inhaltsfreigabe.
+Die bisherigen elf Tests bleiben Teil der insgesamt 28 erfolgreichen Tests. Geprüft sind bestehende Redaktionsabläufe, Anmeldung/CSRF, unabhängige private Veranstaltungen, Gäste-Link-Prüfung, öffentliche Datenfilterung, optionale Profilreferenzen, Namensänderungen über Profile, Revisionskonflikte sowie Öffnen/Schließen getrennt von der Inhaltsfreigabe.
 
 28 Backstage-Ansichten wurden bei 320, 390, 768 und 1280 Pixeln ohne horizontales Überlaufen geprüft. Zusätzlich wurden kurze und lange Dialoge auf schmalen Ansichten geprüft. Der lange Anlegedialog wurde so korrigiert, dass die unteren Aktionen vollständig innerhalb des Dialogs liegen. Die Live-Konsole zeigte in den geprüften Ansichten keine Fehler. Dies ist Bildschirmgrößen-Prüfung im Browser, kein Test auf einem physischen iPhone.
 
@@ -89,7 +89,7 @@ Neue Anfragen und Gastantworten setzen eine offene Veranstaltung voraus. Nach de
 
 Neue Dateien: `admin/lib/live-service.mjs`, `admin/lib/live-api.mjs`, `admin/public/team.*`, `event-app/public/guest-live.js`. Die bestehende redaktionelle Vorschau zeigt die Formulare; echte Sendungen funktionieren in der geöffneten Gäste-App.
 
-27 automatisierte Tests bestehen. Zusätzlich wurden DJ, Karaoke und eine frei angelegte Spielebetreuung im Browser lokal und über die Cloudflare-Adressen durchgespielt: Anfrage, persönliche Stationszuständigkeit, Status, Teamantwort, interne Notiz und Übergabe bis zum Gäste-Postfach. Zwei parallele persönliche Teamzugänge bleiben getrennt. Neue Live-Ansichten und Stationsdialoge wurden bei 320, 390, 768 und 1280 Pixeln ohne horizontales Überlaufen geprüft. Ein physisches iPhone wurde nicht verwendet. Der private Prüfabend wird anschließend geschlossen; die Testgespräche bleiben nachvollziehbar gespeichert.
+28 automatisierte Tests bestehen. Zusätzlich wurden DJ, Karaoke und eine frei angelegte Spielebetreuung im Browser lokal und über die Cloudflare-Adressen durchgespielt: Anfrage, persönliche Stationszuständigkeit, Status, Teamantwort, interne Notiz und Übergabe bis zum Gäste-Postfach. Zwei parallele persönliche Teamzugänge bleiben getrennt. Neue Live-Ansichten und Stationsdialoge wurden bei 320, 390, 768 und 1280 Pixeln ohne horizontales Überlaufen geprüft. Ein physisches iPhone wurde nicht verwendet. Der private Prüfabend wird anschließend geschlossen; die Testgespräche bleiben nachvollziehbar gespeichert.
 
 Gemeinsame Platzbuchungen, automatische Spiele-Matchings und Besucher-Begegnungsprofile sind weitere eigenständige Funktionsbausteine. Der persönliche Merkzettel reserviert weiterhin keine Plätze. Musik- und Karaoke-Stationen verwalten Wünsche und Anmeldungen; sie steuern keine Musiksoftware.
 
@@ -99,7 +99,7 @@ Die **Glocke** öffnet neue Interaktionen und die Einrichtung. Beim ersten Besuc
 
 Ungelesen wird pro Empfänger und Gespräch dauerhaft gespeichert. Nur der tatsächlich geladene Stand wird als gelesen markiert. Eine parallel eingehende neue Nachricht bleibt dadurch ungelesen. Private Teamnotizen erzeugen keine Gäste-Mitteilungen. Team-Mitteilungen folgen den aktuellen Stationszuständigkeiten; zurückgenommene oder abgelaufene Zugänge werden beim Versand erneut geprüft.
 
-Hintergrundmitteilungen benötigen die ausdrückliche Browser-Erlaubnis. Auf iPhone und iPad führt eine Anleitung durch **Teilen → Zum Home-Bildschirm → Rudelbar öffnen → Mitteilungen aktivieren**. Dafür liefern Gäste- und Team-Bereich ein passendes Manifest. Der QR-Einstieg funktioniert auch ohne Installation und Push-Erlaubnis. Blockierte oder nicht unterstützte Mitteilungen werden erklärt; die sichtbaren Hinweise und das Postfach bleiben verfügbar. **Testmitteilung senden** bestätigt die Annahme beim Mitteilungsdienst, nicht die tatsächliche Anzeige auf dem Gerät. Auf einem physischen iPhone ist der abschließende Sperrbildschirm-Test noch offen.
+Hintergrundmitteilungen benötigen die ausdrückliche Browser-Erlaubnis. Auf iPhone und iPad führt eine Anleitung durch **Teilen → Zum Home-Bildschirm → Rudelbar öffnen → Mitteilungen aktivieren**. Dafür liefern Gäste- und Team-Bereich ein passendes Manifest. Der QR-Einstieg funktioniert auch ohne Installation und Push-Erlaubnis. Blockierte oder nicht unterstützte Mitteilungen werden erklärt; die sichtbaren Hinweise und das Postfach bleiben verfügbar. **Testmitteilung senden** bestätigt die Annahme beim Mitteilungsdienst, nicht die tatsächliche Anzeige auf dem Gerät. Der Nutzer hat nach der Versandkorrektur am 1. November 2026 bestätigt, dass die Testmitteilung auf seinem iPhone ankommt. Ein automatisierter Test auf physischer Hardware wurde nicht durchgeführt.
 
 Push-Mitteilungen enthalten einen allgemeinen Hinweis und einen Rückweg ins Gespräch. Nachrichteninhalte, Namen, private Einladungscodes und Anmeldeschlüssel werden nicht im Push-Text versendet. Eine bestehende Besuchersitzung erlaubt den Rückweg auch bei privaten Abenden. Ohne gültige Sitzung wird der private Inhalt weiterhin geschützt. Die Anmeldung gilt bis zu sieben Tage; das Hinzufügen zum iPhone-Home-Bildschirm und die Übernahme einer vorhandenen Browsersitzung sind noch auf einem echten Gerät zu prüfen. Neue Browser ohne Sitzung müssen sich über ihren Gäste-Link anmelden.
 
@@ -122,3 +122,13 @@ Die Bedienstruktur greift die geprüften Elbmafia-Backstage-Muster auf: kompakte
 Technische Grundlagen: [Cloudflare Service Binding mit WorkerEntrypoint](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/), [Cloudflare D1](https://developers.cloudflare.com/d1/), [Sanity Drafts und Versionen](https://www.sanity.io/docs/content-lake/drafts-and-versions), [Sanity Token und geschützte Dokumente](https://learn.sanity.build/learn/course/visual-editing-with-next-js/token-handling-and-security).
 
 Web-Push-Grundlagen: [Apple/WebKit](https://webkit.org/blog/13878/), [MDN Push API](https://developer.mozilla.org/en-US/docs/Web/API/Push_API), [verwendete Web-Push-Bibliothek](https://github.com/block65/webcrypto-web-push).
+
+## Korrektur nach dem iPhone-Test vom 1. November 2026
+
+Der erste echte Test scheiterte serverseitig an `redirect: error`: Diese Fetch-Option wird von Cloudflare Workers nicht unterstützt und löst bereits vor dem Netzwerkzugriff einen Fehler aus. Die vorherigen Node-Tests mit einem ersetzten Transport hatten das nicht erkannt. Der Versand verwendet jetzt `redirect: manual` und lehnt Weiterleitungen ausdrücklich ab. Der Empfänger behält seine Geräteanmeldung auch bei einem fehlgeschlagenen Test. Fehler bekommen eine verständliche Meldung und einen gespeicherten Status. Eine Annahme durch den Mitteilungsdienst wird weiterhin von der tatsächlichen Anzeige auf dem Gerät unterschieden.
+
+`npm run test:push-runtime` im Verzeichnis `admin/` prüft zusätzlich zur normalen Testsuite den echten ausgehenden Fetch in der Cloudflare-Laufzeit. Nur der Zielservice wird lokal ersetzt. Der Test prüft den verschlüsselten 4096-Byte-Payload und die VAPID-Authentisierung sowie das Ablehnen einer Weiterleitung ohne Weitergabe von Zugangsdaten. Dabei wird kein reales Gerät benachrichtigt.
+
+Die Anleitung folgt jetzt dem im Nutzer-Screenshot sichtbaren Safari-Menü: unten rechts „…“, dann „Teilen“, im Teilen-Menü nach unten zu „Zum Home-Bildschirm“, „Als Web-App öffnen“ eingeschaltet lassen und „Hinzufügen“. Sie erscheint als kompakte Schritte ohne leeren Nachrichtenabschnitt und ohne Toneinstellungen vor der Installation.
+
+Referenzen: [Cloudflare Request und Redirect-Modi](https://developers.cloudflare.com/workers/runtime-apis/request/), [Apple: Website in Safari in eine App verwandeln](https://support.apple.com/de-de/guide/iphone/iphea86e5236/ios).

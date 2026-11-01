@@ -2,6 +2,16 @@ import {buildPushPayload} from '@block65/webcrypto-web-push';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
+export async function sendPush(env,subscription,payload,{transport=fetch}={}){
+ let request;
+ try{request=await buildPushPayload({data:JSON.stringify(payload),options:{ttl:3600}},subscription,{subject:env.VAPID_SUBJECT,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY});}
+ catch(error){console.warn('Rudelbar push preparation failed',{name:error.name});fail('Die Mitteilung konnte nicht für den Versand vorbereitet werden. Bitte versuche den Test später erneut.',502);}
+ let response;
+ try{response=await transport(subscription.endpoint,{...request,redirect:'manual',signal:AbortSignal.timeout(8000)});}
+ catch(error){console.warn('Rudelbar push transport failed',{name:error.name});fail('Der Mitteilungsdienst ist gerade nicht erreichbar. Deine Erlaubnis bleibt erhalten. Bitte versuche den Test erneut.',502);}
+ if(response.status>=300&&response.status<400)fail('Der Mitteilungsdienst hat eine unerwartete Weiterleitung gemeldet. Bitte versuche den Test später erneut.',502);
+ return response;
+}
 export function cleanSubscription(input){
  let endpoint;try{endpoint=new URL(input?.endpoint);}catch{fail('Der Browser hat keinen gültigen Mitteilungszugang geliefert.');}
  const host=endpoint.hostname;
@@ -66,16 +76,17 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
   return {title,body,tag:'rudelbar-'+recipient.eventId+'-'+recipient.id.replace(':','-'),url:path+'&anfrage='+encodeURIComponent(item.id),icon:guest?'/assets/rudelbar-logo.png':'/abend-preview/assets/rudelbar-logo.png',id:item.id,seq:item.seq,count:items.length};
  }
  async function send(subscription,payload){
-  const request=await buildPushPayload({data:JSON.stringify(payload),options:{ttl:3600}},subscription,{subject:env.VAPID_SUBJECT,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY});
-  return transport(subscription.endpoint,{...request,redirect:'error',signal:AbortSignal.timeout(8000)});
+  return sendPush(env,subscription,payload,{transport});
  }
  async function test(recipient,{endpoint}){
   if(!configured())fail('Mitteilungen werden gerade eingerichtet.',503);
   const row=await first('SELECT * FROM live_push_subscriptions WHERE event_id=? AND recipient=? AND endpoint_hash=? AND active=1 AND expires_at>?',[recipient.eventId,recipient.id,await hash(endpoint||''),Date.now()]);if(!row)fail('Aktiviere Mitteilungen zuerst auf diesem Gerät.',409);
   if(row.updated_at>Date.now()-15000&&row.last_status===201)fail('Bitte warte kurz vor einer weiteren Testmitteilung.',429);
-  const response=await send(JSON.parse(row.subscription_json),{title:'Rudelbar · Mitteilungen sind bereit',body:'So erfährst du von neuen Nachrichten und Änderungen an deinem Abend.',tag:'rudelbar-test',url:row.return_path,count:0});
+  let response;
+  try{response=await send(JSON.parse(row.subscription_json),{title:'Rudelbar · Testmitteilung',body:'Der Versand funktioniert. So erfährst du von neuen Nachrichten und Änderungen an deinem Abend.',tag:'rudelbar-test',url:row.return_path,count:0});}
+  catch(error){await run('UPDATE live_push_subscriptions SET last_status=?,updated_at=? WHERE id=?',[error.status||502,Date.now(),row.id]);throw error;}
   await run('UPDATE live_push_subscriptions SET last_status=?,updated_at=?,active=CASE WHEN ? IN(404,410) THEN 0 ELSE active END WHERE id=?',[response.status,Date.now(),response.status,row.id]);if(!response.ok)fail('Der Mitteilungsdienst hat den Test gerade nicht angenommen. Bitte erneut aktivieren oder später versuchen.',502);
-  return {ok:true,accepted:true};
+  return {ok:true,accepted:true,providerStatus:response.status};
  }
  async function flush(eventId){
   if(!configured()||!db)return {sent:0};const now=Date.now(),cache=new Map();

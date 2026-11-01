@@ -88,3 +88,12 @@ test('notification HTTP routes require origin and cookies and migrate an old gue
  await worker.fetch(new Request(origin+'/api/experience?abend=test-evening',{headers:{Cookie:cookie}}),env);assert.equal(calls[1].sessionToken,'trusted-secret');
  const logout=await worker.fetch(new Request(origin+'/api/guest/logout',{method:'POST',headers:{Origin:origin,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({eventId:'test-evening',endpoint:'https://fcm.googleapis.com/fcm/send/device'})}),env);assert.equal(calls.at(-1).input.action,'unsubscribe');assert.equal(logout.headers.getSetCookie().length,2);
 });
+
+test('failed device tests retain permission and record a useful transport error',async()=>{
+ const s=await fixture();try{
+  const device=await subscription();await s.hub.subscribe(s.who,{subscription:device.json});
+  const hub=createNotifications(s.env,{context:async()=>s.context,transport:async()=>{throw new TypeError('Simulated transport failure');}});
+  await assert.rejects(()=>hub.test(s.who,{endpoint:device.json.endpoint}),error=>error.status===502&&error.message.includes('Deine Erlaubnis bleibt erhalten'));
+  const row=s.db.connection.prepare('SELECT active,last_status FROM live_push_subscriptions').get();assert.equal(row.active,1);assert.equal(row.last_status,502);
+ }finally{s.close();}
+});

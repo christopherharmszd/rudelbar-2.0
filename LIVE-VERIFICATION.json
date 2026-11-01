@@ -1,21 +1,28 @@
 {
-  "checkedAt": "2026-11-01T18:26:30.433Z",
-  "iteration": 4,
+  "checkedAt": "2026-11-01T18:55:46.759Z",
+  "iteration": 5,
   "dataset": "staging",
   "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan",
   "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
   "workerVersions": {
-    "rudelbar-cms-staging": "cb108c5b-46d8-402d-b60e-4f418583de7a",
-    "rudelbar-app-staging": "82f0caa9-3c8b-4980-89d8-7fd31fc02fbf"
+    "rudelbar-cms-staging": "f54cc1b0-e8da-4761-b0ea-3f12014cdcd4",
+    "rudelbar-app-staging": "60b4398e-a0d4-42d6-b19b-012959ec9fe2"
   },
   "automatedTests": {
-    "passed": 27,
+    "passed": 28,
     "failed": 0
   },
   "responsive": {
     "previousBackstageViews": 28,
     "previousLiveViewsAndDialogs": 20,
-    "notificationDialogWidthsChecked": 4,
+    "notificationDialogWidthsChecked": 5,
+    "notificationGuideWidths": [
+      320,
+      390,
+      430,
+      768,
+      1280
+    ],
     "widths": [
       320,
       390,
@@ -45,7 +52,10 @@
     "pushSetupAvailable": true,
     "iosGuideVisuallyChecked": true,
     "systemPermissionAcceptedByAgent": false,
-    "physicalPushDeliveryTested": false,
+    "physicalPushDeliveryTested": true,
+    "physicalPushDeliveryReportedByUser": true,
+    "cloudflareRuntimePushTransportVerified": true,
+    "cloudflareRuntimeRedirectRejectionVerified": true,
     "encryptedPushAndVapidSignatureUnitVerified": true,
     "retryScheduleDeployed": true,
     "privateExampleFinalState": "closed"
@@ -152,17 +162,17 @@
     {
       "name": "guest notifications UI",
       "status": 200,
-      "sha256": "71b29bc9209994dbf89bfeb05066d6b21673474245e0aeb7f80b642d9fdc5dd5"
+      "sha256": "bc6b6bf0d09ccf2ee94e407dee1ba98c698cf828f36a5aeecc80bf89a6f003f8"
     },
     {
       "name": "team notifications UI",
       "status": 200,
-      "sha256": "71b29bc9209994dbf89bfeb05066d6b21673474245e0aeb7f80b642d9fdc5dd5"
+      "sha256": "bc6b6bf0d09ccf2ee94e407dee1ba98c698cf828f36a5aeecc80bf89a6f003f8"
     },
     {
       "name": "notifications stylesheet",
       "status": 200,
-      "sha256": "244e86a5ad352be3c59a93e5bccf4ccdde17c2fe72d3d8c8f53e4e0a20b57083"
+      "sha256": "dc58a92acf9e1b385a2c6ec1fc2012979300899809a11147ececa1d57e9794ca"
     },
     {
       "name": "guest push worker",
