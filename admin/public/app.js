@@ -156,6 +156,7 @@ function render() {
           <button type="button" data-section="events" class="${isEvent ? "active" : ""}">Termine <span>↗</span></button>
           <button type="button" data-section="team" class="${state.section === "team" ? "active" : ""}">Das Rudel <span>↗</span></button>
           <button type="button" data-section="posts" class="${state.section === "posts" ? "active" : ""}">Aktuelles <span>↗</span></button>
+          <a href="/abendplan.html" class="abend-nav-link">Abendplanung <span>↗</span></a>
         </nav></div>
         <div class="side-foot">${state.configured ? "Veröffentlichte Inhalte werden in Sanity gespeichert." : "Lokale Vorschau mit dem aktuellen Rudelbar-Inhalt."}<br /><a href="/datenschutz.html">Datenschutz &amp; Cookies</a></div>
       </aside>

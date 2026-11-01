@@ -5,6 +5,7 @@
   "main": "./worker.mjs",
   "compatibility_date": "2026-09-28",
   "workers_dev": true,
+  "build": { "command": "node ../event-app/prepare.mjs" },
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
@@ -12,7 +13,8 @@
   },
   "vars": {
     "SANITY_PROJECT_ID": "uywmld5e",
-    "SANITY_DATASET": "staging"
+    "SANITY_DATASET": "staging",
+    "VISITOR_APP_URL": "https://rudelbar-app-staging.christopher-harms.workers.dev"
   },
   "ratelimits": [{
     "name": "LOGIN_LIMITER",

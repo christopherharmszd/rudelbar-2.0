@@ -105,5 +105,5 @@ export function createSanity({ projectId, dataset, token }) {
     return { assetId: data.document?._id, url: data.document?.url };
   }
 
-  return { list, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
+  return { list, getDocument, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
 }

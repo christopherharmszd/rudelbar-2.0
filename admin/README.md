@@ -53,3 +53,8 @@ Mit einer Git-ignorierten `admin/.dev.vars`-Datei, die dieselben drei Worker Sec
 ## Website
 
 Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` baut die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/) mit `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging`. Das Dataset ist öffentlich lesbar; der Browser erhält keinen Schreibschlüssel. Nach dem Veröffentlichen in der Redaktion zeigt die Website die Inhalte beim nächsten Laden. Der Wechsel zu `rudelbar.de` und `production` ist ein eigener Veröffentlichungsschritt.
+
+
+## Abendplanung für die Besucher-App
+
+Die Staging-Redaktion enthält unter `/abendplan.html` eine Angebotsverwaltung und die Vorbereitung/Veröffentlichung einzelner Abende. Details, Grenzen und Prüfungen stehen in [event-app/README.md](../event-app/README.md). Die bestehende Produktionskonfiguration bleibt unverändert.

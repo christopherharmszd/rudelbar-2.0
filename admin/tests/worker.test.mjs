@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import worker, { passwordVerifier } from "../worker.mjs";
+import { DEFAULT_CATALOG, defaultExperience, experienceId, CATALOG_ID } from '../../shared/experience.mjs';
 
 const origin = "https://rudelbar-cms-staging.example.workers.dev";
 const secret = "a-local-test-session-secret-with-more-than-32-characters";
@@ -234,4 +235,40 @@ test("login throttling runs before checking passwords", async () => {
   } finally {
     state.restore();
   }
+});
+
+test('evening planning requires login and CSRF, keeps drafts separate, and publishes a resource snapshot',async()=>{
+  const state=await setup();
+  try{
+    assert.equal((await worker.fetch(request('/api/abend/catalog'),state.env)).status,401);
+    assert.equal(state.calls.length,0);
+    const {cookie,csrf}=await login(state.env);
+    const write=(path,body,method='PUT')=>worker.fetch(request(path,{method,cookie,csrf,body}),state.env);
+    const read=async path=>(await worker.fetch(request(path,{cookie}),state.env)).json();
+    assert.equal((await worker.fetch(request('/api/abend/catalog',{method:'PUT',cookie,body:DEFAULT_CATALOG}),state.env)).status,403);
+    assert.equal((await write('/api/abend/catalog',DEFAULT_CATALOG)).status,200);
+    assert.ok(state.docs.has(`drafts.${CATALOG_ID}`));
+    const id='planning-test',documentId=experienceId(id);
+    state.docs.set(`drafts.${id}`,{_id:`drafts.${id}`,_type:'rudelEvent',title:'Testabend',date:'2026-11-01',venue:'Scharnebeck',time:'18 Uhr'});
+    const draft=defaultExperience(id);draft.equipment=[{id:'kicker-1',place:'Links',host:'Martin'},{id:'kicker-2',place:'Rechts',host:'Nora'}];draft.menu=[{id:'wasser',priceCents:175}];
+    assert.equal((await write(`/api/abend/events/${id}`,draft)).status,200);
+    assert.equal((await read(`/api/abend/events/${id}`)).draft,true);
+    assert.equal(state.docs.has(documentId),false);
+    assert.equal((await write(`/api/abend/events/${id}/publish`,undefined,'POST')).status,409);
+    assert.equal((await write(`/api/events/${id}/publish`,undefined,'POST')).status,200);
+    assert.equal((await write(`/api/abend/events/${id}/publish`,undefined,'POST')).status,200);
+    assert.equal(state.docs.has(`drafts.${documentId}`),false);
+    assert.equal(state.docs.get(documentId).equipment.length,2);
+    const changed=structuredClone(DEFAULT_CATALOG);changed.drinks[0].priceCents=900;
+    assert.equal((await write('/api/abend/catalog',changed)).status,200);
+    assert.equal(state.docs.get(documentId).menu[0].priceCents,175);
+    draft.welcomeTitle='Noch geheimer Entwurf';
+    assert.equal((await write(`/api/abend/events/${id}`,draft)).status,200);
+    assert.notEqual(state.docs.get(documentId).welcomeTitle,draft.welcomeTitle);
+    assert.equal((await read(`/api/abend/events/${id}/preview`)).experience.welcomeTitle,draft.welcomeTitle);
+    assert.equal((await write(`/api/abend/events/${id}/unpublish`,undefined,'POST')).status,200);
+    assert.equal(state.docs.has(documentId),false);
+    assert.equal(state.docs.get(`drafts.${documentId}`).welcomeTitle,draft.welcomeTitle);
+    assert.equal((await write('/api/abend/events/missing',draft)).status,404);
+  }finally{state.restore();}
 });

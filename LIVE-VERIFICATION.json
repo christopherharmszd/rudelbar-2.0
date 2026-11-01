@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-11-01T13:41:17.496Z",
+  "dataset": "staging",
+  "eventId": "fb726148-0852-44f1-ad77-a4c73c12c595",
+  "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
+  "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan.html",
+  "checks": [
+    {
+      "name": "anonymous catalog",
+      "status": 401
+    },
+    {
+      "name": "anonymous preview",
+      "status": 401
+    },
+    {
+      "name": "session endpoint configured",
+      "status": 200
+    },
+    {
+      "name": "live editorial password login",
+      "status": "not-tested",
+      "reason": "Existing live credentials preserved; local editorial workflow tested against staging data."
+    },
+    {
+      "name": "anonymous mutation protection",
+      "status": 401
+    },
+    {
+      "name": "published visitor configuration",
+      "status": 200
+    },
+    {
+      "name": "unpublished evening",
+      "status": 404
+    },
+    {
+      "name": "invalid identifier",
+      "status": 400
+    },
+    {
+      "name": "visitor script",
+      "status": 200,
+      "sha256": "a4434b047eb4995ab5d0d3999c765288480d97cf03d91a27f23528ed025aaa06"
+    },
+    {
+      "name": "editorial script",
+      "status": 200,
+      "sha256": "7f66ca4f79522bc8d43138caeb399cd8703ae3332cd0e23ca8cb3bf2e20a1732"
+    }
+  ],
+  "workerVersions": {
+    "rudelbar-app-staging": "b193ac3e-54a3-43e7-aa59-e50608fda8f5",
+    "rudelbar-cms-staging": "b7058ee8-b21c-4f8b-803c-e3647d8f1cfb"
+  },
+  "editorPreviousVersion": "8381dd7c-a8a8-46cb-9214-5df7ca34c65f",
+  "automatedTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "layoutChecks": {
+    "visitor": 25,
+    "widths": [
+      320,
+      390,
+      430,
+      768,
+      1280
+    ],
+    "horizontalOverflow": false,
+    "physicalIphoneTested": false
+  }
+}

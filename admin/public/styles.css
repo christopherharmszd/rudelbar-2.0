@@ -149,3 +149,5 @@
 .privacy-nav a:hover,.privacy-nav a.active{background:#2a3d32;color:#fff}
 .privacy-return{color:#435346;font-size:13px;text-underline-offset:2px}
 @media(max-width:700px){.privacy-card{padding:22px}.privacy-nav{display:flex;gap:8px}.privacy-nav a{flex:1;text-align:center}}
+
+.abend-nav-link{border:1px solid #465344;border-radius:9px;color:#e4c18b;padding:12px 14px;text-decoration:none;display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:14px}.abend-nav-link:hover{background:#23362b}@media(max-width:700px){.nav{flex-wrap:wrap}.abend-nav-link{flex:1;white-space:nowrap}}
