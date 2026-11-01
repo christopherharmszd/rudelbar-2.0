@@ -1,5 +1,7 @@
 # Persönliche Backstage-Konten, erste Ausbaustufe
 
+Aktueller Architekturabgleich: Die eigene zentrale Anmeldung aus Elbmafia Studio/Backstage wurde als Alternative geprüft. Auth0 ist keine technische Voraussetzung. Der vorhandene gemeinsame Rudelbar-Zugang funktioniert; die persönliche Anmeldung ist weiterhin vorbereitet, aber noch nicht aktiviert. Siehe [aktuellen Übergangsstand](BACKSTAGE.md).
+
 Der gemeinsame Zugang **Redaktion bleibt aktiv**. Weder sein Passwort noch seine Sitzungen werden bei der Einführung persönlicher Konten verändert. Es gibt keine automatische Abschaltung und keine automatische Übernahme eines Personenprofils als Benutzerkonto.
 
 ## Bereits implementiert

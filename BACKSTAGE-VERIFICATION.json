@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-11-01T20:53:43.655Z",
+  "iteration": 7,
+  "scope": "Parallel integrated Backstage and separate Live entry",
+  "dataset": "staging",
+  "urls": {
+    "integrated": "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage",
+    "legacy": "https://rudelbar-cms-staging.christopher-harms.workers.dev/",
+    "live": "https://rudelbar-cms-staging.christopher-harms.workers.dev/live",
+    "oldPlanner": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan"
+  },
+  "workerVersions": {
+    "rudelbar-cms-staging": "19389532-7650-4679-9319-cba4ce0f3754",
+    "rudelbar-app-staging": "60b4398e-a0d4-42d6-b19b-012959ec9fe2"
+  },
+  "automatedTests": {
+    "passed": 38,
+    "failed": 0
+  },
+  "browser": {
+    "newContentEditor": true,
+    "legacyLayoutAndForms": true,
+    "sharedDraftCreatedInNewEditedInOldReadBackInNew": true,
+    "testDraftArchivedWithoutPublication": true,
+    "unsavedChangesCanBeKept": true,
+    "centralLogoutAndSignInReturnLocally": true,
+    "liveHasNoManagementNavigation": true,
+    "selectedEventTransferredToLive": true,
+    "legacySessionPreservedOnStaging": true,
+    "publishedIntegratedPage": true,
+    "publishedLegacyPage": true,
+    "publishedLiveEntry": true,
+    "responsiveWidths": [
+      320,
+      390,
+      1280
+    ],
+    "horizontalOverflow": false
+  },
+  "architecture": {
+    "oneSharedContentEditor": true,
+    "existingDataAndApiReused": true,
+    "noIframe": true,
+    "oldIndexAndStylesUnchanged": true,
+    "oldLoginActive": true,
+    "noDataMigration": true,
+    "noMainEntrySwitch": true,
+    "auth0Configured": false,
+    "personalLoginState": "Prepared OIDC connection; not activated. Existing shared Redaktion login is functional.",
+    "externalIdentityProviderRequired": false,
+    "alternativeReviewed": "Independent Elbmafia account directory with password sign-in, invitation and reset flows; not connected or copied."
+  },
+  "publicChecks": [
+    "Published source matches backstage.html",
+    "Published source matches backstage.css",
+    "Published source matches abendplan.js",
+    "Published source matches website-editor.js",
+    "Published source matches website-editor.css",
+    "Published source matches app.js",
+    "Published source matches live.html",
+    "Published source matches live-entry.js",
+    "Published source matches anmelden.html",
+    "Published source matches anmelden.js",
+    "Published source matches session-paths.js",
+    "Published source matches team.js",
+    "Original index.html remains unchanged",
+    "Original styles.css remains unchanged",
+    "Entry remains reachable /backstage",
+    "Entry remains reachable /live",
+    "Entry remains reachable /anmelden",
+    "Entry remains reachable /abendplan",
+    "Entry remains reachable /team",
+    "Anonymous data access rejected /api/events",
+    "Anonymous data access rejected /api/posts",
+    "Anonymous data access rejected /api/team",
+    "Anonymous data access rejected /api/accounts",
+    "Anonymous data access rejected /api/abend/events",
+    "Legacy authentication retained; unconfigured external login stays inactive",
+    "Existing guest event remains open"
+  ]
+}

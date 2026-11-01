@@ -1,5 +1,10 @@
 import {createAccountsUI} from './accounts-ui.js';
-const root=document.querySelector('#planner');
+import {createWebsiteEditor} from './website-editor.js';
+import {signInPath} from './session-paths.js';
+const root=document.querySelector('#planner'),integrated=root.dataset.integrated==='true';
+let websiteEditor=null,lastRoute=location.hash,routeVersion=0,websiteChanged=false;
+const activeEvent=()=>state.current?.event?.eventId||sessionStorage.getItem('rudelbar:backstage:event')||'';
+const livePath=()=>state.events.some(e=>e.eventId===activeEvent()&&e.app.hasRelease)?'/team?abend='+encodeURIComponent(activeEvent())+'&backstage=1':'/live';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon=name=>`<i data-lucide="${name}" aria-hidden="true"></i>`;
 const types={equipment:{name:'Ausstattung',icon:'armchair'},games:{name:'Spiele',icon:'dices'},program:{name:'Programm',icon:'music-2'},drinks:{name:'Getränke',icon:'glass-water'}};
@@ -26,25 +31,69 @@ const isAdmin=()=>state.user?.legacy||state.user?.roles?.some(r=>r.role==='admin
 const isEditor=()=>isAdmin()||state.user?.roles?.some(r=>r.role==='editor');
 const accountsUI=createAccountsUI({state,api,esc,icon,button,chip,field,dialog,toast,render,icons});
 async function loadData(){const [a,b,c]=await Promise.all([api('/api/abend/events'),api('/api/abend/catalog'),api('/api/abend/people')]);state.events=a.events;state.catalog=b.catalog;state.people=c.people;}
-async function loadCurrent(id){state.current=await api(`/api/abend/events/${encodeURIComponent(id)}`);}
+async function loadCurrent(id,version){const value=await api(`/api/abend/events/${encodeURIComponent(id)}`);if(version===undefined||version===routeVersion)state.current=value;return value;}
 function eventPath(tab='overview'){return `#event/${state.current.event.eventId}/${tab}`;}
 async function route(){
   if(!state.user)return;
+  const version=++routeVersion,requested=location.hash;
+  if(integrated&&(state.busy||document.querySelector('dialog[open]'))){history.replaceState(null,'',location.pathname+lastRoute);toast('Bitte schließe zuerst den aktuellen Vorgang ab.');return;}
+  if(websiteEditor?.busy){history.replaceState(null,'',location.pathname+lastRoute);toast('Bitte warte, bis der aktuelle Vorgang abgeschlossen ist.');return;}
+  if(websiteEditor?.dirty&&!await confirmDiscard()){history.replaceState(null,'',location.pathname+lastRoute);return;}
+  if(version!==routeVersion)return;
+  websiteEditor?.destroy();websiteEditor=null;
+  if(integrated)root.querySelector('#workspace')?.setAttribute('aria-busy','true');
+  if(websiteChanged){await loadData();websiteChanged=false;}
+  if(version!==routeVersion)return;
   const hash=location.hash.slice(1),parts=hash.split('/');
   state.filter='all';state.search='';
-  if(parts[0]==='event'&&parts[1]){state.page='event';state.tab=['overview','offers','drinks','team','stations'].includes(parts[2])?parts[2]:'overview';if(state.current?.event.eventId!==parts[1])await loadCurrent(parts[1]);}
-  else {state.page=['library','people','live','accounts'].includes(parts[0])?parts[0]:'events';state.current=null;}
+  if(parts[0]==='event'&&parts[1]){state.page='event';state.tab=['overview','offers','drinks','team','stations'].includes(parts[2])?parts[2]:'overview';if(state.current?.event.eventId!==parts[1])await loadCurrent(parts[1],version);}
+  else {state.page=['library','people','live','accounts',...(integrated?['website']:[])].includes(parts[0])?parts[0]:'events';state.current=null;}
+  if(integrated&&state.page==='live'){location.replace('/live');return;}
+  if(state.page==='website'){state.websiteSection=['posts','events','team'].includes(parts[1])?parts[1]:'posts';if(!isEditor())state.page='denied';}
+  if(integrated&&state.current?.event)sessionStorage.setItem('rudelbar:backstage:event',state.current.event.eventId);
   if(state.page==='accounts'){if(!isAdmin())state.page='events';else await accountsUI.load();}
   if(['library','people'].includes(state.page)&&!isEditor())state.page='events';
-  render();window.scrollTo({top:0,behavior:'instant'});
+  if(version!==routeVersion)return;lastRoute=requested;render();window.scrollTo({top:0,behavior:'instant'});
 }
 function navLinks(){return [['events','calendar-days','Veranstaltungen'],...(isEditor()?[['library','layout-grid','Angebote'],['people','users-round','Personen']]:[]),['live','radio','Live'],...(isAdmin()?[['accounts','user-round-cog','Benutzer']]:[])].map(([page,ic,label])=>`<a href="#${page}" ${state.page===page||(page==='events'&&state.page==='event')?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></a>`).join('');}
+function integratedNav(){
+ const pages=[...(isEditor()?[['website','globe-2','Website']]:[]),['events','calendar-days','Veranstaltungen'],...(isEditor()?[['library','layout-grid','Angebote'],['people','users-round','Personen & Benutzer']]:[])];
+ return pages.map(([page,ic,label])=>`<a href="#${page}" ${state.page===page||(page==='events'&&state.page==='event')||(page==='people'&&state.page==='accounts')?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></a>`).join('');
+}
+function peopleTabs(){return `<nav class="workspace-tabs" aria-label="Personen und Benutzer"><a href="#people" ${state.page==='people'?'aria-current="page"':''}>${icon('contact-round')}Personenprofile</a>${isAdmin()?`<a href="#accounts" ${state.page==='accounts'?'aria-current="page"':''}>${icon('shield-check')}Benutzer & Rechte</a>`:''}</nav>`;}
+function websitePage(){return `<nav class="workspace-tabs" aria-label="Website bearbeiten">${[['posts','Aktuelles','notebook-pen'],['events','Öffentliche Termine','calendar-days'],['team','Das Rudel','users-round']].map(([id,label,ic])=>`<a href="#website/${id}" ${state.websiteSection===id?'aria-current="page"':''}>${icon(ic)}${label}</a>`).join('')}</nav><div class="website-editor" data-website-editor><p class="loading">Deine Inhalte werden geladen …</p></div>`;}
+function renderIntegrated(){
+ websiteEditor?.destroy();websiteEditor=null;
+ const content=state.page==='website'?websitePage():state.page==='events'?eventsPage():state.page==='event'?eventPage():state.page==='people'?peopleTabs()+peoplePage():state.page==='accounts'?peopleTabs()+accountsUI.page():state.page==='denied'?empty('lock-keyhole','Dieser Bereich gehört nicht zu deinen Aufgaben.','Öffne deinen Live-Bereich oder einen Abend, für den du berechtigt bist.','<a class="btn" href="/live">Zum Live-Bereich</a>'):libraryPage();
+ root.innerHTML=`<header class="app-header"><a class="brand" href="#events"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR<span class="brand-sub">Backstage</span></strong></a><div class="header-actions"><a class="btn secondary small live-exit" aria-label="Live öffnen" href="${livePath()}" target="_blank" rel="noopener">${icon('headphones')}<span>Live öffnen</span>${icon('arrow-up-right')}</a><button type="button" class="account-control" data-action="account" aria-label="Mein Konto">${icon('user-round')}<span>${esc(state.user.name||'Redaktion')}</span></button><button type="button" class="icon-btn" data-action="logout" aria-label="Abmelden">${icon('log-out')}</button><button type="button" class="icon-btn" data-action="refresh" aria-label="Ansicht aktualisieren">${icon('refresh-cw')}</button></div></header><aside class="app-sidebar"><nav class="global-nav" aria-label="Backstage">${integratedNav()}</nav><div class="sidebar-foot"><a href="${livePath()}" target="_blank" rel="noopener">${icon('headphones')}Zum eigenen Live-Bereich ↗</a>${isEditor()?'<a href="/">Bisherige Redaktion ↗</a>':''}<small>Gemeinsam. Überall. Rudelbar.</small></div></aside><main class="workspace integrated-workspace" id="workspace">${content}</main><nav class="mobile-nav" aria-label="Backstage mobil">${integratedNav()}</nav>`;
+ // Keep the selected evening when opening the separate Live interface.
+ root.querySelectorAll('a[href^="/team?abend="]').forEach(link=>{const url=new URL(link.href);url.searchParams.set('backstage','1');link.href=url.pathname+url.search;});
+ icons();
+ if(state.page==='website'){
+  const mount=root.querySelector('[data-website-editor]');
+  websiteEditor=createWebsiteEditor({root:mount,integrated:true,user:state.user,section:state.websiteSection,onUnauthorized:()=>renderLogin(),onSaved:()=>{websiteChanged=true;},onDiscard:confirmDiscard,onDialogChange:open=>root.querySelectorAll('.app-header,.app-sidebar,.mobile-nav,#workspace>.workspace-tabs').forEach(node=>node.inert=open)});
+  websiteEditor.start();
+ }
+}
+function confirmDiscard(){
+ return new Promise(resolve=>{
+  let accepted=false;
+  const node=dialog('Änderungen noch nicht gespeichert','<p>Du hast diesen Entwurf verändert. Möchtest du ihn verlassen und die ungespeicherten Änderungen verwerfen?</p>',async()=>{accepted=true;},{saveLabel:'Änderungen verwerfen'});
+  node.addEventListener('close',()=>resolve(accepted),{once:true});
+ });
+}
+function showAccount(){
+ const user=state.user,labels={admin:'Administration',editor:'Redaktion',manager:'Abendleitung',station:'Stationsbetreuung',host:'Gastgeber & Moderation'};
+ dialog('Dein Zugang',`<div class="account-profile"><span class="avatar">${esc(initial(user.name))}</span><div><h3>${esc(user.name)}</h3><p>${esc(user.email)}</p></div></div><h3>Deine Aufgaben</h3><div class="chips">${(user.roles||[]).map(r=>chip(labels[r.role]+(r.eventId?' · '+(state.events.find(e=>e.eventId===r.eventId)?.title||'Zugeordneter Abend'):''))).join('')}</div><p class="help-copy">${user.legacy?'Du nutzt den bisherigen gemeinsamen Zugang Redaktion. Er bleibt während der Umstellung erhalten.':'Dein persönlicher Zugang gilt für Backstage und Live. Die Administration verwaltet deine Aufgaben und Berechtigungen.'}</p>`,async()=>{},{saveLabel:'Fertig'});
+}
 function render(){
   if(!state.user)return renderLogin();
+  if(integrated)return renderIntegrated();
   root.innerHTML=`<header class="app-header"><a class="brand" href="#events"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR<span class="brand-sub">Backstage</span></strong></a><div class="header-actions"><span class="session-name">${esc(state.user.name||'Redaktion')}</span><button type="button" class="icon-btn" data-action="logout" aria-label="Abmelden">${icon('log-out')}</button><button type="button" class="icon-btn" data-action="refresh" aria-label="Ansicht aktualisieren">${icon('refresh-cw')}</button></div></header><aside class="app-sidebar"><nav class="global-nav" aria-label="Backstage">${navLinks()}</nav><div class="sidebar-foot">${isEditor()?'<a href="/">← Webseitenredaktion</a>':''}Gemeinsam. Überall. Rudelbar.</div></aside><main class="workspace" id="workspace">${state.page==='events'?eventsPage():state.page==='event'?eventPage():state.page==='people'?peoplePage():state.page==='live'?liveLanding():state.page==='accounts'?accountsUI.page():libraryPage()}</main><nav class="mobile-nav" aria-label="Backstage mobil">${navLinks()}</nav>`;
   icons();root.querySelector('.workspace-tabs [aria-current=page]')?.scrollIntoView({block:'nearest',inline:'nearest'});
 }
 function renderLogin(error=''){
+  if(integrated){websiteEditor?.destroy();websiteEditor=null;location.replace(signInPath(location.pathname+location.search+location.hash)+(error?'&loginError='+encodeURIComponent(error):''));return;}
   root.innerHTML=`<main class="login-wrap"><section class="login-card"><div class="brand"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR</strong></div><span class="eyebrow">Dein Backstage</span><h1>Gute Abende beginnen hier.</h1><p>Plane Veranstaltungen und bereite die App für eure Gäste vor.</p>${state.identityConfigured?'<a class="btn personal-login" href="/api/auth/start">Mit persönlichem Konto anmelden</a>':''}<details ${state.identityConfigured?'':'open'}><summary>Zugang Redaktion</summary><form id="login-form">${field('password','Redaktionspasswort','','type="password" autocomplete="current-password" required')}<p class="dialog-error" role="alert" ${error?'':'hidden'}>${esc(error)}</p><button class="btn" type="submit">Anmelden ${icon('arrow-right')}</button></form></details></section></main>`;icons();
 }
 function eventState(event){return chip(event.app.state==='open'?'App offen':'App geschlossen',event.app.state==='open'?'open':'closed',event.app.state==='open'?'radio':'moon');}
@@ -169,6 +218,7 @@ function editPerson(id){
 }
 async function run(action){if(state.busy)return;state.busy=true;try{await action();}catch(err){toast(err.message,true);}finally{state.busy=false;}}
 root.addEventListener('click',event=>{
+  if(event.target.closest('[data-website-editor]'))return;
   const node=event.target.closest('[data-action],[data-filter],[data-event-filter]');if(!node)return;
   if(node.dataset.eventFilter){state.eventFilter=node.dataset.eventFilter;render();return;}
   if(node.dataset.filter){state.filter=node.dataset.filter;render();return;}
@@ -177,6 +227,7 @@ root.addEventListener('click',event=>{
   if(action==='edit-account')return accountsUI.edit(id);
   if(action==='invite-account')return run(()=>accountsUI.invite(id));
   if(action==='revoke-account')return accountsUI.revoke(id);
+  if(action==='account')return showAccount();
   if(action==='new-event')return editEvent(true);
   if(action==='event-details')return editEvent(false);
   if(action==='new-offer')return editCatalog(kind||'equipment');
@@ -190,8 +241,8 @@ root.addEventListener('click',event=>{
   if(action==='team-access')return run(()=>issueTeamAccess(id));
   if(action==='manage-access')return run(manageAccess);
   run(async()=>{
-    if(action==='logout'){await api('/api/logout','POST',{});state.user=null;renderLogin();return;}
-    if(action==='refresh'){await loadData();if(state.page==='accounts')await accountsUI.load();if(state.current)await loadCurrent(state.current.event.eventId);render();toast('Ansicht aktualisiert.');}
+    if(action==='logout'){if(websiteEditor?.busy){toast('Bitte warte, bis der aktuelle Vorgang abgeschlossen ist.');return;}if(websiteEditor?.dirty&&!await confirmDiscard())return;websiteEditor?.destroy();websiteEditor=null;await api('/api/logout','POST',{});state.user=null;renderLogin();return;}
+    if(action==='refresh'){if(websiteEditor?.busy)return;if(websiteEditor?.dirty&&!await confirmDiscard())return;websiteEditor?.destroy();websiteEditor=null;await loadData();if(state.page==='accounts')await accountsUI.load();if(state.current)await loadCurrent(state.current.event.eventId);render();toast('Ansicht aktualisiert.');}
     if(action==='toggle-offer'){
       const exp=state.current.experience,existing=exp[kind].some(r=>r.id===id),base=state.catalog[kind==='menu'?'drinks':kind].find(r=>r.id===id);
       const row=kind==='menu'?{id,priceCents:base.priceCents,available:true}:{id,place:'',hostId:'',...(kind==='program'?{time:'',description:base.description||''}:{capacity:base.capacity})};
@@ -210,10 +261,10 @@ root.addEventListener('click',event=>{
       await loadCurrent(eventId);state.events=(await api('/api/abend/events')).events;render();toast(action==='open-app'?'Die App ist jetzt für Gäste offen.':action==='close-app'?'Die App ist jetzt geschlossen.':'Die Änderungen sind für Gäste übernommen.');
     }
     if(action==='copy-link'){await navigator.clipboard.writeText(state.current.event.guestUrl);toast('Gäste-Link kopiert.');}
-    if(action==='preview')location.href=`/abend-preview/?preview=${encodeURIComponent(state.current.event.eventId)}`;
+    if(action==='preview')window.open(`/abend-preview/?preview=${encodeURIComponent(state.current.event.eventId)}`,'_blank','noopener');
   });
 });
 root.addEventListener('input',event=>{if(event.target.name==='catalog-search'){const cursor=event.target.selectionStart;state.search=event.target.value;const workspace=root.querySelector('#workspace');workspace.innerHTML=libraryPage();icons();const input=root.querySelector('[name=catalog-search]');input.focus();if(input.type!=='search')input.setSelectionRange(cursor,cursor);}});
 root.addEventListener('submit',event=>{if(event.target.id!=='login-form')return;event.preventDefault();const form=event.target;run(async()=>{try{await api('/api/login','POST',{email:'redaktion@rudelbar.local',password:new FormData(form).get('password')});state.user=(await api('/api/session')).user;await loadData();await route();}catch(err){renderLogin(err.message);}});});
-window.addEventListener('hashchange',()=>run(route));
-try{state.identityConfigured=(await api('/api/auth/config')).configured;state.user=(await api('/api/session')).user;if(state.user){await loadData();const id=new URLSearchParams(location.search).get('abend');if(id&&!location.hash)history.replaceState(null,'',`#event/${id}/overview`);await route();}else renderLogin(new URLSearchParams(location.search).get('loginError')||'');}catch(err){renderLogin(err.message);}
+window.addEventListener('hashchange',()=>{if(integrated)route().catch(error=>toast(error.message,true));else run(route);});
+try{state.identityConfigured=(await api('/api/auth/config')).configured;state.user=(await api('/api/session')).user;if(state.user){await loadData();if(integrated&&!location.hash&&!isEditor()&&!state.events.some(e=>e.canManage)){location.replace('/live');}const id=new URLSearchParams(location.search).get('abend');if(id&&!location.hash)history.replaceState(null,'',`#event/${id}/overview`);await route();}else renderLogin(new URLSearchParams(location.search).get('loginError')||'');}catch(err){renderLogin(err.message);}

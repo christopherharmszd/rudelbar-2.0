@@ -1,5 +1,7 @@
 # Rudelbar CMS
 
+Das [integrierte Backstage](../BACKSTAGE.md) wird parallel zur bisherigen Redaktion ausgeliefert. Eigenständiger Live-Einstieg: `/live`. Der bestehende Zugang Redaktion bleibt aktiv.
+
 Die öffentliche Staging-Website liegt auf GitHub Pages. Ihre Redaktion läuft als Cloudflare Worker `rudelbar-cms-staging` und nutzt das Sanity-Dataset `staging`. Für Produktion gibt es einen zweiten Worker `rudelbar-cms` mit eigenem Passwort und dem Dataset `production`. Die bestehende Live-Website bleibt bis zum freigegebenen Release getrennt.
 
 ## Für Redakteurinnen und Redakteure

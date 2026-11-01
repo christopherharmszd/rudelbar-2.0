@@ -120,10 +120,10 @@ test('OIDC login validates browser state, PKCE, nonce, audience and a signed ide
    const denied=await identityApi(new Request(origin+'/api/auth/callback?code=code&state='+authorization.searchParams.get('state'),{headers:{Cookie:flowCookie}}),s.env,args);assert.ok(denied.headers.get('location').includes('loginError'));assert.equal((await s.service.get(account.id)).activated,false);assert.equal(s.db.connection.prepare('SELECT COUNT(*) AS n FROM app_sessions').get().n,0);
   }
   claimChange={};corruptSignature=false;attempts=0;
-  const start=await identityApi(new Request(origin+'/api/auth/start',{method:'POST',headers:{Origin:origin},body:JSON.stringify({invitation:invite.token})}),s.env,args),target=new URL((await start.json()).url),cookie=start.headers.get('set-cookie').split(';')[0];nonce=target.searchParams.get('nonce');challenge=target.searchParams.get('code_challenge');
+  const start=await identityApi(new Request(origin+'/api/auth/start',{method:'POST',headers:{Origin:origin},body:JSON.stringify({invitation:invite.token,returnTo:'/team?abend=evening-a&backstage=1'})}),s.env,args),target=new URL((await start.json()).url),cookie=start.headers.get('set-cookie').split(';')[0];nonce=target.searchParams.get('nonce');challenge=target.searchParams.get('code_challenge');
   const bad=await identityApi(new Request(origin+'/api/auth/callback?code=code&state=wrong',{headers:{Cookie:cookie}}),s.env,args);assert.ok(bad.headers.get('location').includes('loginError'));assert.equal(attempts,0);
   const url=origin+'/api/auth/callback?code=code&state='+target.searchParams.get('state'),result=await identityApi(new Request(url,{headers:{Cookie:cookie}}),s.env,args);
-  assert.equal(result.headers.get('location'),'/abendplan');assert.equal(attempts,1);assert.equal((await s.service.get(account.id)).activated,true);
+  assert.equal(result.headers.get('location'),'/team?abend=evening-a&backstage=1');assert.equal(attempts,1);assert.equal((await s.service.get(account.id)).activated,true);
   const sessionCookie=result.headers.getSetCookie().find(v=>v.startsWith('rb_account='));assert.ok(await s.service.session(new Request(origin,{headers:{Cookie:sessionCookie}})));
   const replay=await identityApi(new Request(url,{headers:{Cookie:cookie}}),s.env,args);assert.ok(replay.headers.get('location').includes('loginError'));assert.equal(attempts,1);
  }finally{s.close();}
