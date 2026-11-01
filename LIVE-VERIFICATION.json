@@ -1,20 +1,21 @@
 {
-  "checkedAt": "2026-11-01T16:52:51.270Z",
-  "iteration": 3,
+  "checkedAt": "2026-11-01T18:26:30.433Z",
+  "iteration": 4,
   "dataset": "staging",
   "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan",
   "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
   "workerVersions": {
-    "rudelbar-cms-staging": "4938b6b9-ff39-4ba0-bae0-9adfc163b5d0",
-    "rudelbar-app-staging": "63ed0b2b-e8b2-4acc-b123-b50e380ccc93"
+    "rudelbar-cms-staging": "cb108c5b-46d8-402d-b60e-4f418583de7a",
+    "rudelbar-app-staging": "82f0caa9-3c8b-4980-89d8-7fd31fc02fbf"
   },
   "automatedTests": {
-    "passed": 21,
+    "passed": 27,
     "failed": 0
   },
   "responsive": {
     "previousBackstageViews": 28,
-    "liveViewsAndDialogs": 20,
+    "previousLiveViewsAndDialogs": 20,
+    "notificationDialogWidthsChecked": 4,
     "widths": [
       320,
       390,
@@ -38,8 +39,16 @@
     "guestHistoryReadableAfterClosure": true,
     "directProgramStationLinks": true,
     "rapidThreadSwitchVerifiedLocally": true,
-    "privateExampleFinalState": "closed",
-    "cloudGrantRevocation": true
+    "cloudUnreadRoundtrip": true,
+    "cloudReadClearsBadge": true,
+    "cloudPrivateConversationReturnWithoutInviteInUrl": true,
+    "pushSetupAvailable": true,
+    "iosGuideVisuallyChecked": true,
+    "systemPermissionAcceptedByAgent": false,
+    "physicalPushDeliveryTested": false,
+    "encryptedPushAndVapidSignatureUnitVerified": true,
+    "retryScheduleDeployed": true,
+    "privateExampleFinalState": "closed"
   },
   "checks": [
     {
@@ -57,6 +66,22 @@
     {
       "name": "private event with forged invitation is hidden",
       "status": 404
+    },
+    {
+      "name": "anonymous team notifications",
+      "status": 401
+    },
+    {
+      "name": "anonymous guest notifications",
+      "status": 401
+    },
+    {
+      "name": "private manifest without invitation",
+      "status": 404
+    },
+    {
+      "name": "guest web app manifest",
+      "status": 200
     },
     {
       "name": "anonymous live inbox",
@@ -107,17 +132,17 @@
     {
       "name": "visitor script",
       "status": 200,
-      "sha256": "c96e42265b2ff51df8bc189ffe78c5d3bd7ac538dcfaf67cf887a6d05b06141d"
+      "sha256": "2679f83a2279820b2ef6d772f28fd3155448ec795be95115305114342e79f993"
     },
     {
       "name": "visitor communications",
       "status": 200,
-      "sha256": "39148dd8a1bd0b9cc0c8a650ee23d6917917be9428a07752ad8e354b9e5cda0e"
+      "sha256": "37d5b33c5d7393cb0791660719a1baa700daa1bebae46a96f8e704515ed639f7"
     },
     {
       "name": "live team script",
       "status": 200,
-      "sha256": "c6ad76a27a374b3d451d449a2c3b13a0ac7e61977c8d731bfa6ff2061800ec3b"
+      "sha256": "665b4f06a75c2c9a4d8d904e2a9d1c9dee4c6190c3e92d33009e30ce66f849d2"
     },
     {
       "name": "live team stylesheet",
@@ -125,9 +150,34 @@
       "sha256": "62fa5d3152893b0d89172a51d573980c6a54cf51f2e6f94d5aecdd7fb6414cb7"
     },
     {
+      "name": "guest notifications UI",
+      "status": 200,
+      "sha256": "71b29bc9209994dbf89bfeb05066d6b21673474245e0aeb7f80b642d9fdc5dd5"
+    },
+    {
+      "name": "team notifications UI",
+      "status": 200,
+      "sha256": "71b29bc9209994dbf89bfeb05066d6b21673474245e0aeb7f80b642d9fdc5dd5"
+    },
+    {
+      "name": "notifications stylesheet",
+      "status": 200,
+      "sha256": "244e86a5ad352be3c59a93e5bccf4ccdde17c2fe72d3d8c8f53e4e0a20b57083"
+    },
+    {
+      "name": "guest push worker",
+      "status": 200,
+      "sha256": "0dadae428eb5721990482d5acfebe302fe274b42eb9855c0b340c8c54b634beb"
+    },
+    {
+      "name": "team push worker",
+      "status": 200,
+      "sha256": "0dadae428eb5721990482d5acfebe302fe274b42eb9855c0b340c8c54b634beb"
+    },
+    {
       "name": "editorial preview communications",
       "status": 200,
-      "sha256": "39148dd8a1bd0b9cc0c8a650ee23d6917917be9428a07752ad8e354b9e5cda0e"
+      "sha256": "37d5b33c5d7393cb0791660719a1baa700daa1bebae46a96f8e704515ed639f7"
     }
   ]
 }

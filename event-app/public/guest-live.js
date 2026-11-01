@@ -1,9 +1,11 @@
+import {createNotificationCenter} from './notifications.js';
 export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update}){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
  const state={page:'',selected:'',ready:false,requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
  const activeStatuses=['new','queued','in_progress'];
  let viewVersion=0,conversationLoad=0,refreshing=false;
+ const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',storageKey:'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
  const btn=(label,action,extra='',secondary=false)=>`<button type="button" class="re-btn ${secondary?'re-btn-secondary':''}" data-live-action="${action}" ${extra}>${label}</button>`;
  const back=()=>`<button type="button" class="re-back" data-live-action="home">${icon('chevron-left')}Dein Abend</button>`;
  const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
@@ -33,7 +35,7 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
  }
  function renderPage(page,id){state.page=page;state.selected=id||'';if(page==='stations')return stationList();if(page==='station')return stationPage(id);if(page==='messages')return requestList();if(page==='conversation')return conversation();return '';}
  async function loadList(){state.loading=true;state.error='';update();try{if(getExperience())await ensureSession();const result=await api('/requests');state.requests=result.requests;}catch(error){state.error=error.status===401?'Auf diesem Gerät gibt es noch keine angemeldeten Nachrichten.':error.message;}finally{state.loading=false;update();}}
- async function loadConversation(id){const load=++conversationLoad,version=viewVersion;state.error='';try{const detail=await api('/requests/'+id);if(load!==conversationLoad||version!==viewVersion)return;state.detail=detail;state.selected=id;state.replyDraft='';navigate('conversation',id);}catch(error){if(load!==conversationLoad||version!==viewVersion)return;state.error=error.message;navigate('messages');}}
+ async function loadConversation(id){const load=++conversationLoad,version=viewVersion;state.error='';try{const detail=await api('/requests/'+id);if(load!==conversationLoad||version!==viewVersion)return;state.detail=detail;state.selected=id;state.replyDraft='';navigate('conversation',id);notices.mark(id,detail.activitySeq);}catch(error){if(load!==conversationLoad||version!==viewVersion)return;state.error=error.message;navigate('messages');}}
  function showError(form,error){const node=form.querySelector('[role=alert]');node.textContent=error.message;node.hidden=false;node.scrollIntoView({block:'nearest'});}
  root.addEventListener('click',event=>{
   const node=event.target.closest('[data-live-action]');if(!node)return;const action=node.dataset.liveAction;
@@ -70,9 +72,10 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   try{const listing=await api('/requests');let detail=null;if(state.page==='conversation'&&id)detail=await api('/requests/'+id);
    if(version!==viewVersion||state.sending)return;
    state.requests=listing.requests;if(detail&&(!state.detail||detail.request.revision>=state.detail.request.revision))state.detail=detail;
+   if(detail)notices.mark(id,detail.activitySeq);
    const focused=document.activeElement,typing=focused?.name==='reply',caret=typing?focused.selectionStart:null,scroll=window.scrollY;update();if(typing){const input=screen.querySelector('[name=reply]');input?.focus({preventScroll:true});if(input&&caret!==null)input.setSelectionRange(caret,caret);}window.scrollTo({top:scroll,behavior:'instant'});
   }catch{}finally{refreshing=false;}
  }
  setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
- return {renderPage,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){try{await api('/logout','POST',{});}catch{}state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
+ return {renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();try{await api('/logout','POST',{});}catch{}state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
 }

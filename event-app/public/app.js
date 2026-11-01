@@ -43,7 +43,7 @@
     const pages={welcome,name:namePage,home,drinks,activities,game,program,evening,help,stations:()=>live.renderPage('stations'),station:()=>live.renderPage('station',selected),messages:()=>live.renderPage('messages'),conversation:()=>live.renderPage('conversation',selected)};
     screen.innerHTML=(pages[view]||home)();
     nav.innerHTML=experience?[['home','house','Heute'],...(offers().length?[['activities','compass','Entdecken']]:[]),['evening','heart','Mein Abend'],...(experience.stations?.length?[['messages','messages-square','Postfach']]:[]),...(experience.modules.help?.enabled?[['help','hand-heart','Hilfe']]:[])].map(([id,ic,label])=>`<button type="button" data-action="${id}" ${id===view?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></button>`).join(''):'';
-    root.classList.remove('is-editing');icons();save();
+    root.classList.remove('is-editing');icons();save();live.mountNotices();
   }
   function go(next,id='',push=true){
     if(!state.name&&!['welcome','name','messages','conversation'].includes(next))next='welcome';
@@ -61,7 +61,7 @@
     if(action==='reload'){location.reload();return;}
     go(action,target.dataset.id||'');
   });
-  root.addEventListener('submit',event=>{if(event.target.id!=='name-form')return;event.preventDefault();const input=event.target.elements.firstname;const name=input.value.trim();if(!name){input.setCustomValidity('Verrätst du uns noch deinen Vornamen?');input.reportValidity();return;}state.name=name.slice(0,32);go('home');});
+  root.addEventListener('submit',event=>{if(event.target.id!=='name-form')return;event.preventDefault();const input=event.target.elements.firstname;const name=input.value.trim();if(!name){input.setCustomValidity('Verrätst du uns noch deinen Vornamen?');input.reportValidity();return;}state.name=name.slice(0,32);go('home');live.startNotices();});
   root.addEventListener('input',event=>event.target.setCustomValidity?.(''));
   root.addEventListener('focusin',event=>root.classList.toggle('is-editing',event.target.matches('input,textarea,select')));
   root.addEventListener('focusout',()=>setTimeout(()=>root.classList.toggle('is-editing',document.activeElement?.matches('input,textarea,select')),0));
@@ -70,7 +70,7 @@
   function showClosed(event){
     activeEventId=event?.id||activeEventId;experience=null;root.classList.remove('has-navigation','is-editing');root.dataset.view='closed';nav.hidden=true;
     root.querySelector('.re-header-place').textContent='Bis bald im Rudel.';
-    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+'</div>';icons();
+    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+'</div>';icons();live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }
   screen.innerHTML='<p class="re-lead">Dein Abend wird geladen …</p>';
   try{
@@ -85,6 +85,7 @@
     state.saved=state.saved.filter(s=>s.kind==='game'?games().some(g=>g.id===s.id):modules().some(m=>m.key===s.id));
     document.title=`Rudelbar · ${experience.event.venue}`;
     root.setAttribute('aria-label','Rudelbar: '+experience.event.title);
+    if(!preview){const manifest=document.createElement('link');manifest.rel='manifest';manifest.href='/api/manifest?abend='+encodeURIComponent(experience.eventId)+(accessCode?'&zugang='+encodeURIComponent(accessCode):'');document.head.append(manifest);}
     root.querySelector('.re-header-place').innerHTML=`Dein Abend in<strong>${esc(experience.event.venue)}</strong>`;
     root.querySelector('.re-brand').dataset.action='home';
     if(preview){const bar=document.createElement('a');bar.href='/abendplan.html';bar.className='re-preview-link';bar.textContent='← Zur Abendplanung · gespeicherter Entwurf';document.body.prepend(bar);}
@@ -94,6 +95,6 @@
       const check=async()=>{if(checking||document.visibilityState==='hidden')return;checking=true;try{const r=await fetch(refreshEndpoint,{cache:'no-store'}),data=await r.json();if(data.state==='closed')showClosed(data.event);else if(r.ok&&data.experience){const changed=experience?.revision!==data.experience.revision;experience=data.experience;if(changed&&!['welcome','name'].includes(view))render();}}catch{}finally{checking=false;}};
       setInterval(check,30000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
     }
-    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();
+    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();if(state.name)live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }catch(error){nav.hidden=true;root.querySelector('.re-header-place').textContent='Gemeinsam. Überall.';screen.innerHTML=heading('Wir sind gleich wieder da.','Ein kurzer Moment.',error.message)+button('Erneut versuchen','reload');icons();}
 })();

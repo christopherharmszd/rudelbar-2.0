@@ -149,7 +149,7 @@ async function data(request) {
   catch (error) { if (error.status) throw error; throw Object.assign(new Error("Ungültige Eingabe."), { status: 400 }); }
 }
 
-async function api(request, env) {
+async function api(request, env, execution) {
   const path = new URL(request.url).pathname;
   if (!env.SANITY_PROJECT_ID || !env.SANITY_DATASET || !env.SANITY_EDITOR_TOKEN ||
       !env.RUDELBAR_SESSION_SECRET || env.RUDELBAR_SESSION_SECRET.length < 32 || !env.RUDELBAR_PASSWORD_VERIFIER) {
@@ -178,7 +178,7 @@ async function api(request, env) {
     if (auth.error) return auth.error;
     return json(200, { ok: true }, { "Set-Cookie": "rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0" });
   }
-  if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data});
+  if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data,defer:execution?.waitUntil?.bind(execution)});
   if(path.startsWith('/api/abend/'))return experienceApi(request,env,{client:sanity(env),json,session,authorized,data});
   if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {
     const user = await session(request, env);
@@ -226,9 +226,9 @@ async function api(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, execution) {
     if (!new URL(request.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
-    try { return await api(request, env); }
+    try { return await api(request, env, execution); }
     catch (error) {
       console.error("Redaktionsanfrage fehlgeschlagen", error);
       return json(error.status || 500, { error: error.status ? error.message : "Die Anfrage konnte nicht abgeschlossen werden." });

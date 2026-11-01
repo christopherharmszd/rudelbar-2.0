@@ -1,3 +1,4 @@
+import {createNotificationCenter} from './notifications.js';
 const root=document.querySelector('#live-app'),params=new URLSearchParams(location.search),eventParam=params.get('abend')||'',stationParam=params.get('station')||'';
 const state={context:null,requests:[],selected:'',detail:null,station:stationParam,status:'open',drafts:{},busy:false,connected:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5,6 +6,8 @@ const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
 const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
 const closed=['done','declined','cancelled'];
 let toastTimer,sessionKey=params.get('s')||'',interactionVersion=0,backgroundLoading=false;
+const notices=createNotificationCenter({api,openRequest:id=>selectRequest(id),role:'team',storageKey:'rudelbar:notifications:team:'+(eventParam||params.get('s')||'')});
+function selectRequest(id){interactionVersion++;state.selected=id;state.detail=null;state.station='';state.status='all';render();api('/requests/'+id).then(detail=>{if(state.selected===id&&(!state.detail||detail.request.revision>=state.detail.request.revision)){state.detail=detail;render();notices.mark(id,detail.activitySeq);window.scrollTo({top:0,behavior:'instant'});}}).catch(error=>toast(error.message,true));}
 function toast(text,error=false){const n=document.querySelector('#toast');n.textContent=text;n.className='visible'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.className='',error?8500:3200);}
 async function api(path,method='GET',body){const query=new URLSearchParams();if(eventParam)query.set('abend',eventParam);if(sessionKey)query.set('s',sessionKey);const suffix=query.size?'?'+query.toString():'';const r=await fetch('/api/live'+path+suffix,{method,credentials:'same-origin',cache:'no-store',headers:{...(state.context?{'X-CSRF-Token':state.context.csrf}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok){if(r.status===401||r.status===403){state.context=null;login(data.error);}throw new Error(data.error||'Gerade nicht erreichbar.');}return data;}
 function label(row){if(row.status==='done')return row.kind==='music'?'Gespielt':row.kind==='karaoke'?'Gesungen':'Erledigt';return {new:'Neu',queued:row.kind==='karaoke'?'Auf der Liste':'Eingeplant',in_progress:row.kind==='karaoke'?'Jetzt dran':'In Arbeit',declined:'Nicht möglich',cancelled:'Zurückgezogen'}[row.status]||row.status;}
@@ -17,7 +20,7 @@ async function refresh(){
  const selected=state.selected;
  const context=await api('/session'),listing=await api('/requests');state.context=context;state.requests=listing.requests;state.connected=true;
  if(selected){try{const detail=await api('/requests/'+selected);if(state.selected===selected&&(!state.detail||detail.request.revision>=state.detail.request.revision))state.detail=detail;}catch(e){if(state.context&&state.selected===selected){state.selected='';state.detail=null;toast(e.message,true);}}}
- render();
+ await notices.poll();render();if(state.detail)notices.mark(state.selected,state.detail.activitySeq);
 }
 function filtered(){return state.requests.filter(r=>(!state.station||r.stationId===state.station)&&(state.status==='all'||state.status==='open'&&!closed.includes(r.status)||state.status==='done'&&closed.includes(r.status)));}
 function render(){
@@ -25,9 +28,9 @@ function render(){
  if(state.detail&&state.detail.request.id!==state.selected)state.detail=null;
  const previous=document.activeElement,editing=previous?.name==='reply',selection=editing?previous.selectionStart:null,scroll=window.scrollY;
  const c=state.context,station=c.stations.find(s=>s.id===state.station),rows=filtered(),count=state.requests.filter(r=>!closed.includes(r.status)).length;
- document.title=`${count?'('+count+') ':''}Rudelbar · Team`;
- root.innerHTML=`<header class="app-header"><a class="brand" href="/team${eventParam?'?abend='+eventParam:sessionKey?'?s='+sessionKey:''}"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR<span class="brand-sub">Live-Team</span></strong></a><div class="header-actions"><span class="session-name">${esc(c.person.name)}</span><button type="button" class="icon-btn" data-action="refresh" aria-label="Eingang aktualisieren">${icon('refresh-cw')}</button>${c.publisher?`<a class="icon-btn" href="/abendplan#event/${c.event.id}/overview" aria-label="Zur Abendplanung">${icon('settings-2')}</a>`:`<button type="button" class="icon-btn" data-action="logout" aria-label="Abmelden">${icon('log-out')}</button>`}</div></header><main class="live-workspace"><div class="live-heading"><div><span class="eyebrow">${esc(c.person.name)} · Live-Team</span><h1>${esc(c.event.title)}</h1><p>${esc(c.event.venue)} · ${c.event.state==='open'?'Die Gäste-App ist offen.':'Die Gäste-App ist geschlossen. Bisherige Anfragen bleiben bearbeitbar.'}</p></div><span class="connection">Aktualisiert sich automatisch</span></div><div class="station-tabs" aria-label="Deine Stationen"><button type="button" class="station-tab" data-station="" aria-pressed="${!state.station}">${icon('inbox')}Alle Eingänge<small>${count}</small></button>${c.stations.map(s=>`<button type="button" class="station-tab" data-station="${s.id}" aria-pressed="${state.station===s.id}">${icon(s.kind==='music'?'disc-3':s.kind==='karaoke'?'mic-vocal':'messages-square')}${esc(s.name)}<small>${state.requests.filter(r=>r.stationId===s.id&&!closed.includes(r.status)).length}</small></button>`).join('')}</div><div class="station-controls"><span>${station?esc(station.name):'Deine zugeordneten Stationen und gemeinsamen Eingänge'}</span>${station?btn(station.accepting?'Neue Anfragen pausieren':'Eingang wieder öffnen','pause','secondary small',`data-id="${station.id}"`):''}</div>${station&&!station.accepting?'<div class="pause-banner">Neue Anfragen sind pausiert. Bestehende Gespräche und Wartelisten laufen weiter.</div>':''}<div class="live-layout ${state.selected?'has-selection':''}"><section class="inbox-column"><div class="inbox-filters">${[['open','Offen'],['done','Abgeschlossen'],['all','Alle']].map(([key,name])=>`<button type="button" class="filter" data-status="${key}" aria-pressed="${state.status===key}">${name}</button>`).join('')}</div><div class="inbox-items">${rows.length?rows.map(row=>requestCard(row)).join(''):`<div class="empty-state">${icon('inbox')}<h3>Alles im Blick.</h3><p>Hier erscheinen die passenden Gästeanfragen.</p></div>`}</div></section><section class="detail-pane">${state.detail?detailView():`<div class="detail-empty">${icon('messages-square')}<h2>Für ein gutes Miteinander.</h2><p>Öffne eine Anfrage, antworte einem Gast oder kümmere dich um die Warteliste.</p></div>`}</section></div></main>`;
- globalThis.lucide?.createIcons();
+ document.title='Rudelbar · Team';
+ root.innerHTML=`<header class="app-header"><a class="brand" href="/team${eventParam?'?abend='+eventParam:sessionKey?'?s='+sessionKey:''}"><img src="/abend-preview/assets/rudelbar-logo.png" alt="Rudelbar" width="30" height="46"><strong>RUDEL BAR<span class="brand-sub">Live-Team</span></strong></a><div class="header-actions"><span class="session-name">${esc(c.person.name)}</span><span data-notice-slot></span><button type="button" class="icon-btn" data-action="refresh" aria-label="Eingang aktualisieren">${icon('refresh-cw')}</button>${c.publisher?`<a class="icon-btn" href="/abendplan#event/${c.event.id}/overview" aria-label="Zur Abendplanung">${icon('settings-2')}</a>`:`<button type="button" class="icon-btn" data-action="logout" aria-label="Abmelden">${icon('log-out')}</button>`}</div></header><main class="live-workspace"><div data-notice-banner></div><div class="live-heading"><div><span class="eyebrow">${esc(c.person.name)} · Live-Team</span><h1>${esc(c.event.title)}</h1><p>${esc(c.event.venue)} · ${c.event.state==='open'?'Die Gäste-App ist offen.':'Die Gäste-App ist geschlossen. Bisherige Anfragen bleiben bearbeitbar.'}</p></div><span class="connection">Aktualisiert sich automatisch</span></div><div class="station-tabs" aria-label="Deine Stationen"><button type="button" class="station-tab" data-station="" aria-pressed="${!state.station}">${icon('inbox')}Alle Eingänge<small>${count}</small></button>${c.stations.map(s=>`<button type="button" class="station-tab" data-station="${s.id}" aria-pressed="${state.station===s.id}">${icon(s.kind==='music'?'disc-3':s.kind==='karaoke'?'mic-vocal':'messages-square')}${esc(s.name)}<small>${state.requests.filter(r=>r.stationId===s.id&&!closed.includes(r.status)).length}</small></button>`).join('')}</div><div class="station-controls"><span>${station?esc(station.name):'Deine zugeordneten Stationen und gemeinsamen Eingänge'}</span>${station?btn(station.accepting?'Neue Anfragen pausieren':'Eingang wieder öffnen','pause','secondary small',`data-id="${station.id}"`):''}</div>${station&&!station.accepting?'<div class="pause-banner">Neue Anfragen sind pausiert. Bestehende Gespräche und Wartelisten laufen weiter.</div>':''}<div class="live-layout ${state.selected?'has-selection':''}"><section class="inbox-column"><div class="inbox-filters">${[['open','Offen'],['done','Abgeschlossen'],['all','Alle']].map(([key,name])=>`<button type="button" class="filter" data-status="${key}" aria-pressed="${state.status===key}">${name}</button>`).join('')}</div><div class="inbox-items">${rows.length?rows.map(row=>requestCard(row)).join(''):`<div class="empty-state">${icon('inbox')}<h3>Alles im Blick.</h3><p>Hier erscheinen die passenden Gästeanfragen.</p></div>`}</div></section><section class="detail-pane">${state.detail?detailView():`<div class="detail-empty">${icon('messages-square')}<h2>Für ein gutes Miteinander.</h2><p>Öffne eine Anfrage, antworte einem Gast oder kümmere dich um die Warteliste.</p></div>`}</section></div></main>`;
+ globalThis.lucide?.createIcons();notices.mount();
  if(state.busy)root.querySelectorAll('button').forEach(button=>button.disabled=true);
  if(editing){const input=root.querySelector('[name=reply]');input?.focus({preventScroll:true});if(input&&selection!==null)input.setSelectionRange(selection,selection);}
  window.scrollTo({top:scroll,behavior:'instant'});
@@ -45,7 +48,7 @@ root.addEventListener('click',event=>{
  const node=event.target.closest('[data-action],[data-station],[data-status],[data-request]');if(!node)return;interactionVersion++;
  if(node.hasAttribute('data-station')){state.station=node.dataset.station;state.selected='';state.detail=null;render();return;}
  if(node.dataset.status){state.status=node.dataset.status;render();return;}
- if(node.dataset.request){const id=node.dataset.request;state.selected=id;state.detail=null;render();api('/requests/'+id).then(detail=>{if(state.selected===id&&(!state.detail||detail.request.revision>=state.detail.request.revision)){state.detail=detail;render();window.scrollTo({top:0,behavior:'instant'});}}).catch(error=>toast(error.message,true));return;}
+ if(node.dataset.request){selectRequest(node.dataset.request);return;}
  run(async()=>{
   const action=node.dataset.action;
   if(action==='refresh')await refresh();
@@ -56,7 +59,7 @@ root.addEventListener('click',event=>{
   if(action==='forward'){
     const dialog=document.createElement('dialog');dialog.className='dialog';dialog.setAttribute('aria-label','Anfrage weiterleiten');dialog.innerHTML=`<div class="dialog-head"><h2>Anfrage weiterleiten</h2><button class="icon-btn" data-close aria-label="Dialog schließen">${icon('x')}</button></div><form><div class="dialog-body"><label class="field"><span>Zielstation</span><select name="stationId">${state.context.destinations.filter(s=>s.id!==state.detail.request.stationId).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></label></div><div class="dialog-foot"><button class="btn" type="submit">Weiterleiten</button></div></form>`;dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove());dialog.querySelector('form').onsubmit=async e=>{e.preventDefault();const stationId=new FormData(e.target).get('stationId');if(!stationId)return;try{await mutate({stationId});dialog.close();toast('Anfrage weitergeleitet.');await refresh();}catch(error){toast(error.message,true);}};document.body.append(dialog);dialog.showModal();globalThis.lucide?.createIcons();
   }
-  if(action==='logout'){await api('/logout','POST',{});state.context=null;login();}
+  if(action==='logout'){await notices.disconnect();await api('/logout','POST',{});state.context=null;login();}
  });
 });
 root.addEventListener('input',event=>{if(event.target.name==='reply'&&state.selected){state.drafts[state.selected]={...(state.drafts[state.selected]||{internal:false}),text:event.target.value};}});
@@ -68,7 +71,7 @@ root.addEventListener('submit',event=>{
 });
 try{
  const code=params.get('zugang');if(code){history.replaceState(null,'','/team');const result=await api('/login','POST',{code});sessionKey=result.sessionId;history.replaceState(null,'','/team?s='+sessionKey);}
- await refresh();
+ await refresh();await notices.start();const manifest=document.createElement('link');manifest.rel='manifest';manifest.href='/api/live/manifest'+(eventParam?'?abend='+encodeURIComponent(eventParam):'?s='+encodeURIComponent(sessionKey));document.head.append(manifest);if(params.get('anfrage'))selectRequest(params.get('anfrage'));
 }catch(error){login(error.message);}
 async function backgroundRefresh(){
  if(!state.context||state.busy||backgroundLoading||document.visibilityState==='hidden')return;
@@ -77,7 +80,7 @@ async function backgroundRefresh(){
   const context=await api('/session'),listing=await api('/requests');let detail=null;
   if(selected)detail=await api('/requests/'+selected);
   if(version!==interactionVersion||state.busy||selected!==state.selected)return;
-  state.context=context;state.requests=listing.requests;if(detail)state.detail=detail;render();
+  state.context=context;state.requests=listing.requests;if(detail)state.detail=detail;render();if(detail)notices.mark(selected,detail.activitySeq);
  }catch(error){if(state.context)toast(error.message,true);}finally{backgroundLoading=false;}
 }
 setInterval(backgroundRefresh,5000);

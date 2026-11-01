@@ -3,8 +3,8 @@ import {validId} from '../../shared/experience.mjs';
 const cookieName=id=>'rb_team_'+String(id||'').replace(/-/g,'');
 const cookie=request=>{const id=new URL(request.url).searchParams.get('s')||'';if(!/^[a-f0-9-]{36}$/.test(id))return '';const name=cookieName(id)+'=';return (request.headers.get('cookie')||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(name))?.slice(name.length)||'';};
 const sameOrigin=request=>request.headers.get('origin')===new URL(request.url).origin;
-export async function liveApi(request,env,{client,json,session,data,service:providedService}){
-  const url=new URL(request.url),path=url.pathname,service=providedService||createLiveService(env,client);
+export async function liveApi(request,env,{client,json,session,data,service:providedService,defer}){
+  const url=new URL(request.url),path=url.pathname,service=providedService||createLiveService(env,client,{defer});
   if(path==='/api/live/login'&&request.method==='POST'){
     if(!sameOrigin(request))return json(403,{error:'Ungültige Herkunft.'});
     const input=await data(request),operator=await service.operator(input.code);
@@ -12,11 +12,15 @@ export async function liveApi(request,env,{client,json,session,data,service:prov
   }
   const user=await session(request,env),eventId=url.searchParams.get('abend')||'';
   let actor,csrf;
-  if(user&&eventId){validId(eventId);actor=await service.publisher(eventId);csrf=user.csrf;}
+  if(user&&eventId){validId(eventId);actor=await service.publisher(eventId);actor.expiresAt=user.exp;actor.authVersion=user.ver;csrf=user.csrf;}
   else {const token=cookie(request);actor=await service.operator(token);csrf=await liveCsrf(token);if(eventId&&eventId!==actor.eventId)return json(403,{error:'Dieser Zugang gehört zu einem anderen Abend.'});}
   if(request.method!=='GET'&&(!sameOrigin(request)||request.headers.get('x-csrf-token')!==csrf))return json(403,{error:'Bitte die Ansicht neu öffnen und erneut versuchen.'});
   if(path==='/api/live/session'&&request.method==='GET')return json(200,{...await service.staffContext(actor),csrf});
-  if(path==='/api/live/logout'&&request.method==='POST')return json(200,{ok:true},{'Set-Cookie':`${cookieName(new URL(request.url).searchParams.get('s'))}=; HttpOnly; Secure; SameSite=Strict; Path=/api/live; Max-Age=0`});
+  if(path==='/api/live/manifest'&&request.method==='GET')return json(200,{id:'/team',name:'Rudelbar Team',short_name:'Rudelbar Team',start_url:actor.publisher?'/team?abend='+actor.eventId:'/team?s='+actor.grantId,scope:'/',display:'standalone',background_color:'#10100f',theme_color:'#10100f',icons:[{src:'/abend-preview/assets/rudelbar-logo.png',sizes:'2400x2400',type:'image/png',purpose:'any'}]},{'Content-Type':'application/manifest+json'});
+  if(path==='/api/live/notifications'&&request.method==='GET')return json(200,{...await service.notices.list(service.recipient(actor)),...await service.notices.settings(service.recipient(actor))});
+  const notice=path.match(/^\/api\/live\/notifications\/(read|settings|subscribe|unsubscribe|test)$/);
+  if(notice&&request.method==='POST')return json(200,await service.notices[notice[1]==='read'?'mark':notice[1]](service.recipient(actor),await data(request)));
+  if(path==='/api/live/logout'&&request.method==='POST'){const input=await data(request);if(input.endpoint)await service.notices.unsubscribe(service.recipient(actor),{endpoint:input.endpoint});return json(200,{ok:true},{'Set-Cookie':`${cookieName(new URL(request.url).searchParams.get('s'))}=; HttpOnly; Secure; SameSite=Strict; Path=/api/live; Max-Age=0`});}
   if(path==='/api/live/requests'&&request.method==='GET')return json(200,await service.inbox(actor));
   const match=path.match(/^\/api\/live\/requests\/([a-z0-9-]+)$/i);
   if(match){validId(match[1]);if(request.method==='GET')return json(200,await service.inbox(actor,{id:match[1]}));if(request.method==='POST')return json(200,await service.staffUpdate(actor,match[1],await data(request)));}

@@ -1,0 +1,72 @@
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>';
+const read=(key,fallback='')=>{try{return localStorage.getItem(key)||fallback;}catch{return fallback;}};
+const store=(key,value)=>{try{localStorage.setItem(key,String(value));}catch{}};
+export function createNotificationCenter({api,initialize=async()=>{},openRequest,role='guest',storageKey,disabled=false}){
+ const state={started:false,starting:false,ready:false,count:0,items:[],configured:false,enabled:false,endpoint:'',publicKey:'',busy:false,error:'',info:'',guide:false,sound:read(storageKey+':sound')==='1'};
+ let registration,dialog,toast,toastTimer,polling=false,baseline=null,stopped=false,audio,opening=false,badgeCount=-1;
+ const ios=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+ const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+ const installNeeded=()=>ios()&&!standalone();
+ const supported=()=>isSecureContext&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+ const permission=()=>('Notification' in window?Notification.permission:'unavailable');
+ const button=(label,action,secondary=false)=>`<button type="button" class="rb-n-btn${secondary?' rb-n-secondary':''}" data-notice="${action}"${state.busy?' disabled':''}>${label}</button>`;
+ async function worker(){if(!registration)registration=await navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'});return navigator.serviceWorker.ready;}
+ async function settings(){if(!supported())return;const reg=await worker(),subscription=await reg.pushManager.getSubscription();state.endpoint=subscription?.endpoint||'';if(state.endpoint){const result=await api('/notifications/settings','POST',{endpoint:state.endpoint});state.enabled=result.enabled;state.configured=result.configured;state.publicKey=result.publicKey;}}
+ function mount(){
+  if(disabled||!state.started||stopped)return;
+  for(const slot of document.querySelectorAll('[data-notice-slot]'))slot.innerHTML=`<button type="button" class="rb-n-bell" data-notice="open" aria-label="Mitteilungen${state.count?', '+state.count+(state.count===1?' ungelesenes Gespräch':' ungelesene Gespräche'):''}">${bell}${state.count?`<span class="rb-n-count">${state.count>99?'99+':state.count}</span>`:''}</button>`;
+  for(const slot of document.querySelectorAll('[data-notice-banner]'))slot.innerHTML=!read(storageKey+':prompt')&&!state.enabled?`<section class="rb-n-welcome"><span class="rb-n-welcome-icon">${bell}</span><div><strong>Bleib mit deinem Rudel verbunden.</strong><p>${role==='team'?'Erfahre, wenn Gäste an deiner Station etwas brauchen.':'Erfahre, wenn das Team antwortet oder du an der Reihe bist.'}</p><div class="rb-n-actions">${button(installNeeded()?'Mitteilungen auf dem iPhone einrichten':'Mitteilungen einrichten','open')}${button('Später','later',true)}</div></div></section>`:'';
+  const ids=new Set(state.items.map(item=>item.id));
+  for(const element of document.querySelectorAll('[data-request],[data-live-action="conversation"]')){const unread=ids.has(element.dataset.request||element.dataset.id);element.classList.toggle('rb-n-unread',unread);element.querySelector('.rb-n-new')?.remove();if(unread){const tag=document.createElement('span');tag.className='rb-n-new';tag.textContent='Ungelesen';element.append(tag);}}
+  const mailbox=document.querySelector('nav button[data-action="messages"]');if(mailbox){mailbox.classList.toggle('rb-n-has-unread',state.count>0);mailbox.setAttribute('aria-label','Postfach'+(state.count?', '+state.count+(state.count===1?' ungelesenes Gespräch':' ungelesene Gespräche'):''));}
+  if(badgeCount!==state.count&&'setAppBadge' in navigator){badgeCount=state.count;try{(state.count?navigator.setAppBadge(state.count):navigator.clearAppBadge()).catch(()=>{});}catch{}}
+  document.title=document.title.replace(/^\(\d+ neu\) /,'');if(state.count)document.title=`(${state.count} neu) `+document.title;
+ }
+ function content(){
+  const denied=permission()==='denied',unsupported=!supported();
+  const setup=installNeeded()||state.guide?`<div class="rb-n-guide"><h3>Einmal einrichten. Danach bleibst du dabei.</h3><p>Auf dem iPhone funktionieren Mitteilungen über die Rudelbar auf deinem Home-Bildschirm.</p><ol><li>Öffne das <strong>Teilen-Menü</strong> deines Browsers.</li><li>Wähle <strong>Zum Home-Bildschirm</strong> und füge Rudelbar hinzu.</li><li>Öffne Rudelbar über das neue Symbol und tippe hier auf <strong>Mitteilungen aktivieren</strong>.</li></ol><p>Falls du „Zum Home-Bildschirm“ hier nicht findest, öffne den Rudelbar-Link zuerst in Safari.</p><p class="rb-n-muted">Du kannst hier sofort weiter mitmachen. Neue Nachrichten werden beim nächsten Öffnen sichtbar.</p></div>`:unsupported?'<p>Dieser Browser unterstützt keine Mitteilungen im Hintergrund. Neue Nachrichten findest du weiterhin hier und im Postfach.</p>':denied?'<p>Mitteilungen sind für Rudelbar im Browser blockiert. Du kannst sie in den Website-Einstellungen deines Browsers wieder erlauben. Dein Postfach funktioniert weiterhin.</p>':!state.configured?'<p>Mitteilungen im Hintergrund werden gerade eingerichtet. Neue Nachrichten bleiben in der App sichtbar.</p>':state.enabled?`<p class="rb-n-enabled">Mitteilungen für diesen Abend sind auf diesem Gerät aktiv.</p><p>Du kannst das Handy schließen. Wenn etwas Neues passiert, kann Rudelbar dich benachrichtigen.</p><div class="rb-n-actions">${button('Testmitteilung senden','test',true)}${button('Für diesen Abend ausschalten','disable',true)}</div>`:`<p>${role==='team'?'Neue Gästeanfragen und Nachrichten deiner Stationen kommen als Mitteilung an.':'Erhalte eine Mitteilung, wenn dir das Team antwortet oder sich der Status deiner Anfrage ändert.'}</p><p>Auch wenn du das Handy gerade nicht offen hast. Du entscheidest, ob du das erlauben möchtest.</p>${button('Mitteilungen aktivieren','enable')}`;
+  return `<div class="rb-n-dialog-head"><div><span class="rb-n-eyebrow">Dein direkter Draht.</span><h2 id="rb-notice-title">Mitteilungen</h2></div><button type="button" class="rb-n-close" data-notice="close" aria-label="Mitteilungen schließen">×</button></div><div class="rb-n-dialog-body">${state.error?`<p class="rb-n-error" role="alert">${esc(state.error)}</p>`:''}${state.info?`<p class="rb-n-info" role="status">${esc(state.info)}</p>`:''}<h3>Neu für dich${state.count?' · '+state.count:''}</h3><div class="rb-n-items">${state.items.map(item=>`<button type="button" class="rb-n-item" data-notice="request" data-id="${item.id}"><span class="rb-n-dot"></span><span><strong>${esc(item.subject)}</strong><small>${esc(item.stationName)} · Neues im Gespräch</small></span><span aria-hidden="true">↗</span></button>`).join('')||'<p class="rb-n-muted">Du bist auf dem neuesten Stand. Neue Antworten und Anfragen erscheinen hier.</p>'}</div><section class="rb-n-setup"><h3>Auch bei geschlossenem Handy</h3>${setup}${state.guide?button('Zurück zur Einrichtung','guide-back',true):!installNeeded()&&!state.enabled?button('Anleitung für iPhone und iPad','guide',true):''}</section><label class="rb-n-sound"><input type="checkbox" data-notice-sound${state.sound?' checked':''}>Hinweiston, solange diese App geöffnet ist</label><p class="rb-n-muted">Ton und Mitteilungen lassen sich jederzeit wieder ausschalten. Die Einstellungen gelten für diesen Abend auf diesem Gerät.</p></div>`;
+ }
+ function renderDialog(){if(!dialog?.open)return;const focus=document.activeElement,action=focus?.dataset?.notice,soundFocused=focus?.matches('[data-notice-sound]'),scroll=dialog.scrollTop;dialog.innerHTML=content();dialog.scrollTop=scroll;if(soundFocused)dialog.querySelector('[data-notice-sound]')?.focus({preventScroll:true});if(action)dialog.querySelector(`[data-notice="${action}"]`)?.focus({preventScroll:true});}
+ async function open(){
+  if(opening)return;opening=true;
+  try{await start();state.error='';state.info='';if(dialog?.open){dialog.focus();return;}dialog=document.createElement('dialog');dialog.className='rb-n-dialog';dialog.setAttribute('aria-labelledby','rb-notice-title');dialog.innerHTML=content();dialog.addEventListener('close',()=>{dialog.remove();dialog=null;store(storageKey+':prompt','later');mount();});dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});document.body.append(dialog);dialog.showModal();if(supported())settings().then(renderDialog).catch(()=>{});}finally{opening=false;}
+ }
+ function play(){if(!state.sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();const oscillator=audio.createOscillator(),gain=audio.createGain();oscillator.type='sine';oscillator.frequency.value=660;gain.gain.setValueAtTime(.08,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.22);oscillator.connect(gain);gain.connect(audio.destination);oscillator.start();oscillator.stop(audio.currentTime+.22);}catch{}}
+ function announce(item){
+  if(document.visibilityState==='hidden')return;toast?.remove();clearTimeout(toastTimer);toast=document.createElement('div');toast.className='rb-n-toast';toast.setAttribute('role','status');toast.innerHTML=`<span>${bell}</span><button type="button" data-notice="request" data-id="${item.id}"><strong>Neues für dich</strong><span>${esc(item.stationName)} · ${esc(item.subject)}</span></button><button type="button" class="rb-n-close" data-notice="dismiss" aria-label="Hinweis schließen">×</button>`;document.body.append(toast);play();toastTimer=setTimeout(()=>{toast?.remove();toast=null;},10000);
+ }
+ async function poll(){
+  if(stopped||disabled||polling||document.visibilityState==='hidden')return;polling=true;
+  try{const result=await api('/notifications');if(stopped)return;state.count=result.count;state.items=result.items;state.configured=result.configured;state.publicKey=result.publicKey;const latest=state.items[0]?.seq||0,already=Number(read(storageKey+':last-alert','0'));
+   if(baseline!==null&&latest>baseline&&latest>already){store(storageKey+':last-alert',latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
+  }catch{}finally{polling=false;}
+ }
+ async function start(){if(disabled||state.started||state.starting||stopped)return;state.starting=true;try{await initialize();state.started=true;await poll();if(supported())await settings();state.ready=true;mount();}catch{}finally{state.starting=false;}}
+ async function mark(id,seq){if(document.visibilityState==='hidden'||dialog?.open)return;if(!id||!Number.isSafeInteger(seq))return;try{await api('/notifications/read','POST',{id,seq});await poll();}catch{}}
+ async function action(name){
+  if(name==='guide'||name==='guide-back'){state.guide=name==='guide';renderDialog();return;}
+  if(name==='close'){dialog?.close();return;}
+  if(name==='later'){store(storageKey+':prompt','later');mount();return;}
+  if(name==='open'){await open();return;}
+  if(name==='dismiss'){toast?.remove();return;}
+  if(state.busy)return;state.busy=true;state.error='';state.info='';renderDialog();
+  try{
+   if(name==='enable'){
+    if(installNeeded()||!supported())return;
+    const result=await Notification.requestPermission();if(result!=='granted'){state.info=result==='denied'?'Mitteilungen wurden nicht erlaubt. Neue Nachrichten bleiben in deinem Postfach.':'Du kannst Mitteilungen später jederzeit aktivieren.';return;}
+    const reg=await worker();let subscription=await reg.pushManager.getSubscription();
+    if(!subscription){const key=Uint8Array.from(atob(state.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));subscription=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});}
+    await api('/notifications/subscribe','POST',{subscription:subscription.toJSON()});state.endpoint=subscription.endpoint;state.enabled=true;store(storageKey+':prompt','enabled');state.info='Mitteilungen sind aktiv. Du kannst sie mit einer Testmitteilung prüfen.';
+   }
+   if(name==='disable'){await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});state.enabled=false;store(storageKey+':prompt','off');state.info='Für diesen Abend ausgeschaltet. Dein Postfach bleibt erreichbar.';}
+   if(name==='test'){await api('/notifications/test','POST',{endpoint:state.endpoint});state.info='Die Testmitteilung wurde an den Mitteilungsdienst übergeben. Schau nach, ob sie auf deinem Gerät erscheint.';}
+  }catch(error){state.error=error.message||'Das hat gerade nicht geklappt. Bitte versuche es erneut.';}finally{state.busy=false;mount();renderDialog();}
+ }
+ document.addEventListener('click',event=>{const node=event.target.closest('[data-notice]');if(!node)return;event.preventDefault();const name=node.dataset.notice;if(name==='request'){dialog?.close();toast?.remove();openRequest(node.dataset.id);return;}action(name);});
+ document.addEventListener('change',event=>{if(event.target.matches('[data-notice-sound]')){state.sound=event.target.checked;store(storageKey+':sound',state.sound?'1':'0');if(state.sound)play();}});
+ navigator.serviceWorker?.addEventListener('message',event=>{if(event.data?.type==='rudelbar-push')poll();if(event.data?.type==='rudelbar-open-request'&&event.data.id)openRequest(event.data.id);});
+ setInterval(()=>{if(state.started)poll();},role==='team'?5000:8000);document.addEventListener('visibilitychange',()=>{if(state.started)poll();});
+ return {start,mount,mark,open,poll,async disconnect(){if(state.endpoint)try{await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});}catch{}this.stop();},stop(){stopped=true;state.started=false;state.items=[];state.count=0;dialog?.close();toast?.remove();document.querySelectorAll('[data-notice-slot],[data-notice-banner]').forEach(node=>node.replaceChildren());},resume(){stopped=false;},get items(){return state.items;}};
+}
