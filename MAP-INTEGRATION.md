@@ -42,3 +42,9 @@ Migration `0007_game_rounds.sql` ergänzt ausschließlich zwei Tabellen mit Indi
 94 automatisierte Tests bestehen, einschließlich Geometrie, öffentlicher Projektion, getrennten Stationsrechten, privaten Abenden, Freigabegrenzen, Versionskonflikten, atomarer Platzvergabe und wiederholten Anmeldungen. Cloudflare-Laufzeitprüfungen für Passwortschutz, Mailverschlüsselung und Push bestehen. Beide Worker-Pakete lassen sich bauen.
 
 Isolierte Browserprüfung: Ortsplan anlegen/speichern/laden, in Abend übernehmen, Weg und Fläche zeichnen, Kurve und Griff bearbeiten, Position/Größe/Drehung ändern, Ebenen sowie Rückgängig/Wiederholen; ausdrückliche Freigabe/Öffnen/Schließen; gemeinsame Musikposition mit getrennten echten DJ-/Karaoke-Testeingängen; zwei Gastsitzungen in einer Spielrunde samt Live-Betreuung, Verlassen, Versionskonflikt und Beenden. Lange Standnamen, alternative Liste, Zurück/Fokus und erhaltene Kamera geprüft. Gästeansichten bei 320, 390, 430 sowie 844×390 Pixeln; keine horizontale Seitenüberbreite. Alle Schreibtests ausschließlich lokal, kein Versand an echte Personen.
+
+## Online-Nachweis
+
+Veröffentlicht am 2. November 2026 auf den bestehenden Workern. CMS-Version `e13403d2-5256-42d6-a0f9-cc0d549a7288`, Gäste-Version `830216a0-4c65-4a98-b239-6c54d14a63db`. Migration 0007 wurde erfolgreich angewendet.
+
+41 Online-Prüfungen bestätigen die veröffentlichten Dateien, geschützten Zugänge und unveränderten Inhaltsversionen. Alle 30 Website- und 41 App-Dokumente behalten ihre Revisionen. Der Live-Bestand bleibt bei 1 Konto, 3 Gästen, 5 Anfragen, 1 Push-Abonnement und 0 Stationsfotos; die beiden neuen Rundentabellen sind leer. Die Online-Ortsplanliste ist leer, bestehende Webseitenbeiträge und Notfallredaktion sind erreichbar. Die Beispielkarte und alle Testanfragen existierten ausschließlich im lokalen Prüfsystem. Details: `MAP-INTEGRATION-VERIFICATION.json`.

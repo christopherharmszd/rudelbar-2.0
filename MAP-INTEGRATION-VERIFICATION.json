@@ -1,0 +1,112 @@
+{
+  "checkedAt": "2026-11-02T17:35:49.473Z",
+  "commit": "f1b7bb1",
+  "workers": {
+    "cms": "e13403d2-5256-42d6-a0f9-cc0d549a7288",
+    "guest": "830216a0-4c65-4a98-b239-6c54d14a63db"
+  },
+  "migration": "0007_game_rounds.sql",
+  "automatedTests": {
+    "passed": 94,
+    "failed": 0
+  },
+  "runtime": {
+    "passwordHashing": true,
+    "mailboxEncryption": true,
+    "pushEncryption": true
+  },
+  "checks": [
+    "Published file matches admin/public/backstage.html",
+    "Published file matches admin/public/backstage.css",
+    "Published file matches admin/public/abendplan.css",
+    "Published file matches admin/public/abendplan.js",
+    "Published file matches admin/public/website-editor.js",
+    "Published file matches admin/public/member-wizard.js",
+    "Published file matches admin/public/planning-ui.js",
+    "Published file matches admin/public/content-workspace.js",
+    "Published file matches admin/public/catalog-csv-ui.js",
+    "Published file matches admin/public/flow-dialog.js",
+    "Published file matches admin/public/image-picker.js",
+    "Published file matches admin/public/image-picker.css",
+    "Published file matches admin/public/team.js",
+    "Published file matches admin/public/team.html",
+    "Published file matches admin/public/map-editor.js",
+    "Published file matches admin/public/map-editor.css",
+    "Published file matches admin/public/venue-plans-ui.js",
+    "Published file matches event-app/public/index.html",
+    "Published file matches event-app/public/app.js",
+    "Published file matches event-app/public/guest-live.js",
+    "Published file matches event-app/public/styles.css",
+    "Published file matches event-app/public/village-map.js",
+    "Published file matches event-app/public/village-map.css",
+    "Published file matches event-app/public/guest-map.js",
+    "Published file matches event-app/public/map-geometry.js",
+    "Published file matches event-app/public/map-illustrations.js",
+    "Published file matches event-app/public/game-rounds.js",
+    "Anonymous access rejected /api/abend/venue-plans",
+    "Anonymous access rejected /api/live/rounds?abend=fb726148-0852-44f1-ad77-a4c73c12c595",
+    "Anonymous access rejected /api/abend/catalog",
+    "Anonymous access rejected /api/abend/templates",
+    "Anonymous access rejected /api/media?scope=website",
+    "Anonymous access rejected /api/media?scope=app",
+    "Anonymous access rejected /api/accounts",
+    "Anonymous access rejected /api/posts",
+    "Personal passwords and shared Redaktion remain enabled",
+    "Archived example evening is not accessible",
+    "Archived example evening is not accessible",
+    "Transient photo previews allowed; scripts remain restricted",
+    "Main website entry still opens Backstage",
+    "Every Website and App content document retains its original revision",
+    "Existing live counts preserved; new round tables remain empty after deployment"
+  ],
+  "workingData": {
+    "productionDocuments": 30,
+    "appDocuments": 41,
+    "allRevisionsPreserved": true,
+    "accounts": 1,
+    "visitors": 3,
+    "requests": 5,
+    "pushSubscriptions": 1,
+    "testDataCreated": false,
+    "mailSent": false,
+    "stationPhotos": 0,
+    "gameRounds": 0,
+    "gameRoundMembers": 0,
+    "liveCountsRecheckedAfterDeploy": true
+  },
+  "browser": {
+    "mapEditor": true,
+    "wayAndAreaDrawing": true,
+    "curveHandleAndRotation": true,
+    "sharedBoothSeparateQueues": true,
+    "twoGuestGameRound": true,
+    "staffRoundModeration": true,
+    "longStandNames": true,
+    "retainedMapCamera": true,
+    "isolatedWritesOnly": true,
+    "releaseCheckAndOpen": true,
+    "publishedNavigation": true,
+    "existingLoginRetained": true,
+    "websiteEditorAndEmergencyLink": true,
+    "responsiveWidths": [
+      320,
+      390,
+      430
+    ],
+    "landscape": [
+      844,
+      390
+    ],
+    "horizontalPageOverflow": false,
+    "onlineVenuePlansEmpty": true,
+    "onlineWebsitePostsPresent": true,
+    "onlineBrowserErrors": 0
+  },
+  "limitations": [
+    "Physical iPhone and Android map gestures not tested",
+    "Game rounds refresh every five seconds while open; round push is not connected",
+    "No offline send queue",
+    "Comprehensive guest UX redesign remains separate"
+  ],
+  "retainedBaselineReport": "BACKSTAGE-REBUILD-VERIFICATION.json"
+}
