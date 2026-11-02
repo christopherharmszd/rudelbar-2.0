@@ -1,3 +1,4 @@
+import {createReporting} from './reporting.mjs';
 import {createGameRounds} from './game-rounds.mjs';
 import {createGuestIdentity} from './guest-identity.mjs';
 import {validId,stationsFor} from '../../shared/experience.mjs';
@@ -171,6 +172,8 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   }
   async function guestNotice({eventId,sessionToken,action,input={}}){const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);if(action==='list')return {expiresAt:person.expires_at,...await notices.list(who,input),...await notices.settings(who)};return {expiresAt:person.expires_at,...await notices[action](who,input)};}
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}
+  async function guestLogout({eventId,sessionToken}){const person=await visitor(eventId,sessionToken);await database().batch([database().prepare('UPDATE guest_sessions SET revoked_at=? WHERE id=? AND participation_id=? AND revoked_at IS NULL').bind(Date.now(),person.session_id||person.id,person.id),database().prepare('UPDATE live_push_subscriptions SET active=0,updated_at=? WHERE event_id=? AND recipient=?').bind(Date.now(),eventId,'v:'+person.id)]);return {ok:true};}
+  async function guestAnalysis({eventId,sessionToken,operation,input={},events}){const person=await visitor(eventId,sessionToken),reporting=createReporting(database());if(operation==='settings')return reporting.guestSettings(person);if(operation==='consent')return reporting.guestConsent(person,input);if(operation==='events'){const ctx=await context(eventId);requireOpen(ctx);return reporting.ingest(person,{events},ctx.release);}fail('Nicht gefunden.',404);}
   const gameRounds=createGameRounds(env,{context,visitor,guestAccess,requireOpen,allowed});
-  return {roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
+  return {guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

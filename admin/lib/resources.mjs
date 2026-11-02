@@ -59,14 +59,12 @@ export function createResources(client){
     if(!old||sorted(fields)!==sorted(oldFields))changes.push({type,id:documentId(row),fields,...(old?{revision:old.revision}:{})});
    }
   }
-  if(changes.length||extraChanges.length){
-   changes.unshift({type:RESOURCE_STATE_TYPE,id:RESOURCE_STATE_ID,fields:{schemaVersion:RESOURCE_VERSION,changedAt:new Date().toISOString()},...(current.revision?{revision:current.revision}:{})});
-   await client.commitPrivate([...changes,...extraChanges]);
-  }
+  if(changes.length)changes.unshift({type:RESOURCE_STATE_TYPE,id:RESOURCE_STATE_ID,fields:{schemaVersion:RESOURCE_VERSION,changedAt:new Date().toISOString()},...(current.revision?{revision:current.revision}:{})});
+  if(changes.length||extraChanges.length)await client.commitPrivate([...changes,...extraChanges]);
   return load();
  }
  async function preview(user,input={}){
-  requirePermission(editsContent(user));
+  requirePermission(editsContent(user)||(user.roles||[]).some(r=>r.role==='manager')&&!input.model);
   const current=await load();
   if(input.sourcesVersion!==undefined&&input.sourcesVersion!==current.sourcesVersion||input.revision!==undefined&&input.revision!==current.revision)fail('Die Grundlage wurde inzwischen geändert. Bitte neu laden.');
   const model=input.model?cleanResources(input.model,current.sources):current;
@@ -75,7 +73,7 @@ export function createResources(client){
  return {load,save,preview,compile,describe};
 }
 export async function resourcesApi(request,{client,user,json,data}){
- requirePermission(editsContent(user));
+ requirePermission(editsContent(user)||request.method==='GET'&&(user.roles||[]).some(r=>r.role==='manager'));
  const url=new URL(request.url),path=url.pathname,service=createResources(client);
  if(path.startsWith('/api/abend/resources/csv')){
   const current=await service.load();

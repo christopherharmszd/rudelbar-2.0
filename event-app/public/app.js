@@ -12,7 +12,9 @@
   let activeEventId=eventId||'',mapView=null;const mapCamera={zoom:1,panX:0,panY:0};
   const {mountGuestMap}=await import(preview?'/abend-preview/guest-map.js':'/guest-map.js');
   const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js':'/guest-live.js');
-  const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render()});
+  const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e)});
+  const {createGuestAnalytics}=await import(preview?'/abend-preview/guest-analytics.js':'/guest-analytics.js');
+  const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:()=>live.ensureSession(),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
   const games=()=>[...experience.equipment.map(g=>({...g,icon:g.kind==='kicker'?'goal':'puzzle'})),...experience.games.map(g=>({...g,icon:'dices'}))];
   const modules=()=>(experience.program||[]).map(item=>({...item,key:item.id,title:item.name}));
   const offers=()=>[...games().map(g=>({...g,type:'game',category:g.category||'Gemeinsam spielen'})),...modules().map(m=>({...m,type:'program',icon:m.kind==='dj'?'disc-3':m.kind==='karaoke'?'mic-vocal':'sparkles',category:m.category||'Programm'}))];
@@ -51,9 +53,9 @@
     const signedIn=!!experience&&!!state.name&&!['welcome','name'].includes(view);
     root.classList.toggle('has-navigation',signedIn);nav.hidden=!signedIn;
     const pages={welcome,name:namePage,home,overview:listHome,map:mapHome,drinks,activities,game,program,evening,help,stations:()=>live.renderPage('stations'),station:()=>live.renderPage('station',selected),messages:()=>live.renderPage('messages'),conversation:()=>live.renderPage('conversation',selected)};
-    screen.innerHTML=(pages[view]||home)();
+    screen.innerHTML=(pages[view]||home)()+((signedIn||!experience&&activeEventId)&&!preview?'<button type="button" class="re-text-link re-privacy-control" data-action="privacy">Datenschutz & freiwillige Messung</button>':'');
     nav.innerHTML=experience?[[experience.map?'map':'home',experience.map?'map':'house',experience.map?'Karte':'Heute'],...(offers().length?[['activities','compass','Entdecken']]:[]),['evening','heart','Mein Abend'],...(experience.stations?.length?[['messages','messages-square','Postfach']]:[]),...(experience.modules.help?.enabled?[['help','hand-heart','Hilfe']]:[])].map(([id,ic,label])=>`<button type="button" data-action="${id}" ${id===view||id==='map'&&view==='home'?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></button>`).join(''):'';
-    root.classList.remove('is-editing');icons();if(root.querySelector('[data-guest-map]')&&experience?.map)mapView=mountGuestMap({root:root.querySelector('[data-guest-map]'),map:experience.map,navigate:go,camera:mapCamera,ensureSession:()=>live.ensureSession(),eventId:activeEventId,accessCode,preview});save();live.mountNotices();
+    root.classList.remove('is-editing');icons();if(root.querySelector('[data-guest-map]')&&experience?.map)mapView=mountGuestMap({root:root.querySelector('[data-guest-map]'),map:experience.map,navigate:go,camera:mapCamera,ensureSession:()=>live.ensureSession(),eventId:activeEventId,accessCode,preview,onVisit:id=>analytics.track({type:'stand.opened',refs:{standId:id}}),onAction:e=>analytics.track(e)});save();live.mountNotices();
   }
   function go(next,id='',push=true){
     if(!experience&&!['messages','conversation'].includes(next))return;
@@ -61,14 +63,15 @@
     document.activeElement?.blur?.();view=next;selected=id;
     if(push)history.pushState({view,selected},'',location.href);
     render();window.scrollTo({top:0,behavior:'instant'});
-    screen.querySelector('h1')?.setAttribute('tabindex','-1');screen.querySelector('h1')?.focus({preventScroll:true});live.onEnter(next);
+    screen.querySelector('h1')?.setAttribute('tabindex','-1');screen.querySelector('h1')?.focus({preventScroll:true});live.onEnter(next);analytics.view(next,id);
   }
   root.addEventListener('click',async event=>{
     const target=event.target.closest('[data-action]');if(!target)return;
     const action=target.dataset.action;
-    if(!experience&&!['reload','messages','conversation'].includes(action))return;
+    if(!experience&&!['reload','messages','conversation','privacy'].includes(action))return;
     if(action==='bookmark'){const {kind,id}=target.dataset;state.saved=state.saved.some(s=>s.id===id&&s.kind===kind)?state.saved.filter(s=>s.id!==id||s.kind!==kind):[...state.saved,{kind,id}];save();render();return;}
-    if(action==='restart'){await live.logout();state={name:'',saved:[]};save();go('welcome');return;}
+    if(action==='privacy'){try{await analytics.preferences();}catch(error){const p=document.createElement('p');p.className='re-error';p.textContent=error.message;target.after(p);}return;}
+    if(action==='restart'){try{await live.logout();}catch(error){const p=document.createElement('p');p.className='re-error';p.textContent=error.message;target.after(p);return;}analytics.reset();state={name:'',saved:[]};save();go('welcome');return;}
     if(action==='reload'){location.reload();return;}
     go(action,target.dataset.id||'');
   });
@@ -81,7 +84,7 @@
   function showClosed(event){mapView?.destroy();mapView=null;document.querySelectorAll('.vm-stand-sheet[open]').forEach(d=>d.close());
     activeEventId=event?.id||activeEventId;experience=null;root.classList.remove('has-navigation','is-editing');root.dataset.view='closed';nav.hidden=true;
     root.querySelector('.re-header-place').textContent='Bis bald im Rudel.';
-    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+'</div>';icons();live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
+    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+button('Datenschutz & freiwillige Messung','privacy','',true)+'</div>';icons();live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }
   screen.innerHTML='<p class="re-lead">Dein Abend wird geladen …</p>';
   try{
@@ -106,6 +109,6 @@
       const check=async()=>{if(checking||document.visibilityState==='hidden')return;checking=true;try{const r=await fetch(refreshEndpoint,{cache:'no-store'}),data=await r.json();if(data.state==='closed')showClosed(data.event);else if(r.ok&&data.experience){const changed=experience?.revision!==data.experience.revision;experience=data.experience;if(changed&&!['welcome','name'].includes(view))render();}}catch{}finally{checking=false;}};
       setInterval(check,30000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
     }
-    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();if(state.name)live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
+    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();if(state.name){live.startNotices();analytics.refresh();}if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }catch(error){nav.hidden=true;root.querySelector('.re-header-place').textContent='Gemeinsam. Überall.';screen.innerHTML=heading('Wir sind gleich wieder da.','Ein kurzer Moment.',error.message)+button('Erneut versuchen','reload');icons();}
 })();

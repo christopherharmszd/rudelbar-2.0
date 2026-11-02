@@ -62,6 +62,7 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
  }
  async function actorFor(row,cache){
   if(row.audience==='guest'){
+   if(env.RUDELBAR_CONNECTED_IDENTITY==='1'){const active=await first('SELECT p.id FROM guest_participations p JOIN guest_profiles g ON g.id=p.profile_id JOIN guest_sessions s ON s.participation_id=p.id WHERE p.id=? AND p.event_id=? AND p.closed_at IS NULL AND g.closed_at IS NULL AND s.revoked_at IS NULL AND s.expires_at>? LIMIT 1',[row.recipient.slice(2),row.event_id,Date.now()]);return active?{id:row.recipient,eventId:row.event_id,audience:'guest'}:null;}
    const visitor=await first('SELECT id FROM live_visitors WHERE id=? AND event_id=? AND expires_at>?',[row.recipient.slice(2),row.event_id,Date.now()]);return visitor?{id:row.recipient,eventId:row.event_id,audience:'guest'}:null;
   }
   if(row.recipient==='publisher')return row.auth_version===env.RUDELBAR_PASSWORD_VERIFIER?{id:'publisher',eventId:row.event_id,audience:'team',publisher:true}:null;

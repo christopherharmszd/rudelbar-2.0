@@ -3,6 +3,7 @@
 export const MEASUREMENT_VERSION=1;
 const spec=(label,source,family,options={})=>({label,source,family,...options});
 export const MEASUREMENTS=Object.freeze({
+ 'entry.opened':spec('Einstiegslink geöffnet','client','entry'),
  'guest.started':spec('Gastzugang angelegt','server','entry'),
  'guest.resumed':spec('Gastzugang wiederaufgenommen','server','entry'),
  'view.opened':spec('Bereich geöffnet','client','usage'),
@@ -38,7 +39,7 @@ export const MEASUREMENTS=Object.freeze({
 export const VIEWS=['home','welcome','name','overview','discover','map','equipment','games','program','drinks','evening','encounters','inbox','help','wall','dating','raffle','profile'];
 const fail=message=>{throw Object.assign(new Error(message),{status:400});};
 const key=value=>{if(typeof value!=='string'||!/^[a-z0-9][a-z0-9-]{0,119}$/i.test(value))fail('Ungültige Messreferenz.');return value;};
-const REF_KEYS=['releaseId','standId','occurrenceId','contentKey','functionId','objectId'];
+const REF_KEYS=['releaseId','standId','occurrenceId','contentKey','functionId','objectId','placementId'];
 export function cleanMeasurement(input,{source,eventId,participationId='',consent=false,now=Date.now()}={}){
  if(!input||typeof input!=='object'||Array.isArray(input))fail('Ungültiges Messereignis.');
  const definition=Object.hasOwn(MEASUREMENTS,input.type)?MEASUREMENTS[input.type]:null;

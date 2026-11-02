@@ -1,5 +1,5 @@
 import {createNotificationCenter} from './notifications.js';
-export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update}){
+export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update,onAction}){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
  const state={page:'',selected:'',ready:false,requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
@@ -60,11 +60,12 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
    await ensureSession();
    if(form.id==='live-request'){
     const id=form.dataset.station,clientKey=state.pendingKeys[id]||crypto.randomUUID();state.pendingKeys[id]=clientKey;
+    onAction?.({type:'action.started',action:stations().find(s=>s.id===id)?.kind||'message',key:clientKey+'-started'});
     const result=await api('/requests','POST',{stationId:id,clientKey,input:Object.fromEntries(new FormData(form))});delete state.pendingKeys[id];delete state.drafts[id];if(version===viewVersion)await loadConversation(result.request.id);
    }else{
     const result=await api('/requests/'+request.id,'POST',{input:{reply,revision:request.revision}});if(version===viewVersion&&state.selected===request.id){state.detail=result;state.replyDraft='';update();}
    }
-  }catch(error){if(form.isConnected)showError(form,error);}finally{state.sending=false;submit.disabled=false;}
+  }catch(error){if(form.id==='live-request')onAction?.({type:'action.failed',action:stations().find(s=>s.id===form.dataset.station)?.kind||'message',errorCode:({400:'validation',401:'unauthorized',403:'unauthorized',409:'conflict',429:'rate-limit'})[error.status]||(error.status?'server':'network')});if(form.isConnected)showError(form,error);}finally{state.sending=false;submit.disabled=false;}
  });
  async function refresh(){
   if(preview||!['messages','conversation'].includes(state.page)||state.loading||state.sending||refreshing||document.visibilityState==='hidden')return;
@@ -77,5 +78,5 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   }catch{}finally{refreshing=false;}
  }
  setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
- return {ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();try{await api('/logout','POST',{});}catch{}state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
+ return {ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();await api('/logout','POST',{});state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
 }

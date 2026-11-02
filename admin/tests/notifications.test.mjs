@@ -86,7 +86,7 @@ test('notification HTTP routes require origin and cookies and migrate an old gue
  const rejected=await worker.fetch(new Request(origin+'/api/guest/notifications/subscribe',{method:'POST',headers:{Origin:'https://other.invalid','Content-Type':'application/json'},body:JSON.stringify({eventId:'test-evening',sessionToken:'forged'})}),env);assert.equal(rejected.status,403);assert.equal(calls.length,0);
  const listing=await worker.fetch(new Request(origin+'/api/guest/notifications?abend=test-evening',{headers:{Cookie:cookie}}),env);assert.equal(listing.status,200);assert.equal(calls[0].input.sessionToken,'trusted-secret');assert.ok(!JSON.stringify(await listing.json()).includes('trusted-secret'));assert.ok(listing.headers.getSetCookie().some(value=>value.includes('Path=/;')));assert.ok(listing.headers.getSetCookie().some(value=>value.includes('Path=/api/guest; Max-Age=0')));
  await worker.fetch(new Request(origin+'/api/experience?abend=test-evening',{headers:{Cookie:cookie}}),env);assert.equal(calls[1].sessionToken,'trusted-secret');
- const logout=await worker.fetch(new Request(origin+'/api/guest/logout',{method:'POST',headers:{Origin:origin,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({eventId:'test-evening',endpoint:'https://fcm.googleapis.com/fcm/send/device'})}),env);assert.equal(calls.at(-1).input.action,'unsubscribe');assert.equal(logout.headers.getSetCookie().length,2);
+ const logout=await worker.fetch(new Request(origin+'/api/guest/logout',{method:'POST',headers:{Origin:origin,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({eventId:'test-evening',endpoint:'https://fcm.googleapis.com/fcm/send/device'})}),env);assert.equal(calls.at(-1).action,'guestLogout');assert.equal(calls.at(-1).input.sessionToken,'trusted-secret');assert.equal(logout.headers.getSetCookie().length,2);
 });
 
 test('failed device tests retain permission and record a useful transport error',async()=>{
@@ -95,5 +95,15 @@ test('failed device tests retain permission and record a useful transport error'
   const hub=createNotifications(s.env,{context:async()=>s.context,transport:async()=>{throw new TypeError('Simulated transport failure');}});
   await assert.rejects(()=>hub.test(s.who,{endpoint:device.json.endpoint}),error=>error.status===502&&error.message.includes('Deine Erlaubnis bleibt erhalten'));
   const row=s.db.connection.prepare('SELECT active,last_status FROM live_push_subscriptions').get();assert.equal(row.active,1);assert.equal(row.last_status,502);
+ }finally{s.close();}
+});
+test('canonical logout revokes access and blocks delivery even if a stale subscription is reactivated',async()=>{
+ const s=await fixture();try{
+  s.db.connection.exec(await readFile(new URL('../migrations/0008_guest_identity.sql',import.meta.url),'utf8'));s.env.RUDELBAR_CONNECTED_IDENTITY='1';
+  const canonical=createLiveService({...s.env,RUDELBAR_CONNECTED_IDENTITY:'1'},null,{getContext:async()=>s.context}),device=await subscription('revoked-canonical');await s.hub.subscribe(s.who,{subscription:device.json});
+  const {request}=await s.submit();await canonical.guestLogout({eventId:'test-evening',sessionToken:s.guest.sessionToken});
+  await assert.rejects(()=>canonical.mine({eventId:'test-evening',sessionToken:s.guest.sessionToken}),e=>e.status===401);
+  s.db.connection.exec('UPDATE live_push_subscriptions SET active=1');await s.service.staffUpdate(s.actorB,request.id,{reply:'Neue Antwort nach Abmeldung',revision:request.revision});
+  assert.equal((await s.hub.flush()).sent,0);assert.equal(s.deliveries.length,0);
  }finally{s.close();}
 });

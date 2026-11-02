@@ -1,3 +1,5 @@
+import {createProviderMetrics} from './lib/provider-metrics.mjs';
+import {createReporting} from './lib/reporting.mjs';
 import {WorkerEntrypoint} from 'cloudflare:workers';
 import {connect} from 'cloudflare:sockets';
 import worker from './worker.mjs';
@@ -17,9 +19,9 @@ export class VisitorContent extends WorkerEntrypoint {
   async guestAction(action,input){
     try{
       const service=createLiveService(this.env,createContentClient(this.env),{defer:promise=>this.ctx.waitUntil(promise)});
-      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction'].includes(action))return {status:404,error:'Nicht gefunden.'};
+      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction','guestAnalysis','guestLogout'].includes(action))return {status:404,error:'Nicht gefunden.'};
       return {status:200,...await service[action](input)};
     }catch(error){return {status:error.status||503,error:error.status?error.message:'Die Nachricht konnte gerade nicht verarbeitet werden.'};}
   }
 }
-export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);ctx.waitUntil(createLiveService(env,client).notices.flush());ctx.waitUntil(flushReleaseReceipts(client));}};
+export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);ctx.waitUntil(createLiveService(env,client).notices.flush());ctx.waitUntil(flushReleaseReceipts(client));ctx.waitUntil(createReporting(env.LIVE_DB).retention());ctx.waitUntil(createProviderMetrics(env).sync());}};

@@ -1,0 +1,15 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile}from'node:fs/promises';import{sqliteD1}from'./sqlite-d1.mjs';import{createProviderMetrics,REPORT_ACCOUNT}from'../lib/provider-metrics.mjs';
+const schema=await readFile(new URL('../migrations/0010_reporting.sql',import.meta.url),'utf8');
+// Provider-specific tables only; triggers need their existing operational sources.
+const base=(await Promise.all(['0001_live_stations.sql','0002_notifications.sql','0007_game_rounds.sql','0008_guest_identity.sql'].map(n=>readFile(new URL('../migrations/'+n,import.meta.url),'utf8')))).join('\n');
+const token='test-read-only-token-for-isolated-provider';
+function fixture(transport){const db=sqliteD1();db.connection.exec(base+schema);return {db,service:createProviderMetrics({LIVE_DB:db,RUDELBAR_SESSION_SECRET:'isolated-secret'}, {transport})};}
+const response=()=>Response.json({data:{viewer:{accounts:[{cms:[{sum:{requests:12,errors:1,subrequests:5}}],guest:[{sum:{requests:20,errors:0,subrequests:7}}],database:[{sum:{readQueries:100,writeQueries:5,rowsRead:200,rowsWritten:8},quantiles:{queryBatchTimeMsP90:2.5}}]}]}}});
+test('provider key is encrypted, never returned, and only fixed Rudelbar analytics queries leave the backend',async()=>{let calls=0;const f=fixture(async(url,options)=>{calls++;assert.equal(url,'https://api.cloudflare.com/client/v4/graphql');const body=JSON.parse(options.body);assert.equal(body.variables.accountTag,REPORT_ACCOUNT);assert.ok(!body.query.includes('mutation'));assert.equal(options.headers.Authorization,'Bearer '+token);return response();});try{
+ const saved=await f.service.configure({revision:1,enabled:true,token});assert.equal(saved.tokenSaved,true);assert.equal(JSON.stringify(saved).includes(token),false);assert.equal(f.db.connection.prepare('SELECT token_cipher FROM reporting_provider_settings').get().token_cipher.includes(token),false);
+ const synced=await f.service.sync();assert.equal(synced.lastStatus,'ok');assert.equal(calls,3);await f.service.sync();assert.equal(calls,3);
+ const rows=f.db.connection.prepare('SELECT * FROM reporting_provider_snapshots').all();assert.equal(rows.length,6);assert.equal(JSON.parse(rows.find(r=>r.resource==='rudelbar-cms-staging').metrics_json).requests,12);
+ }finally{f.db.connection.close();}});
+test('invalid or failed provider responses never overwrite measured history with invented zeros',async()=>{let unavailable=false;const f=fixture(async()=>unavailable?Response.json({errors:[{message:'private upstream information'}]}):response());try{
+ await f.service.configure({revision:1,enabled:true,token});await f.service.sync();const before=f.db.connection.prepare('SELECT * FROM reporting_provider_snapshots ORDER BY resource,period_start').all();unavailable=true;const status=await f.service.sync({force:true,now:Date.now()+3600001});assert.equal(status.lastStatus,'unavailable');assert.deepEqual(f.db.connection.prepare('SELECT * FROM reporting_provider_snapshots ORDER BY resource,period_start').all(),before);assert.equal(JSON.stringify(status).includes('private upstream'),false);
+ }finally{f.db.connection.close();}});

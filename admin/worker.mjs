@@ -146,7 +146,7 @@ async function body(request, limit = 1_000_000) {
 }
 
 async function data(request) {
-  try { return JSON.parse(decoder.decode(await body(request))); }
+  try { return JSON.parse(decoder.decode(await body(request,/\/api\/abend\/(?:catalog|resources)\/csv/.test(new URL(request.url).pathname)?2_100_000:1_000_000))); }
   catch (error) { if (error.status) throw error; throw Object.assign(new Error("Ungültige Eingabe."), { status: 400 }); }
 }
 

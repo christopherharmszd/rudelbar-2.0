@@ -65,3 +65,46 @@ Sanity erhält wiederholbare Quittungen; ein Quittungsausfall setzt die Freigabe
 Offene Anfragen und laufende Runden werden vor entfernten Zuordnungen geschützt.
 CSV-Rundreise prüft Leerwertabweichungen, Zeilenumbrüche, Formeltexte und Beziehungen.
 Browsernachweis: verbundener Ortsplan und Auswahl vorhandener zentraler Stände.
+
+## Verknüpfte Vorlagen und Laufzeit online
+
+GitHub b337deedc38e9f33773f680c740bf1c71fcc1189; Worker
+0b618cce-8fb6-4e3b-b07c-44533e996d28. 20 Online-Prüfungen bestanden.
+0009 ist remote angewendet. Alle Bestände bleiben erhalten (3 Gäste, 5 Anfragen,
+13 Nachrichten, 1 Push-Abo, 1 Konto, 3 kanonische Sitzungen). Keine echten
+Freigabepakete oder Beispielvorlagen angelegt.
+
+## Auswertung, nächster geprüfter Stand
+
+Eigener Bereich mit Überblick, Beteiligung, Kommunikation, freiwillig gemessenen
+Inhalten/Wegen, Betrieb und Einrichtung. Datenstand, Berlin-Zeitfilter, Vergleiche,
+CSV, Quellen und Abdeckung sind sichtbar. Keine erfundene Vergangenheit oder
+Gästezahlen aus Hintergrundabrufen. Fachaktionen werden mit ihren Schreibvorgängen
+erfasst; Bedienereignisse benötigen eine aktuelle getrennte Zustimmung. Widerruf
+entfernt noch vorhandene einzelne Bedienereignisse. Keine zusätzlichen Tracking-Cookies.
+
+142 Tests bestanden; zusätzlich echter Cloudflare-D1-Laufzeittest. Isolierte
+HTTP-Prüfungen bestätigen 13 Fälle der Vorlagen-/Freigabelogik sowie 9 Fälle für
+Zustimmung, wiederholte Übertragung, QR-Platzierung, bestätigten Abschluss, CSV,
+Widerruf und tatsächlich gesperrte alte Gastsitzung nach Abmeldung. Die Push-Prüfung
+verhindert Zustellung selbst bei einer erneut aktivierten veralteten Subscription.
+
+0010 wurde auf der frischen Betriebssicherung zweimal verlustfrei erprobt.
+Zusätzliche Messung und Anbieterabruf bleiben standardmäßig aus. Vor Aktivierung
+werden Zweck, Grundlage, Datenschutzinformation und Fassung in Backstage gepflegt.
+Fachliche Bestandsauswertungen sind davon getrennt verfügbar.
+
+Die Cloudflare-Abfragen wurden am echten Konto lesend geprüft (Worker-Aufrufe,
+Fehler, Unteranfragen; D1-Lese-/Schreibabfragen, Zeilen und P90-Laufzeit). Dafür
+wurde ausschließlich der bestehende Desktop-Zugang im Lesetest benutzt. Er wird
+nicht an das laufende Produkt übertragen. Der dauerhafte Anbieterabruf benötigt
+einen separaten Schlüssel mit Account Analytics Read, im Backend verschlüsselt.
+
+Quellen der geprüften Anbieterfelder:
+https://developers.cloudflare.com/d1/observability/metrics-analytics/
+https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/
+https://developers.cloudflare.com/workers/runtime-apis/bindings/version-metadata/
+
+Weiter offen: gemeinsame Kontextgespräche und erweiterte Gastprofile, Wall,
+Gewinnaktionen, Dating/Tanz/Kontakte, abschließende Gesamt- und Geräteprüfung.
+Die allgemeinen Gästeoberflächen bleiben bis zum letzten Abschnitt nachrangig.

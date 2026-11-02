@@ -1,3 +1,4 @@
+import {reportingApi} from './reporting.mjs';
 import {venuePlansApi} from './venue-plans.mjs';
 import {createReleaseStore} from './release-store.mjs';
 import {releaseOperation,writeRelease} from './release-service.mjs';
@@ -24,6 +25,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   const onboardingMatch=path.match(/^\/api\/abend\/members\/([a-f0-9-]{36})$/);
   if(onboardingMatch&&request.method==='GET')return json(200,await createMemberOnboarding(env,client).get(user,onboardingMatch[1]));
   requirePermission(readsEvents(user));
+  if(path.startsWith('/api/abend/reporting/'))return reportingApi(request,env,{client,user,json,data});
   const planning=createPlanning(client);
   if(path==='/api/abend/resources'||path.startsWith('/api/abend/resources/'))return resourcesApi(request,{client,user,json,data});
   if(path.startsWith('/api/abend/venue-plans'))return venuePlansApi(request,{client,user,json,data});

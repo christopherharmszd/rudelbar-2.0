@@ -22,7 +22,7 @@ export default {
       if(request.method==='POST'&&request.headers.get('origin')!==url.origin)return json(403,{error:'Ungültige Herkunft.'});
       const input=request.method==='POST'?await body(request):{},eventId=validId(input.eventId||url.searchParams.get('abend'));
       const name=cookieName(eventId),sessionToken=tokenFor(request,eventId);
-      if(url.pathname==='/api/guest/logout'&&request.method==='POST'){if(sessionToken&&input.endpoint)await env.CONTENT.guestAction('guestNotice',{eventId,sessionToken,action:'unsubscribe',input:{endpoint:input.endpoint}});const response=json(200,{ok:true});for(const path of ['/','/api/guest'])response.headers.append('Set-Cookie',`${name}=; HttpOnly; Secure; SameSite=Strict; Path=${path}; Max-Age=0`);return response;}
+      if(url.pathname==='/api/guest/logout'&&request.method==='POST'){if(sessionToken){const revoked=await env.CONTENT.guestAction('guestLogout',{eventId,sessionToken});if(revoked.status&&![200,401].includes(revoked.status))return json(503,{error:'Die Abmeldung konnte gerade nicht bestätigt werden. Bitte erneut versuchen.'});}const response=json(200,{ok:true});for(const path of ['/','/api/guest'])response.headers.append('Set-Cookie',`${name}=; HttpOnly; Secure; SameSite=Strict; Path=${path}; Max-Age=0`);return response;}
       const args={...input,eventId,sessionToken};
       if(url.pathname==='/api/guest/rounds'){args.operation=input.operation||'list';for(const key of ['offerType','offerId','boothId'])if(!args[key])args[key]=url.searchParams.get(key);if(!args.accessCode)args.accessCode=url.searchParams.get('zugang')||'';}
       let action;
@@ -34,6 +34,7 @@ export default {
       if(url.pathname==='/api/guest/notifications'&&request.method==='GET'){action='guestNotice';args.action='list';}
       const notice=url.pathname.match(/^\/api\/guest\/notifications\/(read|settings|subscribe|unsubscribe|test)$/);
       if(notice&&request.method==='POST'){action='guestNotice';args.action=notice[1]==='read'?'mark':notice[1];args.input=input;}
+      if(url.pathname==='/api/guest/analysis'){action='guestAnalysis';args.operation=request.method==='GET'?'settings':input.operation;args.input=input;}
       if(!action)return json(404,{error:'Nicht gefunden.'});
       const {status=200,sessionToken:createdToken,expiresAt,...result}=await env.CONTENT.guestAction(action,args);
       const rootToken=createdToken||(action==='guestNotice'&&status===200?sessionToken:'');
