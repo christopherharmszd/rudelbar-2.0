@@ -438,3 +438,11 @@ test('guest entry uses production event metadata with existing app release, peop
   assert.equal(state.calls.some(c=>c.url.includes('/data/mutate/')),false);
  }finally{state.restore();}
 });
+
+test('a renewed same-account session identifies stale CSRF before creating a template and accepts the current proof',async()=>{
+ const s=await setup();try{const old=await login(s.env),current=await login(s.env),count=()=>[...s.docs.values()].filter(d=>d._type==='rudelAppTemplate').length;
+ const response=await worker.fetch(request('/api/abend/templates',{method:'POST',cookie:current.cookie,csrf:old.csrf,body:{name:'Isolierte Vorlage'}}),s.env);assert.equal(response.status,403);assert.equal((await response.json()).code,'csrf_stale');assert.equal(count(),0);
+ const denied=await worker.fetch(request('/api/abend/templates',{method:'POST',cookie:current.cookie,csrf:current.csrf,originHeader:'https://unrelated.example',body:{name:'Falsch'}}),s.env);assert.equal((await denied.json()).code,'invalid_origin');assert.equal(count(),0);
+ const created=await worker.fetch(request('/api/abend/templates',{method:'POST',cookie:current.cookie,csrf:current.csrf,body:{name:'Isolierte Vorlage'}}),s.env);assert.equal(created.status,201);assert.equal(count(),1);
+ }finally{s.restore();}
+});

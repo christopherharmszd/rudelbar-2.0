@@ -86,8 +86,9 @@ function sameOrigin(request) {
 async function authorized(request, env) {
   const user = await session(request, env);
   if (!user) return { error: json(401, { error: "Bitte anmelden." }) };
-  if (!sameOrigin(request) || request.headers.get("x-csrf-token") !== user.csrf) {
-    return { error: json(403, { error: "Ungültige Sicherheitsprüfung." }) };
+  if (!sameOrigin(request)) return { error: json(403, { error: "Ungültige Sicherheitsprüfung.", code:"invalid_origin" }) };
+  if (request.headers.get("x-csrf-token") !== user.csrf) {
+    return { error: json(403, { error: "Ungültige Sicherheitsprüfung.", code:"csrf_stale" }) };
   }
   return { user };
 }

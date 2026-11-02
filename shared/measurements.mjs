@@ -12,6 +12,7 @@ export const MEASUREMENTS=Object.freeze({
  'map.opened':spec('Ortsplan geöffnet','client','usage'),
  'action.started':spec('Aktion begonnen','client','usage'),
  'action.failed':spec('Aktion fehlgeschlagen','client','quality'),
+ 'conversation.sent':spec('Nachricht in einer Spielrunde gesendet','server','communication',{active:true}),
  'request.created':spec('Anfrage eingegangen','server','communication',{active:true}),
  'request.replied':spec('Anfrage beantwortet','server','communication'),
  'request.changed':spec('Anfragestatus geändert','server','communication'),

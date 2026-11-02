@@ -1,5 +1,5 @@
 import {buildPushPayload} from '@block65/webcrypto-web-push';
-import {seesEvent,runsEvent,editsContent} from './permissions.mjs';
+import {seesEvent,runsEvent,editsContent,usesStations} from './permissions.mjs';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),b=>b.toString(16).padStart(2,'0')).join('');
@@ -48,11 +48,15 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
  async function subscribe(recipient,input){
   if(!configured())fail('Mitteilungen werden gerade eingerichtet. Neue Nachrichten siehst du weiterhin im Postfach.',503);
   const subscription=cleanSubscription(input.subscription),endpointHash=await hash(subscription.endpoint),now=Date.now(),id=await hash(recipient.eventId+'|'+recipient.id+'|'+endpointHash);
-  const existing=await first('SELECT id FROM live_push_subscriptions WHERE id=?',[id]);if(!existing){const count=await first('SELECT COUNT(*) AS n FROM live_push_subscriptions WHERE event_id=? AND recipient=? AND active=1 AND expires_at>?',[recipient.eventId,recipient.id,now]);if(count.n>=10)fail('Es sind bereits zehn Geräte für diesen Abend angemeldet.',409);}
+  const existing=await first('SELECT id,active FROM live_push_subscriptions WHERE id=?',[id]);if(!existing){const count=await first('SELECT COUNT(*) AS n FROM live_push_subscriptions WHERE event_id=? AND recipient=? AND active=1 AND expires_at>?',[recipient.eventId,recipient.id,now]);if(count.n>=10)fail('Es sind bereits zehn Geräte für diesen Abend angemeldet.',409);}
   const cursor=Number((await first('SELECT MAX(seq) AS seq FROM live_activity WHERE event_id=?',[recipient.eventId]))?.seq||0);
   const expiresAt=Math.min(recipient.expiresAt||now+8*3600000,now+7*86400000);
   let path=recipient.audience==='guest'?`/?abend=${encodeURIComponent(recipient.eventId)}&postfach=1`:recipient.publisher||recipient.id.startsWith('u:')?`/team?abend=${encodeURIComponent(recipient.eventId)}`:`/team?s=${encodeURIComponent(recipient.grantId)}`;
   await run(`INSERT INTO live_push_subscriptions(id,event_id,recipient,audience,person_id,grant_id,auth_version,endpoint_hash,subscription_json,return_path,expires_at,active,cursor,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,?,?) ON CONFLICT(event_id,recipient,endpoint_hash) DO UPDATE SET subscription_json=excluded.subscription_json,expires_at=excluded.expires_at,grant_id=excluded.grant_id,auth_version=excluded.auth_version,return_path=excluded.return_path,active=1,cursor=CASE WHEN live_push_subscriptions.active=1 THEN live_push_subscriptions.cursor ELSE excluded.cursor END,next_attempt=0,attempts=0,updated_at=excluded.updated_at`,[id,recipient.eventId,recipient.id,recipient.audience,recipient.personId||'',recipient.grantId||'',recipient.authVersion||'',endpointHash,JSON.stringify(subscription),path,expiresAt,cursor,now,now]);
+  if(env.RUDELBAR_CONNECTED_SOCIAL==='1'&&recipient.audience==='guest'){
+   const chatCursor=Number((await first('SELECT MAX(seq) AS seq FROM guest_conversation_activity WHERE event_id=?',[recipient.eventId]))?.seq||0);
+   await run('INSERT INTO guest_chat_push_cursors(subscription_id,cursor) VALUES(?,?) ON CONFLICT(subscription_id) DO UPDATE SET cursor=CASE WHEN ? THEN guest_chat_push_cursors.cursor ELSE excluded.cursor END,lease_until=0,next_attempt=0,attempts=0',[id,chatCursor,Number(!!existing?.active)]);
+  }
   return {ok:true,...await settings(recipient,{endpoint:subscription.endpoint})};
  }
  async function unsubscribe(recipient,{endpoint}={}){
@@ -71,7 +75,7 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
    const user={accountId:account.id,personId:account.person_id,roles:JSON.parse(account.roles_json)};
    if(!cache.has(row.event_id))cache.set(row.event_id,context(row.event_id));const ctx=await cache.get(row.event_id);
    if(!seesEvent(user,row.event_id)||!ctx.people.some(p=>p.personId===user.personId&&!p.archived)||!editsContent(user)&&!ctx.event.teamIds.includes(user.personId))return null;
-   const publisher=runsEvent(user,row.event_id);return {id:row.recipient,eventId:row.event_id,audience:'team',publisher,stations:ctx.stations.filter(s=>publisher||(!s.operatorIds?.length&&!s.assignmentRequired)||s.operatorIds?.includes(user.personId)).map(s=>s.id)};
+   const publisher=runsEvent(user,row.event_id);return {id:row.recipient,eventId:row.event_id,audience:'team',publisher,stations:ctx.stations.filter(s=>usesStations(user,row.event_id)&&(publisher||(!s.operatorIds?.length&&!s.assignmentRequired)||s.operatorIds?.includes(user.personId))).map(s=>s.id)};
   }
   const grant=await first('SELECT person_id FROM live_grants WHERE id=? AND event_id=? AND revoked=0 AND expires_at>?',[row.grant_id,row.event_id,Date.now()]);if(!grant||grant.person_id!==row.person_id)return null;
   if(!cache.has(row.event_id))cache.set(row.event_id,context(row.event_id));const ctx=await cache.get(row.event_id);

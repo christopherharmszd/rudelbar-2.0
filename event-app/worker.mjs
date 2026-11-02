@@ -35,6 +35,8 @@ export default {
       const notice=url.pathname.match(/^\/api\/guest\/notifications\/(read|settings|subscribe|unsubscribe|test)$/);
       if(notice&&request.method==='POST'){action='guestNotice';args.action=notice[1]==='read'?'mark':notice[1];args.input=input;}
       if(url.pathname==='/api/guest/analysis'){action='guestAnalysis';args.operation=request.method==='GET'?'settings':input.operation;args.input=input;}
+      if(url.pathname==='/api/guest/profile'){action='guestProfile';args.operation=request.method==='GET'?'read':input.operation;args.input=input;}
+      if(url.pathname==='/api/guest/conversations'){action='conversation';args.operation=request.method==='GET'?(url.searchParams.get('conversationId')||url.searchParams.get('referenceId')?'read':'list'):input.operation;for(const key of ['conversationId','referenceId','kind','before'])if(url.searchParams.has(key))args[key]=url.searchParams.get(key);}
       if(!action)return json(404,{error:'Nicht gefunden.'});
       const {status=200,sessionToken:createdToken,expiresAt,...result}=await env.CONTENT.guestAction(action,args);
       const rootToken=createdToken||(action==='guestNotice'&&status===200?sessionToken:'');

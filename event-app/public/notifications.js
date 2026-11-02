@@ -39,8 +39,8 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  }
  async function poll(){
   if(stopped||disabled||polling||document.visibilityState==='hidden')return;polling=true;
-  try{const result=await api('/notifications');if(stopped)return;state.count=result.count;state.items=result.items;state.configured=result.configured;state.publicKey=result.publicKey;const latest=state.items[0]?.seq||0,already=Number(read(storageKey+':last-alert','0'));
-   if(baseline!==null&&latest>baseline&&latest>already){store(storageKey+':last-alert',latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
+  try{const result=await api('/notifications');if(stopped)return;state.count=result.count;state.items=result.items;state.configured=result.configured;state.publicKey=result.publicKey;const latest=state.items[0]?.alertSeq||state.items[0]?.seq||0,already=Number(read(storageKey+':last-alert-clock-v2','0'));
+   if(baseline!==null&&latest>baseline&&latest>already){store(storageKey+':last-alert-clock-v2',latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
   }catch{}finally{polling=false;}
  }
  async function start(){if(disabled||state.started||state.starting||stopped)return;state.starting=true;try{await initialize();state.started=true;await poll();if(supported())await settings();state.ready=true;mount();}catch{}finally{state.starting=false;}}

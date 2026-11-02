@@ -8,15 +8,15 @@ Der technische Detailplan bleibt dort ebenfalls erhalten.
 
 | Abschnitt | Stand | Nachweis |
 | --- | --- | --- |
-| 1. Grundlage und Messdefinitionen | Erster Stand implementiert | Typisierte Beziehungen, Herkunft, Konflikte, Mengenprüfung und Messvertrag; eigene Speicherung pro Objekt/Beziehung. |
-| 2. Bestehendes sicher umstellen | In Arbeit | 0008 auf echter Sicherung zweimal erfolgreich erprobt und remote angewendet; 3 Gäste, 5 Anfragen, 13 Nachrichten, 1 Push-Abo und 1 Konto unverändert. Versionierte D1-Freigabe und getrennte Durchführungen lokal integriert. |
-| 3. Backstage und Vorbereitung | In Arbeit | Stand-Assistent und zentrale Aufgaben/Bestände/Beziehungen lokal geprüft. Mobile Navigation: 390 px ohne Seitenüberlauf, Team und Verwaltung über Mehr. Vorlagen, zentrale Standverweise, sichere Vorschau ohne Termin und CSV für Stammdaten/Beziehungen integriert. |
-| 4. Auswertung | Offen | |
-| 5. Gästegrundlage und Live | Offen | |
-| 6. Memory Wall | Offen | |
-| 7. Gewinnaktionen | Offen | |
-| 8. Begegnungen und Dating | Offen | |
-| 9. Gesamtabnahme und Gäste-UX | Offen | |
+| 1. Grundlage und Messdefinitionen | Online | Eigenständige Objekte und Beziehungen, Herkunft, Konflikte und Mengenprüfung. |
+| 2. Bestehendes sicher umstellen | Kern online | 0008–0010 erhalten Konten, Gäste, Anfragen und Sitzungen. Versionierte Freigaben besitzen einen atomaren Aktivierungspunkt. |
+| 3. Backstage und Vorbereitung | Kern online | Vorlagen ohne Termin, zentrale Stände/Ortspläne, Zuordnungsassistent, CSV und mobile Navigation. Weitere Modulkonfiguration folgt mit den Modulen. |
+| 4. Auswertung | Online | Fachaktionen, freiwillige Bedienmessung, Abdeckung, CSV, feste Rudelbar-Anbieterquellen; zusätzliche Messung bleibt aus. |
+| 5. Gästegrundlage und Live | Veröffentlichung wird vorbereitet | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
+| 6. Memory Wall | Offen | Private Medien, Moderation, hochwertige Anzeige, Archiv und Wiederherstellung. |
+| 7. Gewinnaktionen | Offen | Vier Formate, Bestände und sichere Ausgabe. |
+| 8. Begegnungen und Dating | Offen | Freiwillige Begegnungen, Tanz, Dating und gegenseitige Kontakte. |
+| 9. Gesamtabnahme und Gäste-UX | Offen | Gesamtprüfung und abschließende Gästeoberflächen. |
 
 ## Veröffentlichter Grundlagenstand
 
@@ -123,3 +123,33 @@ Abendauswahl sind getrennt wählbar. CSV benennt den jeweiligen Anbieterzeitraum
 Die Anzeige lädt nach erfolgreichem Verbinden sofort neu. Ein eigener Regressionstest
 prüft den verbundenen Zustand bei einem alten Abend ohne passende Anbieterwerte.
 143 Tests sowie der Cloudflare-D1-Laufzeittest bestehen.
+
+## Gästegrundlage und Live, geprüfter nächster Stand
+
+Gastprofil mit gleichbleibender Identität und CAS-Speicherung. Angaben bleiben
+abendbezogen; Kurzbeschreibung und Interessen werden nicht automatisch öffentlich.
+Rundengespräche benötigen aktuelle tatsächliche Mitgliedschaft. Sequenzgrenzen
+verhindern das Lesen von Nachrichten vor dem Beitritt, auch innerhalb derselben
+Millisekunde. Beim Verlassen endet der normale Zugriff. Eigene Meldungen aus dem
+Teilnahmezeitraum bleiben möglich. Gegenseitige Profilsperren wirken beim Lesen,
+Senden, Postfach, Beitreten und unmittelbar vor Push-Versand.
+
+Nur Administration oder explizit zugewiesenes Schutz-Team sehen gemeldete Ausschnitte.
+Stationsbetreuung erhält keinen Zugriff auf private Rundengespräche. Der vorhandene
+Gerätezugang bleibt erhalten; Gesprächsversand besitzt einen separaten Cursor und
+vermischt keine bestehenden Stationszustellungen. Neue Gespräche bleiben pro Vorlage
+standardmäßig aus. Die Freigabe benötigt eine Datenschutzinformation; Nachrichten
+werden nach konfigurierten 1–30 Tagen gelöscht, Meldungen nach 30 Tagen.
+
+0011 wurde auf einer frischen tatsächlichen Betriebssicherung zweimal erprobt:
+43 vorhandene Tabellen unverändert, Integrität und Fremdschlüssel korrekt.
+Isolierte HTTP-Prüfung bestätigt sechs neue Gesamtfälle; Browser bestätigt
+Profiländerung, Beitritt und Nachricht bei 390 px ohne Seitenüberlauf. Der echte
+Cloudflare-D1-Laufzeittest besteht ebenfalls.
+
+Zusätzlich behoben: Nach erneuter Anmeldung desselben Kontos in einem anderen Tab
+wurde ein offenes Formular wegen veralteter CSRF-Prüfung abgelehnt. Der Client erneuert
+nur nach einer eindeutig vor dem Schreiben abgelehnten Sicherheitsprüfung den
+Sitzungsnachweis. Kontoidentität muss gleich bleiben. Herkunftsfehler, Rechtefehler,
+Netzausfälle und unklar ausgeführte Schreibvorgänge werden nicht automatisch wiederholt.
+Bestehende Formulareingaben bleiben dabei erhalten.

@@ -32,7 +32,7 @@ export function cleanCatalog(input){
   },input.categories);
 }
 
-export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],sections:[],map:emptyMap(),features:{stationDetails:false},modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
+export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],sections:[],map:emptyMap(),features:{stationDetails:false,roundChat:false},communication:{privacyUrl:'',retentionDays:30},modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
 
 export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   if(!Array.isArray(catalog.categories))catalog=cleanCatalog(catalog);
@@ -62,7 +62,9 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   }));
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};
   result.modules.help={enabled:input.modules?.help?.enabled!==false};
-  result.features={stationDetails:input.features?.stationDetails===true};
+  result.features={stationDetails:input.features?.stationDetails===true,roundChat:input.features?.roundChat===true};
+  const privacyUrl=text(input.communication?.privacyUrl,1000);if(privacyUrl&&!/^https:\/\//.test(privacyUrl))fail('Bitte eine HTTPS-Adresse für die Datenschutzinformation angeben.');
+  result.communication={privacyUrl,retentionDays:integer(input.communication?.retentionDays??30,1,30)};
   const selectedCategories=new Set(['equipment','games','program','menu'].flatMap(k=>result[k].map(r=>r.categoryId)));
   const supplied=Array.isArray(input.sections)?input.sections:sectionsFor(result);
   result.sections=unique(array(supplied,100).map(s=>{const cid=validId(s.categoryId||s.id),category=catalog.categories?.find(c=>c.id===cid);if(!category)fail('Ein Bereich verweist auf eine nicht mehr vorhandene Kategorie.');return {id:cid,categoryId:cid,title:text(s.title||category.name,100,true),enabled:s.enabled!==false,showImages:s.showImages!==false,detailsEnabled:s.detailsEnabled!==false};}));
@@ -99,5 +101,5 @@ export function stationsFor(config){
 export function publicExperience(doc,event){
   if(!doc||doc._id?.startsWith('drafts.')||doc.enabled!==true||!event||event.archived||event._id?.startsWith('drafts.')||doc.eventId!==event._id)return null;
   const sections=sectionsFor({...doc,program:programFor(doc)}),rows=(key,kind)=>(key==='program'?programFor(doc):doc[key]||[]).flatMap(row=>{const cid=row.categoryId||categoryId(kind,row.category||({equipment:'Ausstattung',games:'Spiele',program:'Programm',drinks:'Karte mit Preisen'}[kind])),s=sections.find(s=>s.categoryId===cid);if(s?.enabled===false)return [];return [{...row,categoryId:cid,category:s?.title||row.category,detailsEnabled:s?.detailsEnabled!==false,imageUrl:s?.showImages===false?'':row.imageUrl||''}];}).sort((a,b)=>sections.findIndex(s=>s.categoryId===a.categoryId)-sections.findIndex(s=>s.categoryId===b.categoryId));
-  return {schemaVersion:5,eventId:event._id,revision:doc._rev||'',event:{title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''},welcomeTitle:doc.welcomeTitle||`Herzlich willkommen\nin ${event.venue}.`,welcomeText:doc.welcomeText||'Schön, dass du da bist!',equipment:rows('equipment','equipment'),games:rows('games','games'),program:rows('program','program'),menu:rows('menu','drinks'),sections:sections.filter(s=>s.enabled!==false),features:{stationDetails:doc.features?.stationDetails===true},modules:doc.modules||{}};
+  return {schemaVersion:5,eventId:event._id,revision:doc._rev||'',event:{title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''},welcomeTitle:doc.welcomeTitle||`Herzlich willkommen\nin ${event.venue}.`,welcomeText:doc.welcomeText||'Schön, dass du da bist!',equipment:rows('equipment','equipment'),games:rows('games','games'),program:rows('program','program'),menu:rows('menu','drinks'),sections:sections.filter(s=>s.enabled!==false),features:{stationDetails:doc.features?.stationDetails===true,roundChat:doc.features?.roundChat===true},communication:doc.communication||{privacyUrl:'',retentionDays:30},modules:doc.modules||{}};
 }

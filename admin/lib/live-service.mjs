@@ -1,10 +1,13 @@
+import {createGuestProfiles} from './guest-profile.mjs';
+import {createConversationPush} from './conversation-push.mjs';
+import {createConversations} from './conversations.mjs';
 import {createReporting} from './reporting.mjs';
 import {createGameRounds} from './game-rounds.mjs';
 import {createGuestIdentity} from './guest-identity.mjs';
 import {validId,stationsFor} from '../../shared/experience.mjs';
 import {loadEvent,snapshotFor,peopleFor} from './abend-service.mjs';
 import {createNotifications} from './notifications.mjs';
-import {managesEvent,runsEvent,seesEvent,editsContent,requirePermission} from './permissions.mjs';
+import {managesEvent,runsEvent,seesEvent,editsContent,requirePermission,usesStations,hasRole} from './permissions.mjs';
 import {sectionAllowsStation} from '../../shared/content-model.mjs';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
@@ -125,18 +128,18 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     if(await first('SELECT id FROM app_accounts WHERE person_id=? AND enabled=0',[person.personId]))fail('Das Benutzerkonto dieser Person ist deaktiviert.',403);
     return {publisher:false,grantId:grant.id,eventId:grant.event_id,name:person.name,personId:person.personId,ctx,expiresAt:grant.expires_at};
   }
-  async function publisher(eventId,name='Redaktion'){return {publisher:true,eventId,name,personId:null,ctx:await context(eventId)};}
+  async function publisher(eventId,name='Redaktion'){return {publisher:true,canModerate:true,eventId,name,personId:null,ctx:await context(eventId)};}
   async function accountActor(eventId,user){
     const ctx=await context(eventId);requirePermission(seesEvent(user,eventId));
     if(!editsContent(user))requirePermission(ctx.event.teamIds.includes(user.personId)&&ctx.people.some(p=>p.personId===user.personId&&!p.archived));
-    return {publisher:runsEvent(user,eventId),canManage:managesEvent(user,eventId),eventId,name:user.name,personId:user.personId,accountId:user.accountId,accountSessionId:user.sessionId,authVersion:user.ver,expiresAt:user.exp,ctx};
+    return {user,canUseStations:usesStations(user,eventId),canModerate:hasRole(user,'admin')||hasRole(user,'moderator',eventId),publisher:runsEvent(user,eventId),canManage:managesEvent(user,eventId),eventId,name:user.name,personId:user.personId,accountId:user.accountId,accountSessionId:user.sessionId,authVersion:user.ver,expiresAt:user.exp,ctx};
   }
-  const allowed=(actor,station)=>actor.publisher||(!station.operatorIds?.length&&!station.assignmentRequired)||station.operatorIds?.includes(actor.personId);
+  const allowed=(actor,station)=>actor.canUseStations!==false&&(actor.publisher||(!station.operatorIds?.length&&!station.assignmentRequired)||station.operatorIds?.includes(actor.personId));
   function stations(actor){return actor.ctx.stations.filter(s=>allowed(actor,s));}
   async function staffContext(actor){
     const flags=await all('SELECT station_id,accepting,revision FROM live_station_state WHERE event_id=?',[actor.eventId]);
     const photos=await stationPhotos(actor.eventId);
-    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,roundsEnabled:actor.ctx.release.config?.map?.enabled===true&&actor.ctx.release.config.map.layout.booths.some(b=>b.offers.some(o=>o.matching)),stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0,imageUrl:photos.find(p=>p.station_id===s.id)?.image_url||s.imageUrl||'',photoRevision:photos.find(p=>p.station_id===s.id)?.revision||0,canUpdatePhoto:(actor.canManage??actor.publisher)||s.allowOperatorPhotos===true&&s.operatorIds?.includes(actor.personId)})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
+    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,canModerate:actor.canModerate===true,roundsEnabled:actor.ctx.release.config?.map?.enabled===true&&actor.ctx.release.config.map.layout.booths.some(b=>b.offers.some(o=>o.matching)),stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0,imageUrl:photos.find(p=>p.station_id===s.id)?.image_url||s.imageUrl||'',photoRevision:photos.find(p=>p.station_id===s.id)?.revision||0,canUpdatePhoto:(actor.canManage??actor.publisher)||s.allowOperatorPhotos===true&&s.operatorIds?.includes(actor.personId)})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
   }
   async function staffRow(actor,id){const row=await first(select+' WHERE r.id=? AND r.event_id=?',[id,actor.eventId]);if(!row||(!actor.publisher&&!stations(actor).some(s=>s.id===row.station_id)))fail('Diese Anfrage gehört nicht zu deinen Stationen.',404);return row;}
   async function inbox(actor,{id}={}){
@@ -170,10 +173,24 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     const result=revision===0?await run('INSERT OR IGNORE INTO live_station_photos(event_id,station_id,image_url,revision,updated_at,actor_name) VALUES(?,?,?,1,?,?)',[actor.eventId,id,imageUrl,Date.now(),actor.name]):await run('UPDATE live_station_photos SET image_url=?,revision=revision+1,updated_at=?,actor_name=? WHERE event_id=? AND station_id=? AND revision=?',[imageUrl,Date.now(),actor.name,actor.eventId,id,revision]);
     if(!result.meta.changes)fail('Das Stationsfoto wurde inzwischen geändert. Bitte aktualisieren.',409);return {ok:true};
   }
-  async function guestNotice({eventId,sessionToken,action,input={}}){const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);if(action==='list')return {expiresAt:person.expires_at,...await notices.list(who,input),...await notices.settings(who)};return {expiresAt:person.expires_at,...await notices[action](who,input)};}
+  async function guestNotice({eventId,sessionToken,action,input={}}){
+   const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);
+   if(action==='list'){
+    const result=await notices.list(who,input);
+    if(env.RUDELBAR_CONNECTED_SOCIAL==='1'){
+     await conversations.alertSequences(eventId,result.items,'station');const chats=await conversations.list(person);await conversations.alertSequences(eventId,chats.items,'conversation');result.items=[...result.items,...chats.items].sort((a,b)=>b.alertSeq-a.alertSeq);result.count=result.items.length;
+    }
+    return {expiresAt:person.expires_at,...result,...await notices.settings(who)};
+   }
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('chat-'))return conversations.mark(person,{conversationId:input.id,seq:input.seq});
+   return {expiresAt:person.expires_at,...await notices[action](who,input)};
+  }
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}
+  async function guestProfile({eventId,sessionToken,operation,input={}}){const person=await visitor(eventId,sessionToken),profiles=createGuestProfiles(database());if(operation==='read')return profiles.read(person);if(operation==='save')return profiles.save(person,input);if(operation==='unblock')return profiles.unblock(person,input.id);fail('Nicht gefunden.',404);}
+  const conversations=createConversations(env,{visitor,context,dispatch:eventId=>conversationPush.dispatch(eventId)});
+  const conversationPush=createConversationPush(env,{conversations,defer,transport});
   async function guestLogout({eventId,sessionToken}){const person=await visitor(eventId,sessionToken);await database().batch([database().prepare('UPDATE guest_sessions SET revoked_at=? WHERE id=? AND participation_id=? AND revoked_at IS NULL').bind(Date.now(),person.session_id||person.id,person.id),database().prepare('UPDATE live_push_subscriptions SET active=0,updated_at=? WHERE event_id=? AND recipient=?').bind(Date.now(),eventId,'v:'+person.id)]);return {ok:true};}
   async function guestAnalysis({eventId,sessionToken,operation,input={},events}){const person=await visitor(eventId,sessionToken),reporting=createReporting(database());if(operation==='settings')return reporting.guestSettings(person);if(operation==='consent')return reporting.guestConsent(person,input);if(operation==='events'){const ctx=await context(eventId);requireOpen(ctx);return reporting.ingest(person,{events},ctx.release);}fail('Nicht gefunden.',404);}
   const gameRounds=createGameRounds(env,{context,visitor,guestAccess,requireOpen,allowed});
-  return {guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
+  return {conversationPush,conversations,conversation:input=>conversations.guest(input),staffReports:(actor,input)=>conversations.moderation(actor.user||(actor.publisher?{name:'Redaktion'}:{accountId:'grant',roles:[]}),actor.eventId,input),guestProfile,guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

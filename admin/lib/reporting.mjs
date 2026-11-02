@@ -6,6 +6,7 @@ import {hasRole,editsContent,managesEvent,requirePermission} from './permissions
 import {eventList,loadEvent,snapshotFor} from './abend-service.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const days=86400000;
+const activeTypes=Object.entries(MEASUREMENTS).filter(([,definition])=>definition.active).map(([type])=>type);
 export const readsReports=(user,eventId)=>editsContent(user)||!!eventId&&hasRole(user,'manager',eventId);
 const text=(v,max,required=false)=>{if(typeof v!=='string'||v.length>max||required&&!v.trim())fail('Bitte Zweck, Information und Textlängen prüfen.');return v.trim();};
 export function dateBound(day,next=false){
@@ -34,7 +35,7 @@ export function createReporting(db){
   const now=Date.now(),result=await db.prepare('UPDATE reporting_settings SET enabled=?,analysis_enabled=?,purpose=?,legal_basis=?,privacy_url=?,policy_version=?,raw_days=?,aggregate_days=?,operational_since=COALESCE(operational_since,CASE WHEN ?=1 THEN ? END),client_since=COALESCE(client_since,CASE WHEN ?=1 THEN ? END),revision=revision+1,updated_at=? WHERE id=1 AND revision=?').bind(Number(input.enabled),Number(input.analysisEnabled),purpose,legalBasis,privacyUrl,policyVersion,rawDays,aggregateDays,Number(input.enabled),now,Number(input.analysisEnabled),now,now,old.revision).run();
   if(!result.meta.changes)fail('Die Einstellungen wurden inzwischen geändert.',409);return settings();
  }
- async function guestSettings(person){const s=await settings(),consent=await createGuestIdentity(db).consent(person.id,'analysis');return {available:!!s?.enabled&&!!s.analysis_enabled,purpose:s?.purpose||'',privacyUrl:s?.privacy_url||'',version:s?.policy_version||'',enabled:!!s?.enabled&&!!s.analysis_enabled&&consent.enabled===1&&consent.version===s.policy_version,retentionDays:s?.raw_days||30};}
+ async function guestSettings(person){const s=await settings(),consent=await createGuestIdentity(db).consent(person.id,'analysis');return {available:!!s?.enabled&&!!s.analysis_enabled,purpose:s?.purpose||'',privacyUrl:s?.privacy_url||'',version:s?.policy_version||'',enabled:!!s?.enabled&&!!s.analysis_enabled&&consent.enabled===1&&consent.version===s.policy_version,retentionDays:s?.raw_days||30,aggregateRetentionDays:s?.aggregate_days||396};}
  async function guestConsent(person,input){
   const current=await guestSettings(person);if(input.enabled&&(!current.available||input.version!==current.version))fail('Die freiwillige Messung ist noch nicht eingerichtet oder wurde geändert.',409);
   await createGuestIdentity(db).changeConsent(person.id,{purpose:'analysis',version:input.version,enabled:input.enabled,operationKey:input.operationKey});
@@ -83,7 +84,7 @@ export function createReporting(db){
    all('SELECT kind,status,COUNT(*) AS count FROM live_requests WHERE event_id=? AND created_at>=? AND created_at<? GROUP BY kind,status',args),
    all('SELECT station_id AS id,MAX(station_name) AS name,kind,COUNT(*) AS total,SUM(CASE WHEN status IN(\'new\',\'queued\',\'in_progress\') THEN 1 ELSE 0 END) AS pending FROM live_requests WHERE event_id=? AND created_at>=? AND created_at<? GROUP BY station_id,kind ORDER BY total DESC LIMIT 200',args),
    all('SELECT CAST(recorded_at/3600000 AS INTEGER)*3600000 AS hour,type,COUNT(*) AS count FROM domain_events WHERE event_id=? AND recorded_at>=? AND recorded_at<? AND type NOT LIKE \'dating.%\' GROUP BY hour,type ORDER BY hour LIMIT 10000',args),
-   first('SELECT COUNT(DISTINCT participation_id) AS count FROM domain_events WHERE event_id=? AND recorded_at>=? AND recorded_at<? AND participation_id IS NOT NULL AND type IN(\'request.created\',\'round.created\',\'round.joined\',\'round.left\',\'round.started\',\'round.ended\',\'inbox.read\')',args),
+   first('SELECT COUNT(DISTINCT participation_id) AS count FROM domain_events WHERE event_id=? AND recorded_at>=? AND recorded_at<? AND participation_id IS NOT NULL AND type IN('+activeTypes.map(()=>'?').join(',')+')',[...args,...activeTypes]),
    all('SELECT status,COUNT(*) AS count,SUM(capacity) AS capacity FROM game_rounds WHERE event_id=? AND created_at>=? AND created_at<? GROUP BY status',args),
    first('SELECT COUNT(*) AS count FROM game_round_members m JOIN game_rounds r ON r.id=m.round_id WHERE r.event_id=? AND r.created_at>=? AND r.created_at<? AND r.status!=\'ended\'',args),
    all('SELECT type,COUNT(*) AS count FROM domain_events WHERE event_id=? AND recorded_at>=? AND recorded_at<? AND type LIKE \'round.%\' GROUP BY type',args),
