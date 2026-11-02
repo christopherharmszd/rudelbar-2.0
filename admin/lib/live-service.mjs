@@ -1,4 +1,5 @@
 import {createGameRounds} from './game-rounds.mjs';
+import {createGuestIdentity} from './guest-identity.mjs';
 import {validId,stationsFor} from '../../shared/experience.mjs';
 import {loadEvent,snapshotFor,peopleFor} from './abend-service.mjs';
 import {createNotifications} from './notifications.mjs';
@@ -42,6 +43,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   async function visitor(eventId,sessionToken){
     const [id,secret,extra]=String(sessionToken||'').split('.');
     if(!id||!secret||extra||!/^[a-f0-9]{64}$/.test(secret))fail('Bitte melde dich mit deinem Vornamen an.',401);
+    if(env.RUDELBAR_CONNECTED_IDENTITY==='1')return createGuestIdentity(database()).authenticate(eventId,id,await digest(secret));
     const person=await first('SELECT * FROM live_visitors WHERE id=? AND event_id=? AND expires_at>?',[id,eventId,Date.now()]);
     if(!person||person.secret_hash!==await digest(secret))fail('Deine Anmeldung ist abgelaufen. Bitte melde dich erneut an.',401);
     return person;

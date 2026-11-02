@@ -16,6 +16,7 @@
     "SANITY_PROJECT_ID": "uywmld5e",
     "SANITY_DATASET": "staging",
     "SANITY_WEBSITE_DATASET": "production",
+    "RUDELBAR_CONNECTED_IDENTITY": "1",
     "VISITOR_APP_URL": "https://rudelbar-app-staging.christopher-harms.workers.dev"
   },
   "d1_databases": [{"binding":"LIVE_DB","database_name":"rudelbar-live-staging","database_id":"5207ce12-4fc5-4923-a92b-d30a8699b0ff","migrations_dir":"migrations"}],
