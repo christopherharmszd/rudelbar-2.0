@@ -37,13 +37,15 @@ async function setup({websiteDataset}={}) {
       return Response.json({ result });
     }
     if (parsed.pathname.includes("/data/mutate/")) {
-      const { mutations } = JSON.parse(options.body);
+      const { mutations } = JSON.parse(options.body),candidate=new Map(store);
       for (const mutation of mutations) {
-        if (mutation.createOrReplace) store.set(mutation.createOrReplace._id, {...mutation.createOrReplace,_rev:crypto.randomUUID()});
-        if (mutation.createIfNotExists&&!store.has(mutation.createIfNotExists._id))store.set(mutation.createIfNotExists._id,{...mutation.createIfNotExists,_rev:crypto.randomUUID()});
-        if (mutation.patch){const old=store.get(mutation.patch.id);if(mutation.patch.ifRevisionID&&old?._rev!==mutation.patch.ifRevisionID)return Response.json({error:{description:'Revision conflict'}},{status:409});store.set(mutation.patch.id,{...old,...mutation.patch.set,_rev:crypto.randomUUID()});}
-        if (mutation.delete) store.delete(mutation.delete.id);
+        if (mutation.create) {if(candidate.has(mutation.create._id))return Response.json({error:{description:"Already exists"}},{status:409});candidate.set(mutation.create._id,{...mutation.create,_rev:crypto.randomUUID()});}
+        if (mutation.createOrReplace) candidate.set(mutation.createOrReplace._id, {...mutation.createOrReplace,_rev:crypto.randomUUID()});
+        if (mutation.createIfNotExists&&!candidate.has(mutation.createIfNotExists._id))candidate.set(mutation.createIfNotExists._id,{...mutation.createIfNotExists,_rev:crypto.randomUUID()});
+        if (mutation.patch){const old=candidate.get(mutation.patch.id);if(mutation.patch.ifRevisionID&&old?._rev!==mutation.patch.ifRevisionID)return Response.json({error:{description:'Revision conflict'}},{status:409});candidate.set(mutation.patch.id,{...old,...mutation.patch.set,_rev:crypto.randomUUID()});}
+        if (mutation.delete) candidate.delete(mutation.delete.id);
       }
+      store.clear();for(const [id,doc]of candidate)store.set(id,doc);
       return Response.json({ results: [] });
     }
     if (parsed.pathname.includes("/assets/images/")) {
@@ -377,7 +379,7 @@ test('profile and offer deletion routes require session and CSRF, protect revisi
 test('a post-only author can write only their own drafts, cannot publish, and cannot enter other Backstage data',async()=>{
  const state=await setup({websiteDataset:'production'});const {sqliteD1}=await import('./sqlite-d1.mjs'),{readFile}=await import('node:fs/promises'),{createAccounts}=await import('../lib/accounts.mjs'),{createSanity}=await import('../lib/sanity.mjs'),{peopleFor,eventList}=await import('../lib/abend-service.mjs');
  const db=sqliteD1();state.env.LIVE_DB=db;
- for(const name of ['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'])db.connection.exec(await readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8'));
+ for(const name of ['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding','0006_station_photos'])db.connection.exec(await readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8'));
  try{
   state.docs.set('drafts.person-writer',{_id:'drafts.person-writer',_type:'rudelAppPerson',_rev:'person-revision',personId:'person-writer',name:'Prüfautor',archived:false});
   const client=createSanity({projectId:'project123',dataset:'staging',token:'private-test-token'}),accounts=createAccounts(state.env,{people:()=>peopleFor(client),events:()=>eventList(client)}),actor={name:'Redaktion'},a=(await accounts.save(actor,{personId:'person-writer',email:'writer@example.invalid',roles:[{role:'author'}]})).account;

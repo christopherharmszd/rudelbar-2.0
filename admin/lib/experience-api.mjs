@@ -6,6 +6,9 @@ import {createLiveService} from './live-service.mjs';
 import {changePersonLifecycle} from './people-lifecycle.mjs';
 import {changeCatalogLifecycle} from './catalog-lifecycle.mjs';
 import {createMemberOnboarding} from './member-onboarding.mjs';
+import {createPlanning} from './planning.mjs';
+import {reviewEvening} from './evening-review.mjs';
+import {catalogCsvApi} from './catalog-csv-api.mjs';
 import {editsContent,readsEvents,managesEvent,seesEvent,requirePermission} from './permissions.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
@@ -16,6 +19,12 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   const onboardingMatch=path.match(/^\/api\/abend\/members\/([a-f0-9-]{36})$/);
   if(onboardingMatch&&request.method==='GET')return json(200,await createMemberOnboarding(env,client).get(user,onboardingMatch[1]));
   requirePermission(readsEvents(user));
+  const planning=createPlanning(client);
+  if(/^\/api\/abend\/catalog\/csv(?:\/(inspect|preview|apply))?$/.test(path))return catalogCsvApi(request,{client,user,json,data});
+  if(path==='/api/abend/templates'){requirePermission(editsContent(user));if(request.method==='GET')return json(200,{templates:await planning.templates()});if(request.method==='POST')return json(201,{template:await planning.saveTemplate(user,await data(request))});}
+  const template=path.match(/^\/api\/abend\/templates\/([a-z0-9-]+)$/i);
+  if(template){requirePermission(editsContent(user));if(request.method==='GET')return json(200,{template:await planning.getTemplate(template[1])});if(request.method==='PUT')return json(200,{template:await planning.saveTemplate(user,await data(request),template[1])});}
+  if(path==='/api/abend/website-events'&&request.method==='GET'){requirePermission(editsContent(user));return json(200,{events:(await (client.website||client).list('rudelEvent')).filter(e=>!e.archived).map(e=>({eventId:e._id,title:e.title,date:e.date,time:e.time,venue:e.venue,published:e.published}))});}
   if(path==='/api/abend/catalog'){
     if(request.method!=='GET')requirePermission(editsContent(user));
     if(request.method==='GET'){requirePermission(editsContent(user)||(user.roles||[]).some(r=>r.role==='manager'));return json(200,{catalog:await catalogFor(client)});}
@@ -64,9 +73,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
     if(request.method==='GET')return json(200,{events:(await eventList(client)).filter(e=>seesEvent(user,e.eventId)&&(editsContent(user)||e.teamIds.includes(user.personId))).map(e=>managesEvent(user,e.eventId)?({...e,canManage:true,guestUrl:guestUrl(env.VISITOR_APP_URL,e)}):({eventId:e.eventId,title:e.title,date:e.date,time:e.time,venue:e.venue,visibility:e.visibility,app:e.app,canManage:false})),visitorAppUrl:env.VISITOR_APP_URL||''});
     if(request.method==='POST'){
       requirePermission(editsContent(user));
-      const input=await data(request),id=`app-${crypto.randomUUID()}`,fields=cleanEvent({...input,teamIds:input.teamIds||[]},id);
-      await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields);
-      return json(201,{id,event:await loadEvent(client,id)});
+      return json(201,await planning.createEvening(user,await data(request)));
     }
   }
   const access=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)\/access(?:\/([a-z0-9-]+)\/revoke)?$/i);
@@ -77,19 +84,21 @@ export async function experienceApi(request,env,{client,json,session,authorized,
     if(request.method==='POST'&&access[2])return json(200,await service.revoke(eventId,validId(access[2])));
     if(request.method==='POST'){const input=await data(request),grant=await service.issueGrant(eventId,validId(input.personId));return json(201,{id:grant.id,expiresAt:grant.expiresAt,url:`${new URL(request.url).origin}/team?zugang=${grant.code}`});}
   }
-  const match=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)(?:\/(details|publish|unpublish|preview|open|close))?$/i);
+  const match=path.match(/^\/api\/abend\/events\/([a-z0-9-]+)(?:\/(details|publish|unpublish|preview|open|close|check|template))?$/i);
   if(!match)return json(404,{error:'Nicht gefunden.'});
   const [,id,action]=match;validId(id);
   const event=await loadEvent(client,id),current=await configurationFor(client,id);
   requirePermission(managesEvent(user,id)&&(editsContent(user)||event.teamIds.includes(user.personId)));
   if(request.method==='GET'){
+    if(action==='check')return json(200,await reviewEvening(client,id));
     if(action==='preview')return json(200,{state:'open',experience:visitorPayload(current.experience,event,await peopleFor(client),await partnersFor(client))});
     if(action)return json(404,{error:'Nicht gefunden.'});
     return json(200,{...current,event:{...event,guestUrl:guestUrl(env.VISITOR_APP_URL,event)}});
   }
+  if(request.method==='POST'&&action==='template')return json(200,await planning.applyTemplate(user,id,await data(request)));
   if(request.method==='PUT'&&action==='details'){
     const input=await data(request),previous=await client.getDocument(`drafts.${eventDocId(id)}`);
-    const fields=cleanEvent({...event,...input},id,previous||event),people=await peopleFor(client);
+    const fields=cleanEvent(await planning.linkedFields({...event,...input}),id,previous||event),people=await peopleFor(client);
     if(fields.teamIds.some(pid=>!people.some(p=>p.personId===pid&&!p.archived)))fail('Bitte nur aktive Personen zum Team hinzufügen.');
     await client.savePrivate(APP_EVENT_TYPE,eventDocId(id),fields,input.revision);
     return json(200,{event:{...await loadEvent(client,id),guestUrl:guestUrl(env.VISITOR_APP_URL,fields)}});
@@ -102,13 +111,16 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   if(request.method==='POST'&&['publish','open','close','unpublish'].includes(action)){
     const release=await snapshotFor(client,event),config=action==='close'||action==='unpublish'?release.config:current.experience;
     if(action==='publish'||action==='open'){
+      const input=request.body?await data(request):{},review=await reviewEvening(client,id);
+      if(input.reviewToken&&input.reviewToken!==review.token)fail('Seit der Prüfung wurde etwas geändert. Bitte den Abschlusscheck erneut öffnen.',409);
+      if(!review.ok)fail(review.issues.join(' '),409);
       if(event.source==='website'&&!event.websitePublished&&!event.revision)fail('Bitte zuerst den Webseiten-Termin veröffentlichen oder einen eigenen Abend anlegen.',409);
       if(!current.draft&&!release.config)fail('Bitte zuerst den Abend vorbereiten und speichern.',409);
       // Re-check people and catalog references at release time as well.
       const validated=cleanExperience(config,await catalogFor(client),id,await peopleFor(client),event.teamIds);
-      const fields={eventId:id,state:action==='open'?'open':release.state,config:validated,changedAt:new Date().toISOString(),sourceRevision:config.revision||''};
+      const fields={eventId:id,state:action==='open'?'open':release.state,config:validated,eventSnapshot:Object.fromEntries(['title','date','time','venue','address','description','teamIds'].map(k=>[k,event[k]])),changedAt:new Date().toISOString(),sourceRevision:config.revision||''};
       await client.savePrivate(RELEASE_TYPE,releaseDocId(id),fields,release._rev);
-    }else await client.savePrivate(RELEASE_TYPE,releaseDocId(id),{eventId:id,state:'closed',config:release.config||null,changedAt:new Date().toISOString(),sourceRevision:release.sourceRevision||''},release._rev);
+    }else await client.savePrivate(RELEASE_TYPE,releaseDocId(id),{eventId:id,state:'closed',config:release.config||null,...(release.eventSnapshot?{eventSnapshot:release.eventSnapshot}:{}),changedAt:new Date().toISOString(),sourceRevision:release.sourceRevision||''},release._rev);
     return json(200,{ok:true,event:await loadEvent(client,id),url:guestUrl(env.VISITOR_APP_URL,event)});
   }
   return json(405,{error:'Diese Aktion ist nicht verfügbar.'});

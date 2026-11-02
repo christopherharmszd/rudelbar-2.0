@@ -1,3 +1,5 @@
+import {attachCategories,sectionsFor,categoryId} from './content-model.mjs';
+export {sectionsFor} from './content-model.mjs';
 export const CATALOG_ID = 'rudel-app-library-v1';
 export const EXPERIENCE_TYPE = 'rudelAppExperience';
 export const experienceId = id => `rudel-app-experience-${validId(id)}`;
@@ -17,19 +19,21 @@ export const DEFAULT_CATALOG={
 };
 
 const catalogLifecycle=row=>({archived:!!row.deletedAt||row.archived===true,...(row.deletedAt?{deletedAt:text(row.deletedAt,40)}:{})});
+const contentFields=row=>({categoryId:row.categoryId?validId(row.categoryId):'',imageUrl:image(row.imageUrl),imageAlt:text(row.imageAlt,300)});
 
 export function cleanCatalog(input){
-  return {
-    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:r.capacity===null||r.capacity===''?null:integer(r.capacity,1,30),description:text(r.description,800),...catalogLifecycle(r)};})),
-    games:unique(array(input.games).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Spiele',80,true),capacity:integer(r.capacity,1,30),minutes:integer(r.minutes,0,300),description:text(r.description,800),rules:text(r.rules,2000),...catalogLifecycle(r)};})),
-    program:unique(array(input.program??DEFAULT_CATALOG.program).map(r=>{const id=validId(r.id);if(!['dj','karaoke','other'].includes(r.kind||'other'))fail('Ungültige Angebotsart.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Programm',80,true),kind:r.kind||'other',description:text(r.description,1000),...catalogLifecycle(r)};})),
-    drinks:unique(array(input.drinks).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category,80,true),unit:text(r.unit,40,true),priceCents:integer(r.priceCents,0,100000),imageUrl:image(r.imageUrl),...catalogLifecycle(r)};}))
-  };
+  return attachCategories({
+    equipment:unique(array(input.equipment).map(r=>{const id=validId(r.id);if(!['kicker','table','other'].includes(r.kind))fail('Ungültige Ausstattung.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Ausstattung',80,true),kind:r.kind,capacity:r.capacity===null||r.capacity===''?null:integer(r.capacity,1,30),description:text(r.description,800),...contentFields(r),...catalogLifecycle(r)};})),
+    games:unique(array(input.games).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Spiele',80,true),capacity:integer(r.capacity,1,30),minutes:integer(r.minutes,0,300),description:text(r.description,800),rules:text(r.rules,2000),...contentFields(r),...catalogLifecycle(r)};})),
+    program:unique(array(input.program??DEFAULT_CATALOG.program).map(r=>{const id=validId(r.id);if(!['dj','karaoke','other'].includes(r.kind||'other'))fail('Ungültige Angebotsart.');return {_key:id,id,name:text(r.name,100,true),category:text(r.category||'Programm',80,true),kind:r.kind||'other',description:text(r.description,1000),...contentFields(r),...catalogLifecycle(r)};})),
+    drinks:unique(array(input.drinks).map(r=>{const id=validId(r.id);return {_key:id,id,name:text(r.name,100,true),category:text(r.category,80,true),unit:text(r.unit,40,true),priceCents:integer(r.priceCents,0,100000),description:text(r.description,1000),...contentFields(r),...catalogLifecycle(r)};}))
+  },input.categories);
 }
 
-export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
+export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],sections:[],features:{stationDetails:false},modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
 
 export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
+  if(!Array.isArray(catalog.categories))catalog=cleanCatalog(catalog);
   validId(eventId);
   input=withoutDeletedPeople(input,people);people=people.filter(p=>!p.deletedAt);
   const result={eventId,enabled:input.enabled!==false,welcomeTitle:text(input.welcomeTitle,160),welcomeText:text(input.welcomeText,1200),equipment:[],games:[],program:[],menu:[],stations:[],modules:{}};
@@ -52,10 +56,15 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
     const offerType=row.offerType||'',offerId=row.offerId||'';
     if(offerType&&!['equipment','games','program','menu'].includes(offerType))fail('Ungültige Angebotsverknüpfung.');
     if(offerId&&(!offerType||!result[offerType].some(item=>item.id===offerId)))fail('Bitte ein für diesen Abend ausgewähltes Angebot verknüpfen.');
-    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,...(!operatorIds.length&&row.assignmentRequired?{assignmentRequired:true}:{}),offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false};
+    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,...(!operatorIds.length&&row.assignmentRequired?{assignmentRequired:true}:{}),offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false,detailsEnabled:row.detailsEnabled!==false,showImages:row.showImages!==false,contactEnabled:row.contactEnabled!==false,allowOperatorPhotos:row.allowOperatorPhotos===true,imageUrl:image(row.imageUrl),imageAlt:text(row.imageAlt,300)};
   }));
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};
   result.modules.help={enabled:input.modules?.help?.enabled!==false};
+  result.features={stationDetails:input.features?.stationDetails===true};
+  const selectedCategories=new Set(['equipment','games','program','menu'].flatMap(k=>result[k].map(r=>r.categoryId)));
+  const supplied=Array.isArray(input.sections)?input.sections:sectionsFor(result);
+  result.sections=unique(array(supplied,100).map(s=>{const cid=validId(s.categoryId||s.id),category=catalog.categories?.find(c=>c.id===cid);if(!category)fail('Ein Bereich verweist auf eine nicht mehr vorhandene Kategorie.');return {id:cid,categoryId:cid,title:text(s.title||category.name,100,true),enabled:s.enabled!==false,showImages:s.showImages!==false,detailsEnabled:s.detailsEnabled!==false};}));
+  for(const cid of selectedCategories)if(!result.sections.some(s=>s.categoryId===cid)){const category=catalog.categories.find(c=>c.id===cid);result.sections.push({id:cid,categoryId:cid,title:category.name,enabled:!category.archived,showImages:true,detailsEnabled:true});}
   return result;
 }
 
@@ -85,5 +94,6 @@ export function stationsFor(config){
 
 export function publicExperience(doc,event){
   if(!doc||doc._id?.startsWith('drafts.')||doc.enabled!==true||!event||event.archived||event._id?.startsWith('drafts.')||doc.eventId!==event._id)return null;
-  return {schemaVersion:2,eventId:event._id,revision:doc._rev||'',event:{title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''},welcomeTitle:doc.welcomeTitle||`Herzlich willkommen\nin ${event.venue}.`,welcomeText:doc.welcomeText||'Schön, dass du da bist!',equipment:doc.equipment||[],games:doc.games||[],program:programFor(doc),menu:doc.menu||[],modules:doc.modules||{}};
+  const sections=sectionsFor({...doc,program:programFor(doc)}),rows=(key,kind)=>(key==='program'?programFor(doc):doc[key]||[]).flatMap(row=>{const cid=row.categoryId||categoryId(kind,row.category||({equipment:'Ausstattung',games:'Spiele',program:'Programm',drinks:'Karte mit Preisen'}[kind])),s=sections.find(s=>s.categoryId===cid);if(s?.enabled===false)return [];return [{...row,categoryId:cid,category:s?.title||row.category,detailsEnabled:s?.detailsEnabled!==false,imageUrl:s?.showImages===false?'':row.imageUrl||''}];}).sort((a,b)=>sections.findIndex(s=>s.categoryId===a.categoryId)-sections.findIndex(s=>s.categoryId===b.categoryId));
+  return {schemaVersion:5,eventId:event._id,revision:doc._rev||'',event:{title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''},welcomeTitle:doc.welcomeTitle||`Herzlich willkommen\nin ${event.venue}.`,welcomeText:doc.welcomeText||'Schön, dass du da bist!',equipment:rows('equipment','equipment'),games:rows('games','games'),program:rows('program','program'),menu:rows('menu','drinks'),sections:sections.filter(s=>s.enabled!==false),features:{stationDetails:doc.features?.stationDetails===true},modules:doc.modules||{}};
 }

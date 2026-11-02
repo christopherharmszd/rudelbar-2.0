@@ -23,6 +23,15 @@ export async function liveApi(request,env,{client,json,session,data,service:prov
   if(notice&&request.method==='POST')return json(200,await service.notices[notice[1]==='read'?'mark':notice[1]](service.recipient(actor),await data(request)));
   if(path==='/api/live/logout'&&request.method==='POST'){const input=await data(request);if(input.endpoint)await service.notices.unsubscribe(service.recipient(actor),{endpoint:input.endpoint});if(actor.accountId){await createAccounts(env).logout(user);return json(200,{ok:true},{'Set-Cookie':accountCookie('',0)});}return json(200,{ok:true},{'Set-Cookie':`${cookieName(new URL(request.url).searchParams.get('s'))}=; HttpOnly; Secure; SameSite=Strict; Path=/api/live; Max-Age=0`});}
   if(path==='/api/live/requests'&&request.method==='GET')return json(200,await service.inbox(actor));
+  const photo=path.match(/^\/api\/live\/stations\/([a-z0-9-]+)\/photo$/i);
+  if(photo&&request.method==='POST'){
+    const id=validId(photo[1]);service.requireStationPhoto(actor,id);
+    const mime=request.headers.get('content-type');if(!['image/jpeg','image/png','image/webp'].includes(mime))return json(400,{error:'Bitte JPG, PNG oder WebP verwenden.'});
+    const declared=Number(request.headers.get('content-length')||0);if(declared>8_000_000)return json(413,{error:'Bitte ein Bild unter 8 MB wählen.'});const bytes=new Uint8Array(await request.arrayBuffer());if(!bytes.length||bytes.length>8_000_000)return json(413,{error:'Bitte ein Bild unter 8 MB wählen.'});
+    const revision=Number(request.headers.get('x-photo-revision'));if(!request.headers.has('x-photo-revision')||!Number.isInteger(revision)||revision<0)return json(400,{error:'Bitte die Station erneut öffnen.'});
+    const file=String(request.headers.get('x-file-name')||'station.jpg').replace(/[^a-z0-9._-]/gi,'-').slice(0,160),uploaded=await client.uploadImage(bytes,mime,file);
+    return json(200,await service.saveStationPhoto(actor,id,{imageUrl:uploaded.url,revision}));
+  }
   const match=path.match(/^\/api\/live\/requests\/([a-z0-9-]+)$/i);
   if(match){validId(match[1]);if(request.method==='GET')return json(200,await service.inbox(actor,{id:match[1]}));if(request.method==='POST')return json(200,await service.staffUpdate(actor,match[1],await data(request)));}
   const station=path.match(/^\/api\/live\/stations\/([a-z0-9-]+)$/i);

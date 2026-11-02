@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {sqliteD1} from './sqlite-d1.mjs';
 import {createAccounts} from '../lib/accounts.mjs';
 import {mimeMessage,sendSmtp} from '../lib/account-mail.mjs';
-const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
+const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding','0006_station_photos'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
 const actor={name:'Redaktion'},secret='mail-test-secret-only-not-a-real-postbox-password',password='Local-test-account-password!';
 function setup(){const db=sqliteD1();db.connection.exec(schema);const deliveries=[],env={LIVE_DB:db,RUDELBAR_SESSION_SECRET:secret,ACCOUNT_MAILER:{send:async m=>{deliveries.push(m);return {accepted:true};}}};const service=createAccounts(env,{people:async()=>[{personId:'alex',name:'Alex'}],events:async()=>[]});return {db,env,service,deliveries,close:()=>db.connection.close()};}
 test('mailbox settings are admin-only, encrypted at rest, revision guarded and never disclose the saved password',async()=>{

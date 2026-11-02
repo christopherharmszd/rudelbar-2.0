@@ -5,7 +5,7 @@ import {sqliteD1} from './sqlite-d1.mjs';
 import {createLiveService} from '../lib/live-service.mjs';
 import {liveApi} from '../lib/live-api.mjs';
 import visitorWorker from '../../event-app/worker.mjs';
-const schema=await readFile(new URL('../migrations/0004_native_accounts.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0001_live_stations.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0002_notifications.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0003_accounts.sql',import.meta.url),'utf8');
+const schema=await readFile(new URL('../migrations/0006_station_photos.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0004_native_accounts.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0001_live_stations.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0002_notifications.sql',import.meta.url),'utf8')+await readFile(new URL('../migrations/0003_accounts.sql',import.meta.url),'utf8');
 async function setup(){
  const db=sqliteD1();db.connection.exec(schema);
  const ctx={event:{eventId:'evening-a',visibility:'public',accessCode:'private-key',teamIds:['person-a','person-b']},release:{state:'open'},people:[{personId:'person-a',name:'Alex',archived:false},{personId:'person-b',name:'Nora',archived:false}],stations:[
@@ -151,3 +151,15 @@ test('personal team sessions coexist in separate tabs with isolated CSRF tokens'
   assert.equal((await call('/api/live/login',{method:'POST',body:{code:s.grantA.code},originHeader:'https://other.example'})).status,403);
  }finally{s.close();}
 });
+
+test('station photos require explicit operator permission and protect against stale updates',async()=>{
+ const s=await setup(),url='https://cdn.sanity.io/images/project/staging/station-800x600.jpg';try{
+  await assert.rejects(()=>s.service.saveStationPhoto(s.actorA,'dj',{imageUrl:url,revision:0}),status(403));s.ctx.stations[0].allowOperatorPhotos=true;
+  await s.service.saveStationPhoto(s.actorA,'dj',{imageUrl:url,revision:0});assert.equal((await s.service.stationPhotos('evening-a'))[0].revision,1);
+  await assert.rejects(()=>s.service.saveStationPhoto(s.actorA,'dj',{imageUrl:url,revision:0}),status(409));await assert.rejects(()=>s.service.saveStationPhoto(s.actorB,'dj',{imageUrl:url,revision:1}),status(403));
+  await s.service.saveStationPhoto(s.actorA,'dj',{imageUrl:url,revision:1});assert.equal((await s.service.stationPhotos('evening-a'))[0].revision,2);assert.equal((await s.service.stationPhotos('other-evening')).length,0);
+  s.ctx.stations[0].allowOperatorPhotos=false;await s.service.saveStationPhoto(await s.service.publisher('evening-a'),'dj',{imageUrl:url,revision:2});
+  assert.equal((await s.service.staffContext(s.actorA)).stations.find(v=>v.id==='dj').canUpdatePhoto,false);
+ }finally{s.close();}
+});
+test('disabled station contact is enforced for direct guest API requests',async()=>{const s=await setup();try{s.ctx.stations.find(s=>s.id==='dj').contactEnabled=false;await assert.rejects(()=>submit(s,'dj','music'),status(409));assert.equal((await s.service.mine({eventId:'evening-a',sessionToken:s.a.sessionToken})).requests.length,0);}finally{s.close();}});

@@ -115,5 +115,20 @@ export function createSanity({ projectId, dataset, token }) {
     return { assetId: data.document?._id, url: data.document?.url };
   }
 
-  return { list, getDocument, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
+  async function commitPrivate(changes){
+    const mutations=changes.map(({type,id,fields,revision})=>revision?{patch:{id:'drafts.'+id,ifRevisionID:revision,set:fields}}:{create:{_id:'drafts.'+id,_type:type,...fields}});
+    await mutate(mutations);
+  }
+
+  async function listImages(){
+    const query=encodeURIComponent('*[_type == "sanity.imageAsset"] | order(_createdAt desc)[0...500]{_id,url,originalFilename,title,description,metadata{dimensions},_createdAt}');
+    return (await request(`/data/query/${dataset}?perspective=raw&query=${query}`)).result||[];
+  }
+
+  async function imageUsage(assetId,url){
+    const query=encodeURIComponent('*[_type != "sanity.imageAsset" && (references($id) || avatarUrl==$url || logoUrl==$url || photoUrl==$url || count(equipment[imageUrl==$url])>0 || count(games[imageUrl==$url])>0 || count(program[imageUrl==$url])>0 || count(drinks[imageUrl==$url])>0 || count(stations[imageUrl==$url])>0 || count(config.equipment[imageUrl==$url])>0 || count(config.games[imageUrl==$url])>0 || count(config.program[imageUrl==$url])>0 || count(config.menu[imageUrl==$url])>0 || count(config.stations[imageUrl==$url])>0)]{_id,_type,title,name,eventId}');
+    return (await request(`/data/query/${dataset}?perspective=raw&query=${query}&%24id=${encodeURIComponent(JSON.stringify(assetId))}&%24url=${encodeURIComponent(JSON.stringify(url))}`)).result||[];
+  }
+
+  return { list, getDocument, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage,commitPrivate,listImages,imageUsage };
 }

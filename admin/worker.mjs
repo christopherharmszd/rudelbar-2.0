@@ -6,6 +6,7 @@ import {passwordApi} from './lib/password-api.mjs';
 import {accountsApi} from './lib/accounts-api.mjs';
 import {peopleFor,eventList} from './lib/abend-service.mjs';
 import {publicUser,editsContent,writesPosts,requirePermission} from './lib/permissions.mjs';
+import {mediaApi} from './lib/media-api.mjs';
 
 const editorEmail = "redaktion@rudelbar.local";
 const encoder = new TextEncoder();
@@ -161,6 +162,7 @@ async function api(request, env, execution) {
   }
   if(path.startsWith('/api/auth/'))return passwordApi(request,env,{accounts:accountsFor(env),json,data,session,authorized,defer:execution?.waitUntil?.bind(execution)});
   if(path.startsWith('/api/accounts'))return accountsApi(request,env,{accounts:accountsFor(env),json,session,authorized,data});
+  if(path==='/api/media')return mediaApi(request,env,{client:sanity(env),json,session});
   if (request.method === "POST" && path === "/api/login") {
     if (!sameOrigin(request)) return json(403, { error: "Ungültige Herkunft." });
     const ip = request.headers.get("cf-connecting-ip") || "unknown";

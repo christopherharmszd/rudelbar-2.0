@@ -9,6 +9,7 @@ export class VisitorContent extends WorkerEntrypoint {
     const client=createContentClient(this.env);
     if(input.eventId&&input.sessionToken&&!input.accessCode){try{const identity=await createLiveService(this.env,client).guestIdentity(input);input={...input,accessCode:identity.accessCode};}catch{}}
     const result=await getVisitorExperience(client,input);
+    if(result.experience?.stations.some(s=>s.showImages)&&this.env.LIVE_DB){const photos=await createLiveService(this.env,client).stationPhotos(result.experience.eventId);for(const station of result.experience.stations){const photo=photos.find(p=>p.station_id===station.id);if(station.showImages&&photo?.image_url)station.imageUrl=photo.image_url;}if(photos.length)result.experience.revision+=':'+Math.max(...photos.map(p=>p.updated_at));}
     if(result.experience&&this.env.LIVE_DB){const flags=await createLiveService(this.env,null).availability(result.experience.eventId);result.experience.stations=result.experience.stations.map(s=>({...s,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0}));}
     return result;
   }

@@ -1,5 +1,6 @@
 import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor, stationsFor, withoutDeletedPeople } from '../../shared/experience.mjs';
 import {PARTNER_TYPE,affiliationFields,affiliationFor} from './profile-fields.mjs';
+import {sectionAllowsStation} from '../../shared/content-model.mjs';
 
 export const APP_EVENT_TYPE='rudelAppEvent';
 export const PERSON_TYPE='rudelAppPerson';
@@ -19,17 +20,18 @@ export function cleanPerson(input,personId,partners=[]){
   return {personId:validId(personId),name:text(input.name,100,true),role:text(input.role,100),email,phone,archived:input.archived===true,...affiliationFields(input,partners)};
 }
 export function cleanEvent(input,eventId,previous){
-  const date=text(input.date,10,true);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(`${date}T12:00:00Z`))||new Date(`${date}T12:00:00Z`).toISOString().slice(0,10)!==date)fail('Bitte ein gültiges Datum eingeben.');
+  const date=text(input.date,10);
+  if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(Date.parse(`${date}T12:00:00Z`))||new Date(`${date}T12:00:00Z`).toISOString().slice(0,10)!==date))fail('Bitte ein gültiges Datum eingeben.');
   if(!['public','private'].includes(input.visibility))fail('Bitte öffentlich oder privat wählen.');
   if(!Array.isArray(input.teamIds)||input.teamIds.length>100)fail('Bitte das Team prüfen.');
-  return {eventId:validId(eventId),title:text(input.title,120,true),date,time:text(input.time,80),venue:text(input.venue,160,true),address:text(input.address,240),description:text(input.description,1200),visibility:input.visibility,teamIds:[...new Set(input.teamIds.map(validId))],accessCode:previous?.accessCode||token(),source:previous?.source||'app',archived:false};
+  return {eventId:validId(eventId),title:text(input.title,120,true),date,time:text(input.time,80),venue:text(input.venue,160),address:text(input.address,240),description:text(input.description,1200),visibility:input.visibility,teamIds:[...new Set(input.teamIds.map(validId))],linkedEventId:input.linkedEventId?validId(input.linkedEventId):'',sourceTemplateId:previous?.sourceTemplateId||'',sourceTemplateRevision:previous?.sourceTemplateRevision||'',accessCode:previous?.accessCode||token(),source:previous?.source||'app',archived:false};
 }
 export async function eventList(client){
   const [web,own,configs,releases,people]=await Promise.all([(client.website||client).list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE)]);
   const deletedIds=new Set(people.filter(p=>p.deletedAt).map(p=>p.personId));
-  const entries=new Map(web.filter(e=>!e.archived).map(e=>[e._id,{...strip(e),eventId:e._id,visibility:'public',teamIds:[],source:'website',websitePublished:e.published,revision:''}]));
-  for(const e of own.filter(e=>!e.archived))entries.set(e.eventId,{...strip(e),revision:e._rev||''});
+  const websiteEntries=new Map(web.filter(e=>!e.archived).map(e=>[e._id,{...strip(e),eventId:e._id,visibility:'public',teamIds:[],source:'website',websitePublished:e.published,revision:''}]));
+  const entries=new Map(websiteEntries);
+  for(const e of own.filter(e=>!e.archived)){const linked=e.linkedEventId?websiteEntries.get(e.linkedEventId):null;if(linked&&e.linkedEventId!==e.eventId)entries.delete(e.linkedEventId);entries.set(e.eventId,{...strip(e),linkedWebsitePublished:linked?.websitePublished??false,revision:e._rev||''});}
   return [...entries.values()].map(e=>{
     const config=configs.find(c=>c.eventId===e.eventId),release=releases.find(r=>r.eventId===e.eventId);
     return {...e,teamIds:(e.teamIds||[]).filter(id=>!deletedIds.has(id)),_id:e.eventId,app:{state:release?.state||(config?.published?'open':'closed'),hasRelease:!!release?.config||config?.published===true,hasDraft:config?.draft===true&&(!release?.config||release.sourceRevision!==config._rev),revision:release?._rev||'',updatedAt:release?.changedAt||config?._updatedAt||''}};
@@ -51,14 +53,15 @@ export function visitorPayload(config,event,people,partners=[]){
   const resolve=row=>{
     const person=row.hostId?people.find(p=>p.personId===row.hostId&&!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)):null;
     const {_key,archived,host,...publicRow}=row;
+    if(row.detailsEnabled===false){const {description,rules,hostId,place,time,...compact}=publicRow;return {...compact,host:'',hostId:''};}
     return {...publicRow,host:person?.name||(!row.hostId?String(host||''):''),hostId:person?.personId||''};
   };
   const payload=publicExperience({...config,_id:'release',enabled:true,eventId:event.eventId},safeEvent);
   if(!payload)return null;
   for(const kind of ['equipment','games'])payload[kind]=payload[kind].map(resolve);
-  payload.program=payload.program.map(resolve);
-  payload.stations=stationsFor(config).filter(s=>s.enabled!==false).map(({id,name,kind,description,place,offerType,offerId})=>({id,name,kind,description,place,offerType,offerId}));
-  payload.schemaVersion=4;
+  payload.program=payload.program.map(resolve);payload.menu=payload.menu.map(resolve);
+  payload.stations=stationsFor(config).filter(s=>s.enabled!==false&&sectionAllowsStation(config,s)).map(s=>{const detailsEnabled=config.features?.stationDetails===true&&s.detailsEnabled!==false;return {id:s.id,name:s.name,kind:s.kind,description:detailsEnabled?s.description||'':'',place:detailsEnabled?s.place||'':'',offerType:s.offerType,offerId:s.offerId,contactEnabled:s.contactEnabled!==false,detailsEnabled,showImages:detailsEnabled&&s.showImages!==false,imageUrl:detailsEnabled&&s.showImages!==false?s.imageUrl||'':'',imageAlt:detailsEnabled?s.imageAlt||'':''};});
+  payload.schemaVersion=5;
   payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role,avatarUrl:p.avatarUrl||'',affiliation:affiliationFor(p,partners)}));
   return payload;
 }
@@ -71,6 +74,6 @@ export async function getVisitorExperience(client,{eventId='',accessCode=''}={})
     const release=await snapshotFor(client,event);
     if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
-    return {status:200,state:'open',experience:{...visitorPayload(release.config,event,await peopleFor(client),await partnersFor(client)),revision:release._rev||release.sourceRevision||''}};
+    return {status:200,state:'open',experience:{...visitorPayload(release.config,{...event,...release.eventSnapshot},await peopleFor(client),await partnersFor(client)),revision:release._rev||release.sourceRevision||''}};
   }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}
 }

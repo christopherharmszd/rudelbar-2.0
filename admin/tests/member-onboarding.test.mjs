@@ -7,7 +7,7 @@ import {createAccounts} from '../lib/accounts.mjs';
 import {peopleFor,partnersFor,visitorPayload,eventList} from '../lib/abend-service.mjs';
 import {defaultExperience} from '../../shared/experience.mjs';
 import {editsContent,managesUsers,writesPosts} from '../lib/permissions.mjs';
-const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
+const schema=(await Promise.all(['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding','0006_station_photos'].map(n=>readFile(new URL('../migrations/'+n+'.sql',import.meta.url),'utf8')))).join('\n');
 const admin={name:'Redaktion'},editor={accountId:'editor',name:'Backstage',roles:[{role:'editor'}]},origin='https://cms.example.test';
 const input=(extra={})=>({clientKey:crypto.randomUUID(),profile:{name:'Lokale Prüfperson',email:'local@example.invalid',role:'Musik',membershipType:'rudelbar'},createAccount:true,roles:[{role:'author'}],delivery:'link',...extra});
 function setup(){

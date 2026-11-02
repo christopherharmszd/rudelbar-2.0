@@ -2,6 +2,7 @@ import {validId,stationsFor} from '../../shared/experience.mjs';
 import {loadEvent,snapshotFor,peopleFor} from './abend-service.mjs';
 import {createNotifications} from './notifications.mjs';
 import {managesEvent,runsEvent,seesEvent,editsContent,requirePermission} from './permissions.mjs';
+import {sectionAllowsStation} from '../../shared/content-model.mjs';
 
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const text=(value,max,required=false)=>{if(typeof value!=='string'&&value!==undefined&&value!==null)fail('Bitte gültige Texte eingeben.');const s=String(value??'').trim();if(s.length>max||(required&&!s))fail(`Bitte die Angaben prüfen (maximal ${max} Zeichen).`);return s;};
@@ -29,7 +30,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     validId(eventId);
     if(getContext)return getContext(eventId);
     const event=await loadEvent(client,eventId),release=await snapshotFor(client,event),people=await peopleFor(client);
-    return {event,release,people,stations:release.config?stationsFor(release.config):[]};
+    return {event,release,people,stations:release.config?stationsFor(release.config).map(s=>({...s,enabled:s.enabled!==false&&sectionAllowsStation(release.config,s)})):[]};
   }
   const notices=createNotifications(env,{context,defer,transport});
   const recipient=actor=>({id:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId,eventId:actor.eventId,audience:'team',publisher:actor.publisher,personId:actor.personId,grantId:actor.accountSessionId||actor.grantId,expiresAt:actor.expiresAt,authVersion:actor.authVersion,stations:stations(actor).map(s=>s.id)});
@@ -67,7 +68,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     const person=await visitor(eventId,sessionToken),ctx=await context(eventId);guestAccess(ctx,accessCode);requireOpen(ctx);
     validId(clientKey);validId(stationId);
     const existing=await first(select+' WHERE r.event_id=? AND r.visitor_id=? AND r.client_key=?',[eventId,person.id,clientKey]);if(existing)return {request:dto(existing)};
-    const station=ctx.stations.find(s=>s.id===stationId&&s.enabled!==false);if(!station)fail('Diese Station nimmt aktuell keine neuen Anfragen an.',409);
+    const station=ctx.stations.find(s=>s.id===stationId&&s.enabled!==false&&s.contactEnabled!==false);if(!station)fail('Diese Station nimmt aktuell keine neuen Anfragen an.',409);
     const availability=await first('SELECT accepting FROM live_station_state WHERE event_id=? AND station_id=?',[eventId,stationId]);if(availability?.accepting===0)fail('Diese Station hat den Eingang gerade pausiert. Bitte versuche es später erneut.',409);
     const clean=cleanRequest(station.kind,input),id=crypto.randomUUID(),now=Date.now(),operation=crypto.randomUUID();
     const statement=database().prepare(`INSERT OR IGNORE INTO live_requests(id,event_id,station_id,station_name,visitor_id,client_key,kind,subject,payload_json,location,status,created_at,updated_at,queue_order,revision,last_operation) SELECT ?,?,?,?,?,?,?,?,?,?,'new',?,?,?,1,? WHERE (SELECT COUNT(*) FROM live_requests WHERE visitor_id=? AND created_at>?)<10`).bind(id,eventId,stationId,station.name,person.id,clientKey,station.kind,clean.subject,JSON.stringify(clean.payload),clean.location,now,now,now,operation,person.id,now-300000);
@@ -129,7 +130,8 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   function stations(actor){return actor.ctx.stations.filter(s=>allowed(actor,s));}
   async function staffContext(actor){
     const flags=await all('SELECT station_id,accepting,revision FROM live_station_state WHERE event_id=?',[actor.eventId]);
-    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
+    const photos=await stationPhotos(actor.eventId);
+    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0,imageUrl:photos.find(p=>p.station_id===s.id)?.image_url||s.imageUrl||'',photoRevision:photos.find(p=>p.station_id===s.id)?.revision||0,canUpdatePhoto:(actor.canManage??actor.publisher)||s.allowOperatorPhotos===true&&s.operatorIds?.includes(actor.personId)})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
   }
   async function staffRow(actor,id){const row=await first(select+' WHERE r.id=? AND r.event_id=?',[id,actor.eventId]);if(!row||(!actor.publisher&&!stations(actor).some(s=>s.id===row.station_id)))fail('Diese Anfrage gehört nicht zu deinen Stationen.',404);return row;}
   async function inbox(actor,{id}={}){
@@ -155,7 +157,15 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     if(!result.meta.changes)fail('Der Stationseingang wurde inzwischen geändert. Bitte aktualisieren.',409);return {ok:true};
   }
   async function availability(eventId){const rows=await all('SELECT station_id,accepting FROM live_station_state WHERE event_id=?',[eventId]);return rows;}
+  async function stationPhotos(eventId){return all('SELECT station_id,image_url,revision,updated_at FROM live_station_photos WHERE event_id=?',[eventId]);}
+  function requireStationPhoto(actor,id){const station=actor.ctx.stations.find(s=>s.id===id);if(!station||!allowed(actor,station)||!((actor.canManage??actor.publisher)||station.allowOperatorPhotos===true&&station.operatorIds?.includes(actor.personId)))fail('Du darfst das Foto dieser Station nicht ändern.',403);return station;}
+  async function saveStationPhoto(actor,id,{imageUrl,revision}){
+    requireStationPhoto(actor,id);if(!Number.isInteger(revision)||revision<0)fail('Bitte die Station erneut öffnen.');
+    if(imageUrl&&!/^https:\/\/cdn\.sanity\.io\/images\/[a-z0-9-]+\/[a-z0-9_-]+\/[a-zA-Z0-9._-]+$/.test(imageUrl))fail('Bitte ein hochgeladenes Bild verwenden.');
+    const result=revision===0?await run('INSERT OR IGNORE INTO live_station_photos(event_id,station_id,image_url,revision,updated_at,actor_name) VALUES(?,?,?,1,?,?)',[actor.eventId,id,imageUrl,Date.now(),actor.name]):await run('UPDATE live_station_photos SET image_url=?,revision=revision+1,updated_at=?,actor_name=? WHERE event_id=? AND station_id=? AND revision=?',[imageUrl,Date.now(),actor.name,actor.eventId,id,revision]);
+    if(!result.meta.changes)fail('Das Stationsfoto wurde inzwischen geändert. Bitte aktualisieren.',409);return {ok:true};
+  }
   async function guestNotice({eventId,sessionToken,action,input={}}){const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);if(action==='list')return {expiresAt:person.expires_at,...await notices.list(who,input),...await notices.settings(who)};return {expiresAt:person.expires_at,...await notices[action](who,input)};}
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}
-  return {session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient};
+  return {session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

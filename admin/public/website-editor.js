@@ -1,3 +1,4 @@
+import {chooseImage,uploadImage} from './image-picker.js?v=1';
 export function createWebsiteEditor({root,integrated=false,user=null,section="events",onUnauthorized=()=>{},onSaved=()=>{},onDialogChange=()=>{},onDiscard=async()=>true}){
 let alive=true,dirty=false,pendingWrites=0,closing=false;const abort=new AbortController();
 const state = { configured: false, user: null, section, view: "active", items: [], selected: null, message: "", error: false, busy: false };
@@ -26,6 +27,7 @@ async function api(path, options = {}) {
   }finally{if(writing)pendingWrites--;}
 }
 
+async function uploadWebsiteImage(file){pendingWrites++;try{return await uploadImage(file,{csrf:state.user.csrf,scope:'website'});}finally{pendingWrites--;}}
 async function start() {
   if(integrated){state.user=user;if(state.user.role==='writer')state.section='posts';state.configured=true;await load();return;}
   try {
@@ -124,7 +126,7 @@ function renderPostForm(item) {
       <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen erzeugen Absätze. Bilder erscheinen als Galerie unter dem Text.</small></div>
     </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Bild oder Kartenkopf anfassen und an die markierte Stelle ziehen. Auf dem Handy gehen auch die Pfeile. Bis zu 12 Bilder pro Beitrag.</p>
       <div id="post-images">${(item?.images || []).map(postImageRow).join("")}</div>
-      <label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
+      <button type="button" class="secondary" id="post-image-library" ${disabled}>Bild auswählen / Foto aufnehmen</button><label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
       <small>JPG, PNG oder WebP · maximal 8 MB je Bild. Ohne eigene Bildbeschreibung wird der Kurztext verwendet.</small><p id="upload-status" role="status"></p>
     </div></div></div></div>
     <div class="form-footer"><div class="actions"><button class="primary" type="submit" ${disabled}>${item ? "Entwurf speichern" : "Entwurf anlegen"}</button>${actions}</div>${item ? actionConfirmation() : ""}</div></form>`;
@@ -222,7 +224,7 @@ function renderForm(item) {
     ${field("name", "Name", item?.name, { required: true, span: true, max: 80 })}
     ${field("role", "Rolle im Rudel", item?.role, { required: true, span: true, max: 160 })}
     ${orderField}`;
-  const photoFields = `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>JPG, PNG oder WebP · maximal 8 MB</p><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />`;
+  const photoFields = `<div class="photo-control">${safeImg(item?.photoUrl) ? `<img id="photo-preview" src="${esc(item.photoUrl)}" alt="Teamfoto" />` : '<span class="photo-placeholder" id="photo-placeholder">♙</span>'}<div><strong>Teamfoto</strong><p>Foto hochladen oder vorhandenes Bild auswählen</p><button type="button" class="secondary" id="team-image-library" ${disabled}>Bild auswählen / Foto aufnehmen</button><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp" ${disabled} /></div></div><input type="hidden" name="photoAssetId" value="${esc(item?.photo?.asset?._ref || item?.photoAssetId || "")}" /><input type="hidden" name="photoUrl" value="${esc(item?.photoUrl || "")}" />`;
   const detailFields = isEvent ? `
     ${field("description", "Beschreibung", item?.description, { multiline: true, required: true })}
     <div class="field map-field">
@@ -368,17 +370,18 @@ function bind() {
     root.querySelector(`[data-action="${root.querySelector("#confirm-action").dataset.action}"]`)?.focus();
   });
   root.querySelector("#confirm-action")?.addEventListener("click", event => performAction(event.currentTarget.dataset.action));
+  root.querySelector('#post-image-library')?.addEventListener('click',async()=>{try{const list=root.querySelector('#post-images');if(list.children.length>=12)throw new Error('Maximal 12 Bilder pro Beitrag.');pendingWrites++;const result=await chooseImage({csrf:state.user.csrf,scope:'website',canBrowse:state.user.legacy||state.user.roles?.some(r=>['admin','editor'].includes(r.role))});if(result){dirty=true;list.insertAdjacentHTML('beforeend',postImageRow({assetId:result.assetId,url:result.url,alt:'',caption:''}));refreshPostImageRows(list);}}catch(e){root.querySelector('#upload-status').textContent=e.message;}finally{pendingWrites--;}});
+  root.querySelector('#team-image-library')?.addEventListener('click',async()=>{try{pendingWrites++;const result=await chooseImage({csrf:state.user.csrf,scope:'website',current:root.querySelector('[name=photoUrl]').value});if(result){dirty=true;root.querySelector('[name=photoAssetId]').value=result.assetId;root.querySelector('[name=photoUrl]').value=result.url;const preview=root.querySelector('#photo-preview')||document.createElement('img');preview.id='photo-preview';preview.alt='Teamfoto';preview.src=result.url;root.querySelector('#photo-placeholder')?.replaceWith(preview);}}finally{pendingWrites--;}});
   root.querySelector("#photo-upload")?.addEventListener("change", async event => {
     const file = event.target.files?.[0]; if (!file) return;
-    if (file.size > 8_000_000) { state.message = "Das Bild darf höchstens 8 MB groß sein."; state.error = true; render(); return; }
     try {
-      const result = await api("upload", { method: "POST", headers: { "Content-Type": file.type, "X-File-Name": file.name }, body: file });
+      dirty=true;const result = await uploadWebsiteImage(file);
       root.querySelector('[name="photoAssetId"]').value = result.assetId;
       root.querySelector('[name="photoUrl"]').value = result.url;
       const preview = root.querySelector("#photo-preview") || document.createElement("img");
       preview.id = "photo-preview"; preview.alt = "Neues Teamfoto"; preview.src = result.url;
       root.querySelector("#photo-placeholder")?.replaceWith(preview);
-    } catch (error) { state.message = error.message; state.error = true; render(); }
+    } catch (error) { const box=document.createElement("p");box.className="message error";box.setAttribute("role","alert");box.textContent=error.message;root.querySelector(".photo-control").append(box); }
   });
   if (imageList) {
     const changed = () => {
@@ -491,15 +494,12 @@ function bind() {
     const status = root.querySelector("#upload-status");
     const submitButton = root.querySelector('#edit-form button[type="submit"]');
     if (list.children.length + files.length > 12) { status.textContent = "Maximal 12 Bilder pro Beitrag."; input.value = ""; return; }
-    if (files.some(file => file.size > 8_000_000 || !["image/jpeg", "image/png", "image/webp"].includes(file.type))) {
-      status.textContent = "Bitte nur JPG, PNG oder WebP bis 8 MB je Bild wählen."; input.value = ""; return;
-    }
     input.disabled = true;
     submitButton.disabled = true;
     try {
       for (const [index, file] of files.entries()) {
         status.textContent = `Bild ${index + 1} von ${files.length} wird hochgeladen …`;
-        const result = await api("upload", { method: "POST", headers: { "Content-Type": file.type, "X-File-Name": file.name }, body: file });
+        dirty=true;const result = await uploadWebsiteImage(file);
         list.insertAdjacentHTML("beforeend", postImageRow({ assetId: result.assetId, url: result.url, alt: "", caption: "" }));
         refreshPostImageRows(list);
         list.lastElementChild.querySelector(".post-image-alt").placeholder = root.querySelector("#f-teaser").value.trim() || "Kurztext wird übernommen";

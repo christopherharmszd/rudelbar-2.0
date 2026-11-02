@@ -12,9 +12,10 @@ export async function changeCatalogLifecycle(client,user,kind,id,input,action){
  if(deleting&&item.deletedAt)fail('Das Angebot liegt bereits im Papierkorb.',409);
  if(!deleting&&!item.deletedAt)fail('Das Angebot liegt nicht im Papierkorb.',409);
  if(deleting){
-  const [events,configs,releases]=await Promise.all([eventList(client),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE)]),key=kind==='drinks'?'menu':kind;
+  const [events,configs,releases,templates]=await Promise.all([eventList(client),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list('rudelAppTemplate')]),key=kind==='drinks'?'menu':kind;
   const includes=config=>(key==='program'?programFor(config):config[key]||[]).some(r=>r.id===id);
   const used=events.filter(event=>configs.some(c=>c.eventId===event.eventId&&includes(c))||releases.some(r=>r.eventId===event.eventId&&r.config&&includes(r.config)));
+  const templateUse=templates.filter(t=>t.config&&includes(t.config));if(templateUse.length)fail('Dieser Inhalt gehört noch zu Vorlagen: '+templateUse.map(t=>t.name).join(', ')+'. Entferne ihn dort zuerst.',409);
   if(used.length)fail('Das Angebot ist noch zugeordnet: '+used.map(e=>e.title).join(', ')+'. Entferne es dort zuerst und übernimm die Änderung für Gäste.',409);
  }
  const rows=catalog[kind].map(row=>row.id===id?{...row,archived:true,deletedAt:deleting?new Date().toISOString():null}:row);
