@@ -4,6 +4,7 @@ import worker from './worker.mjs';
 import {createContentClient} from './lib/content-client.mjs';
 import {createLiveService} from './lib/live-service.mjs';
 import {getVisitorExperience} from './lib/abend-service.mjs';
+import {flushReleaseReceipts} from './lib/release-service.mjs';
 export class VisitorContent extends WorkerEntrypoint {
   async getExperience(input){
     const client=createContentClient(this.env);
@@ -21,4 +22,4 @@ export class VisitorContent extends WorkerEntrypoint {
     }catch(error){return {status:error.status||503,error:error.status?error.message:'Die Nachricht konnte gerade nicht verarbeitet werden.'};}
   }
 }
-export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);ctx.waitUntil(createLiveService(env,client).notices.flush());}};
+export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);ctx.waitUntil(createLiveService(env,client).notices.flush());ctx.waitUntil(flushReleaseReceipts(client));}};

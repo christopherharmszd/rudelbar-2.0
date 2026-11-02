@@ -16,7 +16,7 @@ export function createAccounts(env,{people=async()=>[],events=async()=>[]}={}){
    const role=value.role;if(!Object.hasOwn(ROLE_LABELS,role))fail('Unbekannte Aufgabe.');
    const global=['admin','editor','author'].includes(role),eventId=global?'':cleanText(value.eventId,100,true),event=eventRows.find(e=>e.eventId===eventId);
    if(!global&&!event)fail('Bitte einen vorhandenen Abend wählen.');
-   if(!global&&!event.teamIds.includes(personId))fail('Füge die Person zuerst zum Team dieses Abends hinzu.');
+   if(!global&&!event.teamIds.includes(personId)&&!event.operatingTeamIds?.includes(personId))fail('Füge die Person zuerst zum Team dieses Abends hinzu.');
    const key=role+':'+eventId;if(ids.has(key))fail('Diese Aufgabe ist bereits zugewiesen.');ids.add(key);
    result.push({role,...(!global?{eventId}:{})});
   }

@@ -1,6 +1,6 @@
 (async () => {
   const root=document.querySelector('.re-app'),screen=root.querySelector('#re-screen'),nav=root.querySelector('#re-nav');
-  const query=new URLSearchParams(location.search),preview=query.get('preview'),eventId=preview||query.get('abend'),accessCode=query.get('zugang')||'';
+  const query=new URLSearchParams(location.search),templatePreview=query.get('templatePreview'),preview=query.get('preview')||templatePreview,eventId=preview||query.get('abend'),accessCode=query.get('zugang')||'';
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const icon=name=>`<i data-lucide="${name}" aria-hidden="true"></i>`;
   const button=(label,action,extra='',secondary=false)=>`<button type="button" class="re-btn ${secondary?'re-btn-secondary':''}" data-action="${action}" ${extra}>${label}</button>`;
@@ -85,7 +85,7 @@
   }
   screen.innerHTML='<p class="re-lead">Dein Abend wird geladen …</p>';
   try{
-    const endpoint=preview?`/api/abend/events/${encodeURIComponent(preview)}/preview`:`/api/experience${eventId?'?abend='+encodeURIComponent(eventId):''}${accessCode?'&zugang='+encodeURIComponent(accessCode):''}`;
+    const endpoint=preview?`/api/abend/${templatePreview?'templates':'events'}/${encodeURIComponent(preview)}/preview`:`/api/experience${eventId?'?abend='+encodeURIComponent(eventId):''}${accessCode?'&zugang='+encodeURIComponent(accessCode):''}`;
     const response=await fetch(endpoint,{credentials:'same-origin',cache:'no-store'}),result=await response.json();
     if(!response.ok)throw new Error(result.error||'Dieser Abend kann gerade nicht geladen werden.');
     if(result.state==='closed'){showClosed(result.event);return;}

@@ -84,7 +84,7 @@ export function createMemberOnboarding(env,client){
     // The selected evening roles include membership in those evening teams, shown in the review step.
     for(const eventId of new Set(normalized.roles.filter(r=>r.eventId).map(r=>r.eventId))){
      const event=(await eventList(client)).find(e=>e.eventId===eventId);if(!event)fail('Ein ausgewählter Abend ist nicht mehr verfügbar.',409);
-     if(!event.teamIds.includes(personId)){
+     if(!event.teamIds.includes(personId)&&!event.operatingTeamIds?.includes(personId)){
       const previous=await client.getDocument('drafts.'+eventDocId(eventId));
       await client.savePrivate(APP_EVENT_TYPE,eventDocId(eventId),cleanEvent({...event,teamIds:[...event.teamIds,personId]},eventId,previous||event),previous?._rev);
      }

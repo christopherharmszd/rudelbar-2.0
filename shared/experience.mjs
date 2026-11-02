@@ -1,4 +1,5 @@
 import {emptyMap,cleanMap,pruneMapPeople} from './village-map.mjs';
+import {cleanResourceSelection} from './resources.mjs';
 import {attachCategories,sectionsFor,categoryId} from './content-model.mjs';
 export {sectionsFor} from './content-model.mjs';
 export const CATALOG_ID = 'rudel-app-library-v1';
@@ -67,6 +68,7 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   result.sections=unique(array(supplied,100).map(s=>{const cid=validId(s.categoryId||s.id),category=catalog.categories?.find(c=>c.id===cid);if(!category)fail('Ein Bereich verweist auf eine nicht mehr vorhandene Kategorie.');return {id:cid,categoryId:cid,title:text(s.title||category.name,100,true),enabled:s.enabled!==false,showImages:s.showImages!==false,detailsEnabled:s.detailsEnabled!==false};}));
   for(const cid of selectedCategories)if(!result.sections.some(s=>s.categoryId===cid)){const category=catalog.categories.find(c=>c.id===cid);result.sections.push({id:cid,categoryId:cid,title:category.name,enabled:!category.archived,showImages:true,detailsEnabled:true});}
   result.map=cleanMap(input.map,result,people,teamIds);
+  if(input.resourceSelection!=null)result.resourceSelection=cleanResourceSelection(input.resourceSelection);
   return result;
 }
 

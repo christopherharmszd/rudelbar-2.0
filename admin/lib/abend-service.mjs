@@ -28,14 +28,21 @@ export function cleanEvent(input,eventId,previous){
   return {eventId:validId(eventId),title:text(input.title,120,true),date,time:text(input.time,80),venue:text(input.venue,160),address:text(input.address,240),description:text(input.description,1200),visibility:input.visibility,teamIds:[...new Set(input.teamIds.map(validId))],linkedEventId:input.linkedEventId?validId(input.linkedEventId):'',sourceTemplateId:previous?.sourceTemplateId||'',sourceTemplateRevision:previous?.sourceTemplateRevision||'',accessCode:previous?.accessCode||token(),source:previous?.source||'app',archived:false};
 }
 export async function eventList(client){
-  const [web,own,configs,releases,people]=await Promise.all([(client.website||client).list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE)]);
+  const [web,own,configs,releases,people,runtime]=await Promise.all([(client.website||client).list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE),client.runtimeDb?releaseMetadata(client.runtimeDb):[]]);
+  let currentResourcesVersion=null;
+  if(runtime.some(r=>r.sourceResourcesVersion)){
+   const [state,catalog]=await Promise.all([client.getDocument('drafts.'+RESOURCE_STATE_ID),catalogFor(client)]);
+   currentResourcesVersion={resourceRevision:state?._rev||'',sourcesVersion:await resourceSourcesVersion(sourceObjects(catalog,people.map(p=>({...p,revision:p._rev||''}))))};
+  }
   const deletedIds=new Set(people.filter(p=>p.deletedAt).map(p=>p.personId));
   const websiteEntries=new Map(web.filter(e=>!e.archived).map(e=>[e._id,{...strip(e),eventId:e._id,visibility:'public',teamIds:[],source:'website',websitePublished:e.published,revision:''}]));
   const entries=new Map(websiteEntries);
   for(const e of own.filter(e=>!e.archived)){const linked=e.linkedEventId?websiteEntries.get(e.linkedEventId):null;if(linked&&e.linkedEventId!==e.eventId)entries.delete(e.linkedEventId);entries.set(e.eventId,{...strip(e),linkedWebsitePublished:linked?.websitePublished??false,revision:e._rev||''});}
   return [...entries.values()].map(e=>{
-    const config=configs.find(c=>c.eventId===e.eventId),release=releases.find(r=>r.eventId===e.eventId);
-    return {...e,teamIds:(e.teamIds||[]).filter(id=>!deletedIds.has(id)),_id:e.eventId,app:{state:release?.state||(config?.published?'open':'closed'),hasRelease:!!release?.config||config?.published===true,hasDraft:config?.draft===true&&(!release?.config||release.sourceRevision!==config._rev),revision:release?._rev||'',updatedAt:release?.changedAt||config?._updatedAt||''}};
+    const config=configs.find(c=>c.eventId===e.eventId),release=releases.find(r=>r.eventId===e.eventId),active=runtime.find(r=>r.eventId===e.eventId);
+    const hasRelease=active?active.hasConfig:!!release?.config||config?.published===true;
+    const operatingTeamIds=[...new Set([...(e.teamIds||[]),...(active?active.staffIds:release?.config?._staffIds||[])])].filter(id=>people.some(p=>p.personId===id&&!p.archived&&!p.deletedAt));
+    return {...e,teamIds:(e.teamIds||[]).filter(id=>!deletedIds.has(id)),operatingTeamIds,_id:e.eventId,app:{state:active?.state||release?.state||(config?.published?'open':'closed'),hasRelease,hasDraft:config?.draft===true&&(!hasRelease||(active?.sourceRevision??release?.sourceRevision)!==config._rev),hasSourceChanges:!!active?.sourceResourcesVersion&&JSON.stringify(active.sourceResourcesVersion)!==JSON.stringify(currentResourcesVersion),revision:active?'runtime-'+active.revision:release?._rev||'',versionId:active?.versionId||'',updatedAt:active?.changedAt||release?.changedAt||config?._updatedAt||''}};
   }).sort((a,b)=>String(b.date).localeCompare(String(a.date))||a.title.localeCompare(b.title));
 }
 export async function loadEvent(client,id){const event=(await eventList(client)).find(e=>e.eventId===id);if(!event)fail('Veranstaltung nicht gefunden.',404);return event;}
@@ -46,13 +53,15 @@ export async function configurationFor(client,id){
 }
 export async function snapshotFor(client,event){
   const [release,published]=await Promise.all([client.getDocument(`drafts.${releaseDocId(event.eventId)}`),client.getDocument(experienceId(event.eventId))]);
-  return release||{eventId:event.eventId,state:published?'open':'closed',config:published?strip(published):null};
+  const active=client.runtimeDb?await createReleaseStore(client.runtimeDb).read(event.eventId):null;
+  return active?{...release,...active,_rev:release?._rev}:release||{eventId:event.eventId,state:published?'open':'closed',config:published?strip(published):null};
 }
 export function guestUrl(base,event){return `${String(base||'').replace(/\/$/,'')}/?abend=${encodeURIComponent(event.eventId)}${event.visibility==='private'?`&zugang=${encodeURIComponent(event.accessCode)}`:''}`;}
 export function visitorPayload(config,event,people,partners=[]){
+  const visibleTeamIds=config._resourceSnapshot?config._publicContactIds||[]:event.teamIds;
   const safeEvent={_id:event.eventId,title:event.title,date:event.date,time:event.time,venue:event.venue,address:event.address||'',description:event.description||''};
   const resolve=row=>{
-    const person=row.hostId?people.find(p=>p.personId===row.hostId&&!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)):null;
+    const person=row.hostId?people.find(p=>p.personId===row.hostId&&!p.archived&&!p.deletedAt&&visibleTeamIds.includes(p.personId)):null;
     const {_key,archived,host,...publicRow}=row;
     if(row.detailsEnabled===false){const {description,rules,hostId,place,time,...compact}=publicRow;return {...compact,host:'',hostId:''};}
     return {...publicRow,host:person?.name||(!row.hostId?String(host||''):''),hostId:person?.personId||''};
@@ -62,8 +71,8 @@ export function visitorPayload(config,event,people,partners=[]){
   for(const kind of ['equipment','games'])payload[kind]=payload[kind].map(resolve);
   payload.program=payload.program.map(resolve);payload.menu=payload.menu.map(resolve);
   payload.stations=stationsFor(config).filter(s=>s.enabled!==false&&sectionAllowsStation(config,s)).map(s=>{const detailsEnabled=config.features?.stationDetails===true&&s.detailsEnabled!==false;return {id:s.id,name:s.name,kind:s.kind,description:detailsEnabled?s.description||'':'',place:detailsEnabled?s.place||'':'',offerType:s.offerType,offerId:s.offerId,contactEnabled:s.contactEnabled!==false,detailsEnabled,showImages:detailsEnabled&&s.showImages!==false,imageUrl:detailsEnabled&&s.showImages!==false?s.imageUrl||'':'',imageAlt:detailsEnabled?s.imageAlt||'':''};});
-  payload.schemaVersion=5;
-  payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role,avatarUrl:p.avatarUrl||'',affiliation:affiliationFor(p,partners)}));
+  payload.schemaVersion=config._resourceSnapshot?6:5;
+  payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&visibleTeamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role,avatarUrl:p.avatarUrl||'',affiliation:affiliationFor(p,partners)}));
   payload.map=publicMap(config.map,payload);
   return payload;
 }
@@ -76,6 +85,8 @@ export async function getVisitorExperience(client,{eventId='',accessCode=''}={})
     const release=await snapshotFor(client,event);
     if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
-    return {status:200,state:'open',experience:{...visitorPayload(release.config,{...event,...release.eventSnapshot},await peopleFor(client),await partnersFor(client)),revision:release._rev||release.sourceRevision||''}};
+    return {status:200,state:'open',experience:{...visitorPayload(release.config,{...event,...release.eventSnapshot},await peopleFor(client),await partnersFor(client)),revision:release.versionId||release._rev||release.sourceRevision||'',...(release.versionId?{releaseId:release.versionId}:{})}};
   }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}
 }
+import {createReleaseStore,releaseMetadata} from './release-store.mjs';
+import {RESOURCE_STATE_ID,sourceObjects,resourceSourcesVersion} from '../../shared/resources.mjs';

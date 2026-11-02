@@ -1,3 +1,4 @@
+import {createResources} from './resources.mjs';
 import {cleanLayout} from '../../shared/village-map.mjs';
 import {editsContent,requirePermission} from './permissions.mjs';
 import {validId} from '../../shared/experience.mjs';
@@ -14,5 +15,6 @@ export async function venuePlansApi(request,{client,user,json,data}){
  const input=await data(request);if(old&&input.revision!==old._rev)fail('Der Ortsplan wurde inzwischen geändert. Bitte neu laden.',409);
  const name=String(input.name??old?.name??'').trim(),description=String(input.description??old?.description??'').trim();if(!name||name.length>120||description.length>1000)fail('Bitte Name und Beschreibung des Ortsplans prüfen.');
  const fields={planId:id,name,description,archived:input.archived??old?.archived??false,layout:cleanLayout(input.layout||old?.layout,{base:true})};
+ if(fields.layout.booths.some(b=>b.standId)){const resources=await createResources(client).load();if(fields.layout.booths.some(b=>b.standId&&!resources.nodes.some(n=>n.kind==='stand'&&n.id===b.standId)))fail('Ein verknüpfter Stand ist nicht mehr vorhanden. Bitte die Zuordnung prüfen.');}
  const doc=await client.savePrivate(VENUE_PLAN_TYPE,id,fields,old?._rev);return json(old?200:201,{plan:plan(doc)});
 }

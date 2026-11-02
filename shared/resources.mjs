@@ -1,6 +1,11 @@
 // Central definitions are independent of an evening. Resolving them never grants
 // account permissions or access to private live data.
 export const RESOURCE_VERSION=1;
+export const RESOURCE_STATE_ID='rudel-resource-state-v1';
+export async function resourceSourcesVersion(sources){
+ const serialized=JSON.stringify(sources.map(n=>[n.key,n.revision,n.archived]).sort((a,b)=>a[0].localeCompare(b[0])));
+ return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(serialized))),v=>v.toString(16).padStart(2,'0')).join('');
+}
 export const RESOURCE_KINDS=['stand','task','asset'];
 export const CONTENT_KINDS=['equipment','games','program','menu'];
 export const FUNCTIONS=Object.freeze([
@@ -36,7 +41,7 @@ export function cleanResource(input){
  const kind=input.kind;if(!RESOURCE_KINDS.includes(kind))fail('Diese Art kann hier nicht angelegt werden.');
  const row={id:id(input.id),kind,name:text(input.name,120,true),description:text(input.description,1200),archived:boolean(input.archived),revision:text(input.revision,100)};
  if(kind==='stand')Object.assign(row,{imageUrl:image(input.imageUrl),imageAlt:text(input.imageAlt,300),detailsEnabled:boolean(input.detailsEnabled,true)});
- if(kind==='task')Object.assign(row,{required:boolean(input.required),maxPeople:integer(input.maxPeople??1,1,100)});
+ if(kind==='task')Object.assign(row,{required:boolean(input.required),publicContact:boolean(input.publicContact),maxPeople:integer(input.maxPeople??1,1,100)});
  if(kind==='asset')Object.assign(row,{quantity:integer(input.quantity??1,1,1000),equipmentRef:input.equipmentRef?resourceRef(input.equipmentRef):''});
  if(row.equipmentRef&&kindOf(row.equipmentRef)!=='equipment')fail('Ausstattung muss auf einen Ausstattungseintrag verweisen.');
  return row;
@@ -76,7 +81,7 @@ export function sourceObjects(catalog,people=[]){
   result.push({...row,sourceKind:row.kind||'',kind,id:row.id,key:resourceKey(kind,row.id),revision:catalog.revision||'',archived:row.archived===true||!!row.deletedAt});
  }
  for(const p of people)result.push({id:p.personId,key:resourceKey('person',p.personId),kind:'person',name:p.name,revision:p.revision||'',archived:p.archived===true||!!p.deletedAt});
- for(const f of FUNCTIONS)result.push({...f,kind:'function',key:resourceKey('function',f.id),revision:'function-v1',archived:false});
+ for(const f of FUNCTIONS)result.push({...f,kind:'function',key:resourceKey('function',f.id),revision:'function-v1-'+(f.implemented?'ready':'pending'),archived:false});
  return result;
 }
 export function cleanResources(input,sources=[]){
@@ -89,18 +94,15 @@ export function cleanResources(input,sources=[]){
  unique(relations.filter(r=>!r.archived&&r.kind!=='offers'),r=>[r.kind,r.from,r.to,r.scope||''].join('|'));
  return {schemaVersion:RESOURCE_VERSION,nodes,relations};
 }
-export function resourceSelection(input={},model){
- const stands=new Set(model.nodes.filter(n=>n.kind==='stand').map(n=>n.id));
- const occurrences=new Set(model.relations.filter(r=>r.kind==='offers').map(r=>r.id));
- const standIds=input.standIds===undefined?model.nodes.filter(n=>n.kind==='stand'&&!n.archived).map(n=>n.id):unique(list(input.standIds,500).map(id),x=>x);
+export function cleanResourceSelection(input={}){
+ if(!input||typeof input!=='object'||Array.isArray(input))fail('Ungültige Auswahl der zentralen Inhalte.');
+ const standIds=unique(list(input.standIds||[],500).map(id),x=>x);
  const occurrenceIds=input.occurrenceIds==null?null:unique(list(input.occurrenceIds,2000).map(id),x=>x);
- if(standIds.some(v=>!stands.has(v))||occurrenceIds?.some(v=>!occurrences.has(v)))fail('Ein ausgewählter Stand oder eine Durchführung fehlt.');
  const overrides=unique(list(input.overrides||[],2000).map(row=>{
-  const occurrenceId=id(row.occurrenceId);if(!occurrences.has(occurrenceId))fail('Die abweichende Durchführung fehlt.');
+  const occurrenceId=id(row.occurrenceId);
   const staffing=unique(list(row.staffing||[],100).map(s=>{
    if(!['inherit','assigned','unattended'].includes(s.mode))fail('Bitte die Betreuung auswählen.');
    const taskId=id(s.taskId);
-   if(!model.nodes.some(n=>n.kind==='task'&&n.id===taskId))fail('Die Aufgabe fehlt.');
    const personIds=unique(list(s.personIds||[],100).map(id),x=>x);
    if(s.mode!=='assigned'&&personIds.length||s.mode==='assigned'&&!personIds.length)fail('Bitte die Betreuung eindeutig auswählen.');
    return {taskId,mode:s.mode,personIds};
@@ -110,6 +112,17 @@ export function resourceSelection(input={},model){
  const disabledFunctions=unique(list(input.disabledFunctions||[],FUNCTIONS.length).map(id),x=>x);
  if(disabledFunctions.some(v=>!FUNCTIONS.some(f=>f.id===v)))fail('Unbekannte Funktion.');
  return {standIds,occurrenceIds,overrides,disabledFunctions};
+}
+export function resourceSelection(input={},model){
+ const selection=cleanResourceSelection({...input,standIds:input.standIds===undefined?model.nodes.filter(n=>n.kind==='stand'&&!n.archived).map(n=>n.id):input.standIds});
+ const stands=new Set(model.nodes.filter(n=>n.kind==='stand').map(n=>n.id));
+ const occurrences=new Set(model.relations.filter(r=>r.kind==='offers').map(r=>r.id));
+ if(selection.standIds.some(v=>!stands.has(v))||selection.occurrenceIds?.some(v=>!occurrences.has(v)))fail('Ein ausgewählter Stand oder eine Durchführung fehlt.');
+ for(const o of selection.overrides){
+  if(!occurrences.has(o.occurrenceId))fail('Die abweichende Durchführung fehlt.');
+  if(o.staffing.some(s=>!model.nodes.some(n=>n.kind==='task'&&n.id===s.taskId)))fail('Die Aufgabe fehlt.');
+ }
+ return selection;
 }
 export function resolveResources(input,sources=[],selection={}){
  const model=cleanResources(input,sources),selected=resourceSelection(selection,model);
@@ -141,7 +154,7 @@ export function resolveResources(input,sources=[],selection={}){
    if(mode!=='unattended'&&required&&!personIds.length)conflict('Für '+task.name+' fehlt die Betreuung.');
    if(personIds.length>task.maxPeople)conflict('Für '+task.name+' sind mehrere gleichrangige Zuständigkeiten eingetragen.');
    for(const pid of personIds)if(!objects.has('person/'+pid)||objects.get('person/'+pid).archived)conflict('Eine zugeordnete Person ist nicht verfügbar.');
-   return {taskId:task.id,name:task.name,mode,required,personIds,source,provenance,issues:taskIssues};
+   return {taskId:task.id,name:task.name,mode,required,publicContact:task.publicContact,personIds,source,provenance,issues:taskIssues};
   });
  }
  for(const offer of relations.filter(r=>r.kind==='offers'&&selected.standIds.includes(r.from.slice(6))&&(selected.occurrenceIds===null||selected.occurrenceIds.includes(r.id)))){

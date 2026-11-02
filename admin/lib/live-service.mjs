@@ -32,7 +32,8 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     validId(eventId);
     if(getContext)return getContext(eventId);
     const event=await loadEvent(client,eventId),release=await snapshotFor(client,event),people=await peopleFor(client);
-    return {event,release,people,stations:release.config?stationsFor(release.config).map(s=>({...s,enabled:s.enabled!==false&&sectionAllowsStation(release.config,s)})):[]};
+    const staffing=release.config?._staffIds||[];
+    return {event:{...event,teamIds:[...new Set([...event.teamIds,...staffing])].filter(pid=>people.some(p=>p.personId===pid&&!p.archived&&!p.deletedAt))},release,people,stations:release.config?stationsFor(release.config).map(s=>({...s,enabled:s.enabled!==false&&sectionAllowsStation(release.config,s)})):[]};
   }
   const notices=createNotifications(env,{context,defer,transport});
   const recipient=actor=>({id:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId,eventId:actor.eventId,audience:'team',publisher:actor.publisher,personId:actor.personId,grantId:actor.accountSessionId||actor.grantId,expiresAt:actor.expiresAt,authVersion:actor.authVersion,stations:stations(actor).map(s=>s.id)});

@@ -8,7 +8,7 @@ export function exportCatalogCsv(catalog,{category='',template=false}={}){
  const cell=value=>'"'+safe(value).replaceAll('"','""')+'"',keys=Object.keys(CSV_FIELDS),rows=template?[]:catalogEntries(catalog).filter(r=>!category||r.categoryId===category).map(r=>({...r,format:CONTENT_FORMATS[r.source].label,ref:r.ref,interaction:r.source==='program'?({dj:'Musikwünsche',karaoke:'Karaoke',other:'Vor Ort'}[r.kind]||'Vor Ort'):'',price:r.source==='drinks'?(r.priceCents/100).toFixed(2).replace('.',','):'',capacity:r.capacity??'',minutes:r.minutes??'',archived:r.archived?'ja':'nein'}));
  return '\ufeff'+[keys.map(k=>cell(CSV_FIELDS[k])).join(';'),...rows.map(r=>keys.map(k=>cell(r[k])).join(';'))].join('\r\n')+'\r\n';
 }
-export function parseCsv(source){
+export function parseCsv(source,{maxRows=500}={}){
  if(typeof source!=='string'||source.length>1_000_000)fail('Bitte eine CSV-Datei unter 1 MB wählen.');source=source.replace(/^\ufeff/,'');
  let quote=false,first='';for(let i=0;i<source.length;i++){const c=source[i];if(c==='"')quote=!quote;if(!quote&&(c==='\r'||c==='\n'))break;first+=c;}
  const delimiter=[';',',','\t'].map(c=>[c,first.split(c).length]).sort((a,b)=>b[1]-a[1])[0][0],rows=[];let row=[],value='',quoted=false,closed=false;
@@ -18,7 +18,7 @@ export function parseCsv(source){
   if(c===delimiter||c==='\r'||c==='\n'||c===undefined){row.push(unsafed(value));value='';closed=false;if(c!==delimiter){if(row.some(v=>v.trim()))rows.push(row);row=[];if(c==='\r'&&source[i+1]==='\n')i++;}continue;}
   if(closed&&c.trim())fail('Nach einem geschlossenen Textfeld steht ein unerwartetes Zeichen.');value+=c;
  }
- if(rows.length>501||rows.some(r=>r.length>40))fail('Bitte höchstens 500 Einträge und 40 Spalten importieren.');
+ if(rows.length>maxRows+1||rows.some(r=>r.length>40))fail('Bitte höchstens '+maxRows+' Einträge und 40 Spalten importieren.');
  if(!rows.length)fail('Die CSV-Datei ist leer.');const headers=rows.shift().map(h=>h.trim());if(new Set(headers).size!==headers.length||headers.some(h=>!h))fail('Bitte eindeutige Spaltenüberschriften verwenden.');
  if(rows.some(r=>r.length!==headers.length))fail('Die Zeilen haben unterschiedlich viele Spalten. Bitte Trennzeichen und Anführungszeichen prüfen.');
  return {headers,rows,delimiter};
