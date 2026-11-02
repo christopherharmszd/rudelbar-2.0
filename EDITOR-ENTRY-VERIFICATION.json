@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-11-02T12:05:26.082Z",
+  "scope": "Promote Backstage to the public editorial entry and retain an independent fallback",
+  "entry": "https://rudelbar.de/redaktion",
+  "target": "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website",
+  "fallback": "https://rudelbar-cms.christopher-harms.workers.dev/",
+  "workerVersion": "f2199c0e-683f-4e11-aff6-e4e915748ab0",
+  "websiteCommit": "975e66a82f59d2568db524fcb782797e4763930f",
+  "websitePreviousCommit": "9f33650ee6caae5329ee8cab96c34d77b5fc3a3a",
+  "pullRequest": "https://github.com/christopherharmszd/rudelbar-pages/pull/2",
+  "changedProductionFiles": [
+    "redaktion.html",
+    "redaktion/index.html"
+  ],
+  "unchangedPublicPages": [
+    "/",
+    "/impressum.html",
+    "/datenschutz.html"
+  ],
+  "pathsVerified": [
+    "/redaktion",
+    "/redaktion/",
+    "/redaktion.html"
+  ],
+  "tests": {
+    "productionWebsite": 5,
+    "developmentWebsite": 5,
+    "signInDestinations": 2,
+    "failed": 0
+  },
+  "browser": {
+    "publicEntryReachesWebsite": true,
+    "productionPostVisible": true,
+    "fallbackInWebsiteArea": true,
+    "fallbackOpensSeparateTab": true,
+    "oldLoginReachable": true,
+    "activeSharedSessionPreserved": true
+  },
+  "contentModified": false,
+  "passwordsChanged": false,
+  "publicChecks": [
+    "Published source matches backstage.html",
+    "Published source matches backstage.css",
+    "Published source matches abendplan.js",
+    "Independent old production editor is the fallback",
+    "Old production editor remains reachable"
+  ],
+  "screenshot": "../rudelbar-app-preview/editor-entry-fallback.png",
+  "deployment": {
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/41441302921"
+  }
+}

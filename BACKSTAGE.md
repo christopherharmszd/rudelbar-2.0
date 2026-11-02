@@ -2,13 +2,15 @@
 
 ## Einstiege
 
+- **Haupteinstieg:** `https://rudelbar.de/redaktion` öffnet direkt den Website-Bereich im neuen Backstage.
 - **Neues Backstage:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage`
 - **Eigenständiger Live-Einstieg:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/live`
-- **Bestehende Redaktion:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/`
+- **Notfall-Redaktion:** `https://rudelbar-cms.christopher-harms.workers.dev/`, im Bereich Website über Bisherige Redaktion erreichbar.
+- **Bisheriges Layout im neuen Worker:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/`, weiterhin erreichbar.
 - **Bestehende Abendplanung:** `/abendplan`, weiterhin erreichbar.
 - **Bestehende Stationseingänge:** `/team?abend=…` und persönliche Team-Links, weiterhin erreichbar.
 
-Es wird kein bisheriger Einstieg automatisch abgeschaltet oder auf die neue Oberfläche umgeleitet. Das Konto Redaktion bleibt aktiv. Eine spätere Umstellung des Haupteinstiegs ist ein eigener Schritt nach der Erprobung.
+Am 2. November 2026 wurde der Haupteinstieg auf ausdrücklichen Wunsch auf das neue Backstage umgestellt. Die bisherige Produktionsredaktion bleibt als unabhängiger Notfallzugang erhalten; sie verwendet denselben Website-Produktionsbestand und behält ihren bisherigen Login. Beim Wechsel kann eine erneute Anmeldung nötig sein. Der neue Bereich öffnet sie in einem separaten Tab. Reine Beitragsautoren erhalten diesen Verwaltungslink nicht. Das Konto Redaktion bleibt aktiv; Passwörter, Sitzungen und persönliche Konten werden durch die Weiterleitung nicht geändert.
 
 ## Gemeinsame Verwaltung
 

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const appDirectory = fileURLToPath(new URL("../", import.meta.url));
 const vite = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
-const cmsUrl = "https://rudelbar-cms.christopher-harms.workers.dev/";
+const cmsUrl = "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website";
 
 const result = spawnSync(process.execPath, [vite, "build", "--outDir", "dist/production"], {
   cwd: appDirectory,

@@ -24,9 +24,12 @@ test("build contains the public pages and brand assets", async () => {
 test("build targets the selected website and editorial server", async () => {
   if (production) {
     assert.equal(await readFile(built("CNAME"), "utf8"), "rudelbar.de\n");
-    const redirect = await readFile(built("redaktion/index.html"), "utf8");
-    assert.match(redirect, /rudelbar-cms\.christopher-harms\.workers\.dev/);
-    assert.doesNotMatch(redirect, /rudelbar-cms-staging/);
+    for(const path of ['redaktion/index.html','redaktion.html']){
+      const redirect=await readFile(built(path),'utf8');
+      assert.match(redirect,/url=https:\/\/rudelbar-cms-staging\.christopher-harms\.workers\.dev\/backstage#website/);
+      assert.match(redirect,/href="https:\/\/rudelbar-cms-staging\.christopher-harms\.workers\.dev\/backstage#website"/);
+      assert.doesNotMatch(redirect,/rudelbar-cms\.christopher-harms\.workers\.dev/);
+    }
   } else {
     await assert.rejects(access(built("CNAME")));
   }

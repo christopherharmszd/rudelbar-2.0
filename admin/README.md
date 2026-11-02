@@ -1,6 +1,6 @@
 # Rudelbar CMS
 
-Das [integrierte Backstage](../BACKSTAGE.md) wird parallel zur bisherigen Redaktion ausgeliefert. Eigenständiger Live-Einstieg: `/live`. Der bestehende Zugang Redaktion bleibt aktiv.
+Das [integrierte Backstage](../BACKSTAGE.md) ist seit 2. November 2026 der Haupteinstieg über `https://rudelbar.de/redaktion`. Im Bereich Website öffnet Bisherige Redaktion den unabhängigen Notfallzugang unter `rudelbar-cms.christopher-harms.workers.dev`; eine erneute Anmeldung kann erforderlich sein. Eigenständiger Live-Einstieg: `/live`. Der bestehende Zugang Redaktion bleibt aktiv.
 
 Die öffentliche Staging-Website liegt auf GitHub Pages und liest weiterhin `staging`. Das reale Backstage im historisch benannten Worker `rudelbar-cms-staging` nutzt seit 2. November 2026 für Website-Inhalte `SANITY_WEBSITE_DATASET=production`. Die bisherige Oberfläche `/` und das integrierte `/backstage#website` bearbeiten denselben Produktionsbestand wie der bestehende Worker `rudelbar-cms`. Interne App-Daten bleiben über `SANITY_DATASET=staging` im bisherigen Bestand. Die Produktionswebsite und ihr Build werden durch diese Anbindung nicht neu bereitgestellt.
 

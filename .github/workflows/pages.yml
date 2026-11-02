@@ -32,7 +32,7 @@ jobs:
         env:
           VITE_SANITY_PROJECT_ID: uywmld5e
           VITE_SANITY_DATASET: staging
-          RUDELBAR_CMS_URL: https://rudelbar-cms-staging.christopher-harms.workers.dev/
+          RUDELBAR_CMS_URL: "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website"
         run: |
           npm ci
           npm run build
