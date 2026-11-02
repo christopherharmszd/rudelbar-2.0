@@ -22,6 +22,8 @@ export async function liveApi(request,env,{client,json,session,data,service:prov
   const notice=path.match(/^\/api\/live\/notifications\/(read|settings|subscribe|unsubscribe|test)$/);
   if(notice&&request.method==='POST')return json(200,await service.notices[notice[1]==='read'?'mark':notice[1]](service.recipient(actor),await data(request)));
   if(path==='/api/live/logout'&&request.method==='POST'){const input=await data(request);if(input.endpoint)await service.notices.unsubscribe(service.recipient(actor),{endpoint:input.endpoint});if(actor.accountId){await createAccounts(env).logout(user);return json(200,{ok:true},{'Set-Cookie':accountCookie('',0)});}return json(200,{ok:true},{'Set-Cookie':`${cookieName(new URL(request.url).searchParams.get('s'))}=; HttpOnly; Secure; SameSite=Strict; Path=/api/live; Max-Age=0`});}
+  if(path==='/api/live/rounds'&&request.method==='GET')return json(200,await service.staffRounds(actor));
+  if(path==='/api/live/rounds'&&request.method==='POST')return json(200,await service.staffRounds(actor,await data(request)));
   if(path==='/api/live/requests'&&request.method==='GET')return json(200,await service.inbox(actor));
   const photo=path.match(/^\/api\/live\/stations\/([a-z0-9-]+)\/photo$/i);
   if(photo&&request.method==='POST'){

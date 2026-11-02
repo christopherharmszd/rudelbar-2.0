@@ -1,3 +1,4 @@
+import {pruneMapPeople} from '../../shared/village-map.mjs';
 import {validId,cleanExperience,defaultExperience,EXPERIENCE_TYPE,experienceId} from '../../shared/experience.mjs';
 import {PERSON_TYPE,APP_EVENT_TYPE,catalogFor,peopleFor,eventList,loadEvent,configurationFor,cleanEvent,eventDocId,strip} from './abend-service.mjs';
 import {editsContent,managesEvent,requirePermission} from './permissions.mjs';
@@ -20,7 +21,7 @@ export function createPlanning(client){
   const template=await getTemplate(templateId);if(template.archived)fail('Diese Vorlage ist archiviert.');
   const people=await peopleFor(client),active=new Set(people.filter(p=>!p.archived).map(p=>p.personId)),teamIds=template.teamIds.filter(id=>active.has(id)),removed=template.teamIds.length-teamIds.length;
   const config=structuredClone(template.config);for(const k of ['equipment','games','program'])config[k]=(config[k]||[]).map(r=>({...r,hostId:teamIds.includes(r.hostId)?r.hostId:''}));config.stations=(config.stations||[]).map(s=>{const ids=(s.operatorIds||[]).filter(id=>teamIds.includes(id));return {...s,operatorIds:ids,assignmentRequired:s.assignmentRequired||!!s.operatorIds?.length&&!ids.length};});
-  return {template,teamIds,config:cleanExperience(config,await catalogFor(client),eventId,people,teamIds),warnings:removed?['Nicht mehr aktive Personen wurden nicht in das Abendteam übernommen.']:[]};
+  return {template,teamIds,config:cleanExperience(pruneMapPeople(config,new Set(teamIds)),await catalogFor(client),eventId,people,teamIds),warnings:removed?['Nicht mehr aktive Personen wurden nicht in das Abendteam übernommen.']:[]};
  }
  async function linkedFields(input){
   if(!input.linkedEventId)return input;

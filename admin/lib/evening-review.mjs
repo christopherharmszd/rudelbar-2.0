@@ -13,6 +13,7 @@ export async function reviewEvening(client,id){
  if(!visible.length)warnings.push('Es sind noch keine Speisen, Getränke, Aktivitäten oder Programmpunkte ausgewählt.');
  if(!event.teamIds.length)warnings.push('Für diesen Abend ist noch kein Team ausgewählt. Ansprechpartner sind optional.');
  for(const station of config.stations||[])if(station.enabled!==false&&station.assignmentRequired&&!station.operatorIds?.length)warnings.push(`${station.name}: Betreuung noch zuordnen. Bisher sieht nur die Abendleitung diesen Eingang.`);
+ if(config.map?.enabled){const booths=config.map.layout?.booths?.filter(b=>b.visible!==false)||[];if(!booths.length)issues.push('Die Karte ist eingeschaltet, hat aber noch keinen sichtbaren Stand.');for(const b of booths)if(!b.offers?.length)warnings.push(b.title+': Dieser Kartenstand enthält noch keine Angebote.');}
  const token=await revisionToken({event,current,catalogRevision:catalog.revision,people:people.map(p=>[p.personId,p.revision])});
  return {ok:!issues.length,issues,warnings,token,event:{title:event.title,date:event.date,venue:event.venue,state:event.app.state},counts:{contents:visible.length,team:event.teamIds.length,stations:(config.stations||[]).filter(s=>s.enabled!==false).length}};
 }

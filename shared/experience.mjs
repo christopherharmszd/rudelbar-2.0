@@ -1,3 +1,4 @@
+import {emptyMap,cleanMap,pruneMapPeople} from './village-map.mjs';
 import {attachCategories,sectionsFor,categoryId} from './content-model.mjs';
 export {sectionsFor} from './content-model.mjs';
 export const CATALOG_ID = 'rudel-app-library-v1';
@@ -30,7 +31,7 @@ export function cleanCatalog(input){
   },input.categories);
 }
 
-export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],sections:[],features:{stationDetails:false},modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
+export function defaultExperience(eventId){return {eventId,enabled:true,welcomeTitle:'',welcomeText:'Schön, dass du da bist! Entdecke, was heute angeboten wird, und komm dazu.',equipment:[],games:[],program:[],menu:[],stations:[],sections:[],map:emptyMap(),features:{stationDetails:false},modules:{dj:{enabled:false,title:'DJ & Wunschmusik',time:'',host:'',description:''},karaoke:{enabled:false,title:'Karaoke',time:'',host:'',description:''},band:{enabled:false,title:'Live-Musik',time:'',host:'',description:''},encounters:{enabled:false},help:{enabled:true}}};}
 
 export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   if(!Array.isArray(catalog.categories))catalog=cleanCatalog(catalog);
@@ -65,6 +66,7 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
   const supplied=Array.isArray(input.sections)?input.sections:sectionsFor(result);
   result.sections=unique(array(supplied,100).map(s=>{const cid=validId(s.categoryId||s.id),category=catalog.categories?.find(c=>c.id===cid);if(!category)fail('Ein Bereich verweist auf eine nicht mehr vorhandene Kategorie.');return {id:cid,categoryId:cid,title:text(s.title||category.name,100,true),enabled:s.enabled!==false,showImages:s.showImages!==false,detailsEnabled:s.detailsEnabled!==false};}));
   for(const cid of selectedCategories)if(!result.sections.some(s=>s.categoryId===cid)){const category=catalog.categories.find(c=>c.id===cid);result.sections.push({id:cid,categoryId:cid,title:category.name,enabled:!category.archived,showImages:true,detailsEnabled:true});}
+  result.map=cleanMap(input.map,result,people,teamIds);
   return result;
 }
 
@@ -76,7 +78,7 @@ export function withoutDeletedPeople(config,people){
  next.stations=stationsFor(config).map(station=>{
   const previous=station.operatorIds||[],operatorIds=previous.filter(id=>!deleted.has(id));
   return {...station,operatorIds,...(previous.length&&!operatorIds.length?{assignmentRequired:true}:{})};
- });return next;
+ });return pruneMapPeople(next,new Set(people.filter(p=>!p.deletedAt).map(p=>p.personId)));
 }
 
 // Read the first development format without changing existing published evenings.

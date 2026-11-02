@@ -9,7 +9,8 @@
   const locationBox=(place,detail)=>`<div class="re-location">${icon('map-pin')}<div><strong>${esc(place)}</strong><p>${esc(detail)}</p></div></div>`;
   const tile=(title,detail,ic,action,extra='')=>`<button type="button" class="re-tile" data-action="${action}" ${extra}><span class="re-icon">${icon(ic)}</span><span class="re-tile-copy"><span class="re-tile-title">${esc(title)}</span><span class="re-tile-sub">${esc(detail)}</span></span>${icon('arrow-right')}</button>`;
   let experience=null,state={name:'',saved:[]},view='welcome',selected='',storageKey='';
-  let activeEventId=eventId||'';
+  let activeEventId=eventId||'',mapView=null;const mapCamera={zoom:1,panX:0,panY:0};
+  const {mountGuestMap}=await import(preview?'/abend-preview/guest-map.js':'/guest-map.js');
   const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js':'/guest-live.js');
   const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render()});
   const games=()=>[...experience.equipment.map(g=>({...g,icon:g.kind==='kicker'?'goal':'puzzle'})),...experience.games.map(g=>({...g,icon:'dices'}))];
@@ -20,10 +21,12 @@
   function icons(){globalThis.lucide?.createIcons({attrs:{width:20,height:20}});}
   function welcome(){return `<section class="re-welcome"><div class="re-welcome-copy">${heading(dateLabel(),experience.welcomeTitle,experience.welcomeText)}${button(`Schön, ich bin dabei ${icon('arrow-right')}`,'name')}<p class="re-small">Dein Vorname genügt. Dann geht’s los.</p></div><div><img class="re-photo" src="${asset('rudelbar-wagen.jpeg')}" alt="Der Rudelbar-Wagen" width="1654" height="951"><p class="re-hand">Gute Leute. Gute Begegnungen.</p></div></section>`;}
   function namePage(){return `<button type="button" class="re-back" data-action="welcome">${icon('chevron-left')}Willkommen</button>${heading('Ein kurzes Hallo.','Wie dürfen wir\ndich nennen?','Dein Vorname reicht. Dann zeigen wir dir, was heute los ist.')}<form id="name-form" class="re-form"><div class="re-field"><label for="firstname">Dein Vorname</label><input id="firstname" name="firstname" type="text" maxlength="32" autocomplete="given-name" autocapitalize="words" spellcheck="false" inputmode="text" enterkeyhint="go" placeholder="z. B. Chris" value="${esc(state.name)}" required></div><button type="submit" class="re-btn">Das ist heute los ${icon('arrow-right')}</button><p class="re-small">Mit deinem Vornamen meldest du dich bei den Stationen. Dein Merkzettel bleibt auf diesem Gerät.</p></form>`;}
-  function home(){
+  function listHome(){
     const all=offers(),categories=[...new Set([...(experience.sections||[]).map(s=>s.title),...all.map(item=>item.category)])].filter(c=>all.some(i=>i.category===c));
     return heading(`Moin, ${state.name}. Schön, dass du da bist.`,'Dein Abend.\nDein Rudel.',experience.event.title)+`<div class="re-stack re-section">${experience.menu.length?tile('Unsere Karte',[...new Set(experience.menu.map(d=>d.category))].join(', '),'utensils','drinks'):''}${categories.map(category=>{const group=all.filter(item=>item.category===category);return tile(category,group.map(item=>item.name||item.title).join(', '),group[0].icon,'activities',`data-id="${esc(category)}"`);}).join('')}</div>${experience.stations?.length?`<div class="re-section">${tile('Stationen & Kontakt','Musikwünsche, Anmeldungen und Fragen ans Team','messages-square','stations')}</div>`:''}<div class="re-section-head"><h2>Hier kommen wir zusammen.</h2></div>${locationBox(experience.event.venue,experience.event.address||'Du findest das Team am Rudelbar-Wagen.')}<p class="re-small">${esc(dateLabel())}</p>${state.saved.length?`<div class="re-section">${tile('Mein Abend',state.saved.length+' Angebote gemerkt','heart','evening')}</div>`:''}${experience.modules.help?.enabled?`<div class="re-section">${button('Alleine hier? Eine Frage?','help','',true)}</div>`:''}`;
   }
+  function home(){if(!experience.map)return listHome();if(!experience.map.asHome)return `<div class="re-section">${tile('Euer Dorfplan','Entdecke Stände und Menschen vor Ort.','map','map')}</div>`+listHome();return mapHome();}
+  function mapHome(){return `<div class="vm-map-intro"><div><div class="re-kicker">Moin, ${esc(state.name)}.</div><h1>${esc(experience.map?.title||'Entdecke euren Abend.')}</h1><p>Ein Platz. Viele Möglichkeiten.</p></div></div><div data-guest-map></div><button class="vm-list-switch" type="button" data-action="overview">Alle Angebote als Liste ansehen →</button>`;}
   function drinks(){
     const groups=[...new Set([...(experience.sections||[]).map(s=>s.title),...experience.menu.map(d=>d.category)])].filter(c=>experience.menu.some(i=>i.category===c)),currency=new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'});
     return back()+heading('Am Rudelbar-Wagen.','Was darf’s\nfür dich sein?','Speisen, Getränke und mehr für diesen Abend.')+groups.map(category=>`<div class="re-section-head"><h2>${esc(category)}</h2></div>${experience.menu.filter(d=>d.category===category).map(d=>`<div class="re-menu-row ${d.available===false?'is-unavailable':''}">${d.imageUrl?`<img class="re-drink-image" src="${esc(d.imageUrl)}" alt="${esc(d.name)}" width="64" height="64" loading="lazy">`:''}<div class="re-menu-copy"><strong>${esc(d.name)}</strong><p class="re-small">${esc(d.unit)}${d.available===false?' · Gerade ausverkauft':''}</p>${d.detailsEnabled!==false&&(d.description||d.imageUrl)?`<details class="re-menu-details"><summary>Mehr erfahren</summary>${d.description?`<p>${esc(d.description)}</p>`:''}${d.imageUrl?`<img class="re-detail-photo" src="${esc(d.imageUrl)}" alt="${esc(d.imageAlt||d.name)}">`:''}</details>`:''}</div><span class="re-price">${esc(currency.format(d.priceCents/100))}</span></div>`).join('')}`).join('')+locationBox('Bestellen direkt am Wagen','Das Team freut sich auf dein persönliches Hallo.');
@@ -44,15 +47,16 @@
   function stationContact(type,id){const station=experience?.stations?.find(s=>s.offerType===type&&s.offerId===id);if(!station||station.contactEnabled===false)return '';return `<div class="re-section re-station-contact">${button(station.kind==='music'?'Song wünschen':station.kind==='karaoke'?'Zum Singen anmelden':'Station kontaktieren','station',`data-id="${station.id}"`)}<p class="re-small">${esc(station.name)} · Antwort und Status in deinem Postfach.</p></div>`;}
   function asset(file){return preview?`/abend-preview/assets/${file}`:`/assets/${file}`;}
   function render(){
-    root.dataset.view=view;live.setView(view,selected);
+    mapView?.destroy();mapView=null;root.dataset.view=view;live.setView(view,selected);
     const signedIn=!!experience&&!!state.name&&!['welcome','name'].includes(view);
     root.classList.toggle('has-navigation',signedIn);nav.hidden=!signedIn;
-    const pages={welcome,name:namePage,home,drinks,activities,game,program,evening,help,stations:()=>live.renderPage('stations'),station:()=>live.renderPage('station',selected),messages:()=>live.renderPage('messages'),conversation:()=>live.renderPage('conversation',selected)};
+    const pages={welcome,name:namePage,home,overview:listHome,map:mapHome,drinks,activities,game,program,evening,help,stations:()=>live.renderPage('stations'),station:()=>live.renderPage('station',selected),messages:()=>live.renderPage('messages'),conversation:()=>live.renderPage('conversation',selected)};
     screen.innerHTML=(pages[view]||home)();
-    nav.innerHTML=experience?[['home','house','Heute'],...(offers().length?[['activities','compass','Entdecken']]:[]),['evening','heart','Mein Abend'],...(experience.stations?.length?[['messages','messages-square','Postfach']]:[]),...(experience.modules.help?.enabled?[['help','hand-heart','Hilfe']]:[])].map(([id,ic,label])=>`<button type="button" data-action="${id}" ${id===view?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></button>`).join(''):'';
-    root.classList.remove('is-editing');icons();save();live.mountNotices();
+    nav.innerHTML=experience?[[experience.map?'map':'home',experience.map?'map':'house',experience.map?'Karte':'Heute'],...(offers().length?[['activities','compass','Entdecken']]:[]),['evening','heart','Mein Abend'],...(experience.stations?.length?[['messages','messages-square','Postfach']]:[]),...(experience.modules.help?.enabled?[['help','hand-heart','Hilfe']]:[])].map(([id,ic,label])=>`<button type="button" data-action="${id}" ${id===view||id==='map'&&view==='home'?'aria-current="page"':''}>${icon(ic)}<span>${label}</span></button>`).join(''):'';
+    root.classList.remove('is-editing');icons();if(root.querySelector('[data-guest-map]')&&experience?.map)mapView=mountGuestMap({root:root.querySelector('[data-guest-map]'),map:experience.map,navigate:go,camera:mapCamera,ensureSession:()=>live.ensureSession(),eventId:activeEventId,accessCode,preview});save();live.mountNotices();
   }
   function go(next,id='',push=true){
+    if(!experience&&!['messages','conversation'].includes(next))return;
     if(!state.name&&!['welcome','name','messages','conversation'].includes(next))next='welcome';
     document.activeElement?.blur?.();view=next;selected=id;
     if(push)history.pushState({view,selected},'',location.href);
@@ -72,9 +76,9 @@
   root.addEventListener('input',event=>event.target.setCustomValidity?.(''));
   root.addEventListener('focusin',event=>root.classList.toggle('is-editing',event.target.matches('input,textarea,select')));
   root.addEventListener('focusout',()=>setTimeout(()=>root.classList.toggle('is-editing',document.activeElement?.matches('input,textarea,select')),0));
-  window.addEventListener('popstate',event=>go(event.state?.view||'home',event.state?.selected||'',false));
+  window.addEventListener('popstate',event=>{const sheet=document.querySelector('.vm-stand-sheet[open]');if(sheet){sheet.close();history.pushState({view,selected},'',location.href);return;}go(event.state?.view||'home',event.state?.selected||'',false);});
   window.visualViewport?.addEventListener('resize',()=>{const focused=document.activeElement;if(!focused?.matches('input,textarea,select'))return;requestAnimationFrame(()=>{const bounds=focused.getBoundingClientRect(),vp=window.visualViewport;if(bounds.bottom>vp.offsetTop+vp.height-24)window.scrollBy({top:bounds.bottom-vp.offsetTop-vp.height+24,behavior:'instant'});});});
-  function showClosed(event){
+  function showClosed(event){mapView?.destroy();mapView=null;document.querySelectorAll('.vm-stand-sheet[open]').forEach(d=>d.close());
     activeEventId=event?.id||activeEventId;experience=null;root.classList.remove('has-navigation','is-editing');root.dataset.view='closed';nav.hidden=true;
     root.querySelector('.re-header-place').textContent='Bis bald im Rudel.';
     screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+'</div>';icons();live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}

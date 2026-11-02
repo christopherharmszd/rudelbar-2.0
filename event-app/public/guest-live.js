@@ -77,5 +77,5 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   }catch{}finally{refreshing=false;}
  }
  setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
- return {renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();try{await api('/logout','POST',{});}catch{}state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
+ return {ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();try{await api('/logout','POST',{});}catch{}state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
 }

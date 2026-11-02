@@ -24,7 +24,9 @@ export default {
       const name=cookieName(eventId),sessionToken=tokenFor(request,eventId);
       if(url.pathname==='/api/guest/logout'&&request.method==='POST'){if(sessionToken&&input.endpoint)await env.CONTENT.guestAction('guestNotice',{eventId,sessionToken,action:'unsubscribe',input:{endpoint:input.endpoint}});const response=json(200,{ok:true});for(const path of ['/','/api/guest'])response.headers.append('Set-Cookie',`${name}=; HttpOnly; Secure; SameSite=Strict; Path=${path}; Max-Age=0`);return response;}
       const args={...input,eventId,sessionToken};
+      if(url.pathname==='/api/guest/rounds'){args.operation=input.operation||'list';for(const key of ['offerType','offerId','boothId'])if(!args[key])args[key]=url.searchParams.get(key);if(!args.accessCode)args.accessCode=url.searchParams.get('zugang')||'';}
       let action;
+      if(url.pathname==='/api/guest/rounds')action='roundAction';
       if(url.pathname==='/api/guest/session'&&request.method==='POST')action='session';
       if(url.pathname==='/api/guest/requests')action=request.method==='GET'?'mine':'submit';
       const match=url.pathname.match(/^\/api\/guest\/requests\/([a-z0-9-]+)$/i);

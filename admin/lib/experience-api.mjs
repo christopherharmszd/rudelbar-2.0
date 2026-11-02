@@ -1,3 +1,4 @@
+import {venuePlansApi} from './venue-plans.mjs';
 import { CATALOG_ID, EXPERIENCE_TYPE, cleanCatalog, cleanExperience, experienceId, validId } from '../../shared/experience.mjs';
 import { APP_EVENT_TYPE, PERSON_TYPE, RELEASE_TYPE, catalogFor, peopleFor, partnersFor, cleanPerson, cleanEvent, eventList, loadEvent, configurationFor, snapshotFor, visitorPayload, eventDocId, releaseDocId, guestUrl, strip } from './abend-service.mjs';
 import {PARTNER_TYPE,cleanPartner} from './profile-fields.mjs';
@@ -20,6 +21,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
   if(onboardingMatch&&request.method==='GET')return json(200,await createMemberOnboarding(env,client).get(user,onboardingMatch[1]));
   requirePermission(readsEvents(user));
   const planning=createPlanning(client);
+  if(path.startsWith('/api/abend/venue-plans'))return venuePlansApi(request,{client,user,json,data});
   if(/^\/api\/abend\/catalog\/csv(?:\/(inspect|preview|apply))?$/.test(path))return catalogCsvApi(request,{client,user,json,data});
   if(path==='/api/abend/templates'){requirePermission(editsContent(user));if(request.method==='GET')return json(200,{templates:await planning.templates()});if(request.method==='POST')return json(201,{template:await planning.saveTemplate(user,await data(request))});}
   const template=path.match(/^\/api\/abend\/templates\/([a-z0-9-]+)$/i);

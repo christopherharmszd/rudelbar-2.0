@@ -1,3 +1,4 @@
+import {createGameRounds} from './game-rounds.mjs';
 import {validId,stationsFor} from '../../shared/experience.mjs';
 import {loadEvent,snapshotFor,peopleFor} from './abend-service.mjs';
 import {createNotifications} from './notifications.mjs';
@@ -131,7 +132,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   async function staffContext(actor){
     const flags=await all('SELECT station_id,accepting,revision FROM live_station_state WHERE event_id=?',[actor.eventId]);
     const photos=await stationPhotos(actor.eventId);
-    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0,imageUrl:photos.find(p=>p.station_id===s.id)?.image_url||s.imageUrl||'',photoRevision:photos.find(p=>p.station_id===s.id)?.revision||0,canUpdatePhoto:(actor.canManage??actor.publisher)||s.allowOperatorPhotos===true&&s.operatorIds?.includes(actor.personId)})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
+    return {event:{id:actor.eventId,title:actor.ctx.event.title,venue:actor.ctx.event.venue,state:actor.ctx.release.state},person:{id:actor.personId,name:actor.name},publisher:actor.publisher,canManage:actor.canManage??actor.publisher,personalAccount:!!actor.accountId,roundsEnabled:actor.ctx.release.config?.map?.enabled===true&&actor.ctx.release.config.map.layout.booths.some(b=>b.offers.some(o=>o.matching)),stations:stations(actor).map(s=>({id:s.id,name:s.name,kind:s.kind,enabled:s.enabled!==false,accepting:flags.find(f=>f.station_id===s.id)?.accepting!==0,revision:flags.find(f=>f.station_id===s.id)?.revision||0,imageUrl:photos.find(p=>p.station_id===s.id)?.image_url||s.imageUrl||'',photoRevision:photos.find(p=>p.station_id===s.id)?.revision||0,canUpdatePhoto:(actor.canManage??actor.publisher)||s.allowOperatorPhotos===true&&s.operatorIds?.includes(actor.personId)})),destinations:actor.ctx.stations.filter(s=>s.enabled!==false).map(s=>({id:s.id,name:s.name}))};
   }
   async function staffRow(actor,id){const row=await first(select+' WHERE r.id=? AND r.event_id=?',[id,actor.eventId]);if(!row||(!actor.publisher&&!stations(actor).some(s=>s.id===row.station_id)))fail('Diese Anfrage gehört nicht zu deinen Stationen.',404);return row;}
   async function inbox(actor,{id}={}){
@@ -167,5 +168,6 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   }
   async function guestNotice({eventId,sessionToken,action,input={}}){const person=await visitor(eventId,sessionToken),who=guestRecipient(person);if(!['list','mark','settings','subscribe','unsubscribe','test'].includes(action))fail('Nicht gefunden.',404);if(action==='list')return {expiresAt:person.expires_at,...await notices.list(who,input),...await notices.settings(who)};return {expiresAt:person.expires_at,...await notices[action](who,input)};}
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}
-  return {session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
+  const gameRounds=createGameRounds(env,{context,visitor,guestAccess,requireOpen,allowed});
+  return {roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

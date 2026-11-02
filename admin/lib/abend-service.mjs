@@ -1,3 +1,4 @@
+import {publicMap} from '../../shared/village-map.mjs';
 import { CATALOG_ID, EXPERIENCE_TYPE, DEFAULT_CATALOG, cleanCatalog, cleanExperience, defaultExperience, experienceId, validId, publicExperience, programFor, stationsFor, withoutDeletedPeople } from '../../shared/experience.mjs';
 import {PARTNER_TYPE,affiliationFields,affiliationFor} from './profile-fields.mjs';
 import {sectionAllowsStation} from '../../shared/content-model.mjs';
@@ -63,6 +64,7 @@ export function visitorPayload(config,event,people,partners=[]){
   payload.stations=stationsFor(config).filter(s=>s.enabled!==false&&sectionAllowsStation(config,s)).map(s=>{const detailsEnabled=config.features?.stationDetails===true&&s.detailsEnabled!==false;return {id:s.id,name:s.name,kind:s.kind,description:detailsEnabled?s.description||'':'',place:detailsEnabled?s.place||'':'',offerType:s.offerType,offerId:s.offerId,contactEnabled:s.contactEnabled!==false,detailsEnabled,showImages:detailsEnabled&&s.showImages!==false,imageUrl:detailsEnabled&&s.showImages!==false?s.imageUrl||'':'',imageAlt:detailsEnabled?s.imageAlt||'':''};});
   payload.schemaVersion=5;
   payload.team=people.filter(p=>!p.archived&&!p.deletedAt&&event.teamIds.includes(p.personId)).map(p=>({id:p.personId,name:p.name,role:p.role,avatarUrl:p.avatarUrl||'',affiliation:affiliationFor(p,partners)}));
+  payload.map=publicMap(config.map,payload);
   return payload;
 }
 export async function getVisitorExperience(client,{eventId='',accessCode=''}={}){
