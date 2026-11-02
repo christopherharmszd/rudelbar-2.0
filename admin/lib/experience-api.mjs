@@ -1,3 +1,4 @@
+import {wallFor} from './wall-api.mjs';
 import {reportingApi} from './reporting.mjs';
 import {venuePlansApi} from './venue-plans.mjs';
 import {createReleaseStore} from './release-store.mjs';
@@ -140,6 +141,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
       if(continuity.length)fail(continuity.join(' '),409);
       result=await writeRelease(client,{event,previous:release,action,operation,config:validated,eventSnapshot:Object.fromEntries(['title','date','time','venue','address','description','teamIds'].map(k=>[k,event[k]])),sourceRevision:config.revision||'',actor:user.accountId||'legacy-redaktion'});
     }else result=await writeRelease(client,{event,previous:release,action,operation,config:release.config||null,eventSnapshot:release.eventSnapshot||{},sourceRevision:release.sourceRevision||'',actor:user.accountId||'legacy-redaktion'});
+    if(env.WALL_FEED)await wallFor(env,client).wall.notify(id,{hard:true});
     return json(200,{ok:true,...result,event:await loadEvent(client,id),url:guestUrl(env.VISITOR_APP_URL,event)});
   }
   return json(405,{error:'Diese Aktion ist nicht verfügbar.'});

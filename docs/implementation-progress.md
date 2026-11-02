@@ -12,8 +12,8 @@ Der technische Detailplan bleibt dort ebenfalls erhalten.
 | 2. Bestehendes sicher umstellen | Kern online | 0008–0010 erhalten Konten, Gäste, Anfragen und Sitzungen. Versionierte Freigaben besitzen einen atomaren Aktivierungspunkt. |
 | 3. Backstage und Vorbereitung | Kern online | Vorlagen ohne Termin, zentrale Stände/Ortspläne, Zuordnungsassistent, CSV und mobile Navigation. Weitere Modulkonfiguration folgt mit den Modulen. |
 | 4. Auswertung | Online | Fachaktionen, freiwillige Bedienmessung, Abdeckung, CSV, feste Rudelbar-Anbieterquellen; zusätzliche Messung bleibt aus. |
-| 5. Gästegrundlage und Live | Veröffentlichung wird vorbereitet | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
-| 6. Memory Wall | Offen | Private Medien, Moderation, hochwertige Anzeige, Archiv und Wiederherstellung. |
+| 5. Gästegrundlage und Live | Kern online | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
+| 6. Memory Wall | In Arbeit, separat gesichert | Private Medien, Moderation, Leinwand, Archiv und Wiederherstellung lokal geprüft; noch nicht veröffentlicht. |
 | 7. Gewinnaktionen | Offen | Vier Formate, Bestände und sichere Ausgabe. |
 | 8. Begegnungen und Dating | Offen | Freiwillige Begegnungen, Tanz, Dating und gegenseitige Kontakte. |
 | 9. Gesamtabnahme und Gäste-UX | Offen | Gesamtprüfung und abschließende Gästeoberflächen. |
@@ -153,3 +153,28 @@ nur nach einer eindeutig vor dem Schreiben abgelehnten Sicherheitsprüfung den
 Sitzungsnachweis. Kontoidentität muss gleich bleiben. Herkunftsfehler, Rechtefehler,
 Netzausfälle und unklar ausgeführte Schreibvorgänge werden nicht automatisch wiederholt.
 Bestehende Formulareingaben bleiben dabei erhalten.
+
+## Gesicherter Arbeitsstand am 3. November 2026
+
+Abschnitt 5 ist auf GitHub und beiden bestehenden Workern veröffentlicht:
+Quelle 772ae1c90b083127a5dc9e31d45b891b6bf9c73a; Backend
+b6cdd2c5-cdda-4038-b488-fc2902bf4b90; Gäste-App
+0087329d-b1c2-47c5-b410-9bed0e3e9df2. 0011 ist remote angewendet.
+20 Online-Prüfungen bestätigen Dateien, geschützte APIs und erhaltene Anmeldung/Mail.
+
+Der weitere Wall-Ausbau wird auf einem separaten Sicherungszweig erhalten.
+Die eigene private EU-R2-Ablage rudelbar-guest-media wurde angelegt. 0012,
+WallFeed-Namespace und zugehörige Worker-Bindings sind noch nicht veröffentlicht.
+161 automatisierte Tests bestehen; zusätzlich der Test mit echten lokalen
+Cloudflare-Workern, RPC, D1, R2 und ruhenden WebSockets. Im Browser wurden
+Fotoauswahl/Vorschauerstellung, Einreichung ohne externe Freigabe, Moderation,
+Spotlight, ZIP-Export und geschützte Wiederherstellung tatsächlich durchgeführt.
+Die Spotlight-Leinwand passt ohne Überlauf in 1280 × 720 Pixel.
+
+Reproduzierbare isolierte Prüfumgebung: scripts/isolated-wall-preview.mjs und
+scripts/isolated-wall-check.mjs. Sie haben keine produktiven Zugangsdaten und
+keine Verbindung zu echten Arbeitsbeständen. SQL-Sicherungen und operative
+Zugangsdaten bleiben außerhalb des öffentlichen Repositorys.
+
+Detaillierte Fortsetzung und noch offene Punkte: docs/resume-2026-11-03.md.
+Der gesamte Neun-Abschnitte-Plan ist weiterhin nicht abgeschlossen.

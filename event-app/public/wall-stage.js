@@ -1,0 +1,5 @@
+import {renderWallStage,mountWallQR,connectWall} from './wall-view.js';
+const root=document.querySelector('#wall-stage'),params=new URLSearchParams(location.search),eventId=params.get('abend')||'',accessCode=params.get('zugang')||'',query=new URLSearchParams({abend:eventId,...(accessCode?{zugang:accessCode}:{})}),guestUrl=location.origin+'/?'+query;
+let signature='';const path=action=>'/api/guest/wall/'+action+'?'+query;
+connectWall({stateUrl:()=>path('state')+'&stage=1',socketUrl:()=>(location.protocol==='https:'?'wss:':'ws:')+'//'+location.host+path('socket'),onState:data=>{const value=JSON.stringify(data);if(value===signature)return;signature=value;root.innerHTML=renderWallStage(data,id=>path('media/'+id+'/preview'),guestUrl);mountWallQR(root,guestUrl);},onUnavailable:()=>{signature='';root.innerHTML='<main class="rw-connecting"><p>Die Verbindung wird erneuert.</p><span>Gemeinsam. Überall. Rudelbar.</span></main>';}});
+document.addEventListener('keydown',event=>{if(event.key.toLowerCase()==='f'&&!event.ctrlKey&&!event.metaKey){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen().catch(()=>{});}});

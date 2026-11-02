@@ -1,5 +1,6 @@
 import {validId} from '../shared/experience.mjs';
 const json=(status,data,headers={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',...headers}});
+const idForWall=value=>validId(value);
 const cookieName=id=>'rbv_'+id.replace(/-/g,'');
 const tokenFor=(request,eventId)=>{const name=cookieName(eventId)+'=';return (request.headers.get('cookie')||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(name))?.slice(name.length)||'';};
 async function body(request){const bytes=await request.arrayBuffer();if(bytes.byteLength>12000)throw Object.assign(new Error('Die Nachricht ist zu lang.'),{status:413});try{return JSON.parse(new TextDecoder().decode(bytes));}catch{throw Object.assign(new Error('Ungültige Eingabe.'),{status:400});}}
@@ -16,6 +17,12 @@ export default {
         const {status=200,...result}=await env.CONTENT.getExperience({eventId,accessCode,sessionToken:eventId?tokenFor(request,eventId):''});
         if(url.pathname==='/api/manifest'&&status===200){const id=eventId||result.experience?.eventId||'',start='/?abend='+encodeURIComponent(id)+(accessCode?'&zugang='+encodeURIComponent(accessCode):'');return json(200,{id:'/?abend='+encodeURIComponent(id),name:'Rudelbar · Dein Abend',short_name:'Rudelbar',start_url:start,scope:'/',display:'standalone',background_color:'#0d0d0d',theme_color:'#0d0d0d',icons:[{src:'/assets/rudelbar-logo.png',sizes:'2400x2400',type:'image/png',purpose:'any'}]},{'Content-Type':'application/manifest+json'});}
         return json(status,result);
+      }
+      if(url.pathname.startsWith('/api/guest/wall/')){
+       if(!['GET','POST','PUT'].includes(request.method))return json(405,{error:'Diese Aktion ist nicht verfügbar.'});
+       if(request.method!=='GET'&&request.headers.get('origin')!==url.origin)return json(403,{error:'Ungültige Herkunft.'});
+       const wallEvent=idForWall(url.searchParams.get('abend')),headers=new Headers(request.headers);headers.delete('cookie');headers.delete('authorization');headers.set('x-rudelbar-guest-token',tokenFor(request,wallEvent));
+       return await env.CONTENT.fetch(new Request(request,{headers}));
       }
       if(!url.pathname.startsWith('/api/guest/'))return json(404,{error:'Nicht gefunden.'});
       if(!['GET','POST'].includes(request.method))return json(405,{error:'Diese Aktion ist nicht verfügbar.'});

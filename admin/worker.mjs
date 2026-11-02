@@ -1,3 +1,4 @@
+import {wallApi} from './lib/wall-api.mjs';
 import { createContentClient } from "./lib/content-client.mjs";
 import {liveApi} from "./lib/live-api.mjs";
 import { experienceApi } from "./lib/experience-api.mjs";
@@ -191,6 +192,7 @@ async function api(request, env, execution) {
     const headers=new Headers({'Set-Cookie':'rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'});headers.append('Set-Cookie',accountCookie('',0));
     return json(200, { ok: true }, headers);
   }
+  if(path.startsWith('/api/wall/'))return wallApi(request,env,{client:sanity(env),session,authorized});
   if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data,defer:execution?.waitUntil?.bind(execution)});
   if(path.startsWith('/api/abend/'))return experienceApi(request,env,{client:sanity(env),json,session,authorized,data});
   if (request.method === "GET" && ["/api/events", "/api/team", "/api/posts"].includes(path)) {

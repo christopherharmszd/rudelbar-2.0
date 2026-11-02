@@ -23,6 +23,9 @@
     "VISITOR_APP_URL": "https://rudelbar-app-staging.christopher-harms.workers.dev"
   },
   "d1_databases": [{"binding":"LIVE_DB","database_name":"rudelbar-live-staging","database_id":"5207ce12-4fc5-4923-a92b-d30a8699b0ff","migrations_dir":"migrations"}],
+  "r2_buckets": [{"binding":"GUEST_MEDIA","bucket_name":"rudelbar-guest-media","jurisdiction":"eu"}],
+  "durable_objects":{"bindings":[{"name":"WALL_FEED","class_name":"WallFeed"}]},
+  "migrations":[{"tag":"wall-feed-v1","new_sqlite_classes":["WallFeed"]}],
   "ratelimits": [{
     "name": "LOGIN_LIMITER",
     "namespace_id": "7321821",
