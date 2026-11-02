@@ -2,18 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import worker, { passwordVerifier } from "../worker.mjs";
 import { getVisitorExperience } from '../lib/abend-service.mjs';
+import {createContentClient} from '../lib/content-client.mjs';
 import { DEFAULT_CATALOG, defaultExperience, experienceId, CATALOG_ID } from '../../shared/experience.mjs';
 
 const origin = "https://rudelbar-cms-staging.example.workers.dev";
 const secret = "a-local-test-session-secret-with-more-than-32-characters";
 const password = "A-long-test-password-2026!";
 
-async function setup() {
+async function setup({websiteDataset}={}) {
   const docs = new Map([[`drafts.${CATALOG_ID}`,{_id:`drafts.${CATALOG_ID}`,_type:"rudelAppCatalog",_rev:"initial-catalog",...structuredClone(DEFAULT_CATALOG)}]]);
+  const websiteDocs=websiteDataset?new Map():docs;
   const calls = [];
   const env = {
     SANITY_PROJECT_ID: "project123",
     SANITY_DATASET: "staging",
+    ...(websiteDataset?{SANITY_WEBSITE_DATASET:websiteDataset}:{}),
     SANITY_EDITOR_TOKEN: "private-test-token",
     RUDELBAR_SESSION_SECRET: secret,
     RUDELBAR_PASSWORD_VERIFIER: await passwordVerifier(secret, password),
@@ -25,29 +28,30 @@ async function setup() {
     calls.push({ url: String(url), options });
     assert.equal(options.headers.Authorization, "Bearer private-test-token");
     const parsed = new URL(url);
+    const dataset=parsed.pathname.split('/').at(-1),store=dataset===websiteDataset?websiteDocs:docs;
     if (parsed.pathname.includes("/data/query/")) {
       const query = parsed.searchParams.get("query");
       const result = query.includes("_type")
-        ? [...docs.values()].filter(doc => doc._type === JSON.parse(parsed.searchParams.get("$type")))
-        : docs.get(JSON.parse(parsed.searchParams.get("$id"))) || null;
+        ? [...store.values()].filter(doc => doc._type === JSON.parse(parsed.searchParams.get("$type")))
+        : store.get(JSON.parse(parsed.searchParams.get("$id"))) || null;
       return Response.json({ result });
     }
     if (parsed.pathname.includes("/data/mutate/")) {
       const { mutations } = JSON.parse(options.body);
       for (const mutation of mutations) {
-        if (mutation.createOrReplace) docs.set(mutation.createOrReplace._id, {...mutation.createOrReplace,_rev:crypto.randomUUID()});
-        if (mutation.createIfNotExists&&!docs.has(mutation.createIfNotExists._id))docs.set(mutation.createIfNotExists._id,{...mutation.createIfNotExists,_rev:crypto.randomUUID()});
-        if (mutation.patch){const old=docs.get(mutation.patch.id);if(mutation.patch.ifRevisionID&&old?._rev!==mutation.patch.ifRevisionID)return Response.json({error:{description:'Revision conflict'}},{status:409});docs.set(mutation.patch.id,{...old,...mutation.patch.set,_rev:crypto.randomUUID()});}
-        if (mutation.delete) docs.delete(mutation.delete.id);
+        if (mutation.createOrReplace) store.set(mutation.createOrReplace._id, {...mutation.createOrReplace,_rev:crypto.randomUUID()});
+        if (mutation.createIfNotExists&&!store.has(mutation.createIfNotExists._id))store.set(mutation.createIfNotExists._id,{...mutation.createIfNotExists,_rev:crypto.randomUUID()});
+        if (mutation.patch){const old=store.get(mutation.patch.id);if(mutation.patch.ifRevisionID&&old?._rev!==mutation.patch.ifRevisionID)return Response.json({error:{description:'Revision conflict'}},{status:409});store.set(mutation.patch.id,{...old,...mutation.patch.set,_rev:crypto.randomUUID()});}
+        if (mutation.delete) store.delete(mutation.delete.id);
       }
       return Response.json({ results: [] });
     }
     if (parsed.pathname.includes("/assets/images/")) {
-      return Response.json({ document: { _id: "image-test-100x100-png", url: "https://cdn.sanity.io/images/project123/staging/test.png" } });
+      return Response.json({ document: { _id: "image-test-100x100-png", url: `https://cdn.sanity.io/images/project123/${dataset}/test.png` } });
     }
     throw new Error(`Unexpected Sanity endpoint: ${parsed.pathname}`);
   };
-  return { docs, calls, env, restore: () => { globalThis.fetch = originalFetch; } };
+  return { docs, websiteDocs, calls, env, restore: () => { globalThis.fetch = originalFetch; } };
 }
 
 function request(path, { method = "GET", cookie, csrf, body, contentType = "application/json", originHeader = origin } = {}) {
@@ -371,7 +375,7 @@ test('profile and offer deletion routes require session and CSRF, protect revisi
 });
 
 test('a post-only author can write only their own drafts, cannot publish, and cannot enter other Backstage data',async()=>{
- const state=await setup();const {sqliteD1}=await import('./sqlite-d1.mjs'),{readFile}=await import('node:fs/promises'),{createAccounts}=await import('../lib/accounts.mjs'),{createSanity}=await import('../lib/sanity.mjs'),{peopleFor,eventList}=await import('../lib/abend-service.mjs');
+ const state=await setup({websiteDataset:'production'});const {sqliteD1}=await import('./sqlite-d1.mjs'),{readFile}=await import('node:fs/promises'),{createAccounts}=await import('../lib/accounts.mjs'),{createSanity}=await import('../lib/sanity.mjs'),{peopleFor,eventList}=await import('../lib/abend-service.mjs');
  const db=sqliteD1();state.env.LIVE_DB=db;
  for(const name of ['0001_live_stations','0002_notifications','0003_accounts','0004_native_accounts','0005_member_onboarding'])db.connection.exec(await readFile(new URL('../migrations/'+name+'.sql',import.meta.url),'utf8'));
  try{
@@ -382,13 +386,53 @@ test('a post-only author can write only their own drafts, cannot publish, and ca
   const user=(await(await worker.fetch(request('/api/session',{cookie}),state.env)).json()).user;assert.equal(user.role,'writer');
   const call=(path,body,method=body?'POST':'GET')=>worker.fetch(request(path,{method,cookie,csrf:user.csrf,body}),state.env),post={title:'Eigener Beitrag',date:'2026-11-01',teaser:'Ein lokaler Entwurf.',body:'Ein vollständiger lokaler Prüfbeitrag.',images:[]};
   const own=(await(await call('/api/posts',post)).json()).id;assert.ok(own);
-  state.docs.set('drafts.foreign-post',{_id:'drafts.foreign-post',_type:'rudelPost',...post,title:'Fremder Beitrag'});
+  state.websiteDocs.set('drafts.foreign-post',{_id:'drafts.foreign-post',_type:'rudelPost',...post,title:'Fremder Beitrag'});
   const list=await(await call('/api/posts')).json();assert.equal(list.items.length,1);assert.equal(list.items[0]._id,own);
   assert.equal((await call('/api/posts/'+own,{...post,title:'Überarbeitet'},'PUT')).status,200);
   assert.equal((await call('/api/posts/foreign-post',post,'PUT')).status,403);
   assert.equal((await call('/api/posts/'+own+'/publish',{})).status,403);
+  assert.equal((await call('/api/upload/app',{})).status,403,'post authors cannot write assets into the app dataset');
   for(const path of ['/api/events','/api/team','/api/accounts','/api/abend/events','/api/abend/catalog','/api/abend/people','/api/abend/partners'])assert.equal((await call(path)).status,403,path);
   const legacy=await login(state.env);assert.equal((await worker.fetch(request('/api/posts/'+own+'/publish',{method:'POST',cookie:legacy.cookie,csrf:legacy.csrf,body:{}}),state.env)).status,200);
-  assert.ok(!JSON.stringify(state.docs.get(own)).includes(a.id),'internal account ownership is not copied into the public Sanity post');
+  assert.ok(!JSON.stringify(state.websiteDocs.get(own)).includes(a.id),'internal account ownership is not copied into the public Sanity post');
+  assert.equal(state.docs.has(own),false,'website drafts never enter the app dataset');
  }finally{db.connection.close();state.restore();}
+});
+
+test('both website editors share production reads, drafts, publishing and images while app records stay in place',async()=>{
+ const state=await setup({websiteDataset:'production'});try{
+  const post={_id:'shared-post',_type:'rudelPost',title:'Vorhandener Produktionsbeitrag',date:'2026-10-08',teaser:'Vorhandener Kurztext',body:'Vorhandener Text',images:[]};
+  const event={_id:'shared-event',_type:'rudelEvent',title:'Produktiver Termin',date:'2026-11-02',time:'18 Uhr',venue:'Scharnebeck',description:'Ein Abend',order:1};
+  state.websiteDocs.set(post._id,post);state.websiteDocs.set(event._id,event);state.websiteDocs.set('shared-team',{_id:'shared-team',_type:'rudelTeamMember',name:'Echtes Website-Team'});
+  state.docs.set(post._id,{...post,title:'Veralteter Arbeitsstand'});state.docs.set(event._id,{...event,title:'Veralteter Termin'});
+  const {cookie,csrf}=await login(state.env),read=async path=>await(await worker.fetch(request(path,{cookie}),state.env)).json(),write=(path,body,method='POST')=>worker.fetch(request(path,{method,cookie,csrf,body}),state.env);
+  assert.equal((await read('/api/posts')).items[0].title,post.title);
+  assert.equal((await read('/api/events')).items[0].title,event.title);
+  assert.equal((await read('/api/team')).items[0].name,'Echtes Website-Team');
+  assert.equal((await read('/api/abend/events')).events[0].title,event.title,'preparation imports the same production event');
+  assert.equal((await write('/api/posts/shared-post',{...post,title:'Überarbeiteter Entwurf'},'PUT')).status,200);
+  assert.equal(state.websiteDocs.get('drafts.shared-post').title,'Überarbeiteter Entwurf');
+  assert.equal(state.websiteDocs.get('shared-post').title,post.title,'saving a draft does not publish');
+  assert.equal(state.docs.get('shared-post').title,'Veralteter Arbeitsstand');
+  assert.equal((await write('/api/posts/shared-post/publish',{})).status,200);
+  assert.equal(state.websiteDocs.get('shared-post').title,'Überarbeiteter Entwurf');
+  const person=await write('/api/abend/people',{name:'Ansprechpartner'});assert.equal(person.status,201);assert.equal([...state.websiteDocs.values()].some(d=>d._type==='rudelAppPerson'),false);
+  for(const [path,dataset] of [['/api/upload','production'],['/api/upload/app','staging']]){
+   const response=await worker.fetch(new Request(origin+path,{method:'POST',headers:{Origin:origin,Cookie:cookie,'X-CSRF-Token':csrf,'Content-Type':'image/png','X-File-Name':'bild.png'},body:new Uint8Array([137,80,78,71])}),state.env);
+   assert.equal(response.status,200);assert.match((await response.json()).url,new RegExp('/'+dataset+'/'));
+  }
+  assert.equal((await worker.fetch(request('/api/posts'),state.env)).status,401);
+ }finally{state.restore();}
+});
+
+test('guest entry uses production event metadata with existing app release, people and configuration',async()=>{
+ const state=await setup({websiteDataset:'production'});try{
+  const eventId='public-evening';state.websiteDocs.set(eventId,{_id:eventId,_type:'rudelEvent',title:'Aktueller öffentlicher Abend',date:'2026-11-02',time:'18 Uhr',venue:'Scharnebeck'});
+  state.docs.set(eventId,{_id:eventId,_type:'rudelEvent',title:'Veralteter öffentlicher Abend'});
+  state.docs.set('drafts.rudel-app-release-'+eventId,{_id:'drafts.rudel-app-release-'+eventId,_type:'rudelAppRelease',eventId,state:'open',config:defaultExperience(eventId)});
+  const result=await getVisitorExperience(createContentClient(state.env),{eventId});
+  assert.equal(result.status,200);assert.equal(result.state,'open');assert.equal(result.experience.event.title,'Aktueller öffentlicher Abend');
+  assert.ok(state.calls.filter(c=>c.url.includes('/data/query/production')).every(c=>new URL(c.url).searchParams.get('$type')==='"rudelEvent"'),'only website event metadata comes from production in a guest read');
+  assert.equal(state.calls.some(c=>c.url.includes('/data/mutate/')),false);
+ }finally{state.restore();}
 });

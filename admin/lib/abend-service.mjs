@@ -26,7 +26,7 @@ export function cleanEvent(input,eventId,previous){
   return {eventId:validId(eventId),title:text(input.title,120,true),date,time:text(input.time,80),venue:text(input.venue,160,true),address:text(input.address,240),description:text(input.description,1200),visibility:input.visibility,teamIds:[...new Set(input.teamIds.map(validId))],accessCode:previous?.accessCode||token(),source:previous?.source||'app',archived:false};
 }
 export async function eventList(client){
-  const [web,own,configs,releases,people]=await Promise.all([client.list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE)]);
+  const [web,own,configs,releases,people]=await Promise.all([(client.website||client).list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE)]);
   const deletedIds=new Set(people.filter(p=>p.deletedAt).map(p=>p.personId));
   const entries=new Map(web.filter(e=>!e.archived).map(e=>[e._id,{...strip(e),eventId:e._id,visibility:'public',teamIds:[],source:'website',websitePublished:e.published,revision:''}]));
   for(const e of own.filter(e=>!e.archived))entries.set(e.eventId,{...strip(e),revision:e._rev||''});

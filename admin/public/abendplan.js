@@ -1,4 +1,4 @@
-import {createMemberWizard,uploadMemberImage} from './member-wizard.js?v=1';
+import {createMemberWizard,uploadMemberImage} from './member-wizard.js?v=2';
 import {createAccountsUI} from './accounts-ui.js?v=8';
 import {createWebsiteEditor} from './website-editor.js?v=8';
 import {signInPath} from './session-paths.js';
@@ -205,7 +205,7 @@ function editCatalog(kind='equipment',id){
     let row={...item,id:newId,name:fd.get('name'),category:fd.get('category'),archived:fd.has('archived')};
     if(selectedKind==='drinks'){
       let imageUrl=fd.has('removeImage')?'':item?.imageUrl||'';const file=fd.get('image');
-      if(file?.size){if(file.size>8_000_000)throw new Error('Bitte ein Bild unter 8 MB wählen.');const response=await fetch('/api/upload',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-Token':state.user.csrf,'Content-Type':file.type,'X-File-Name':file.name},body:file});const result=await response.json();if(!response.ok)throw new Error(result.error||'Das Bild konnte nicht hochgeladen werden.');imageUrl=result.url;}
+      if(file?.size){if(file.size>8_000_000)throw new Error('Bitte ein Bild unter 8 MB wählen.');const response=await fetch('/api/upload/app',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-Token':state.user.csrf,'Content-Type':file.type,'X-File-Name':file.name},body:file});const result=await response.json();if(!response.ok)throw new Error(result.error||'Das Bild konnte nicht hochgeladen werden.');imageUrl=result.url;}
       row={...row,unit:fd.get('unit'),priceCents:Math.round(Number(String(fd.get('price')).replace(',','.'))*100),imageUrl};
     }else row={...row,kind:item?.kind||'other',description:fd.get('description'),...(selectedKind!=='program'?{capacity:fd.get('capacity')===''?null:Number(fd.get('capacity'))}:{}),...(selectedKind==='games'?{minutes:Number(fd.get('minutes')),rules:fd.get('rules')}:{})};
     if(item)next[selectedKind]=next[selectedKind].map(r=>r.id===newId?row:r);else next[selectedKind].push(row);

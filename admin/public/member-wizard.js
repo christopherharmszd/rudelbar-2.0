@@ -3,7 +3,7 @@ const roleDescriptions={admin:'Alle Bereiche, Benutzer und Berechtigungen verwal
 export async function uploadMemberImage(file,csrf){
  if(!file?.size)return '';if(file.size>8_000_000)throw new Error('Bitte ein Bild unter 8 MB wählen.');
  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Bitte JPG, PNG oder WebP verwenden.');
- const response=await fetch('/api/upload',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-Token':csrf,'Content-Type':file.type,'X-File-Name':file.name.replace(/[^\x20-\x7E]/g,'-')},body:file}),result=await response.json();if(!response.ok)throw new Error(result.error||'Das Bild konnte nicht hochgeladen werden.');return result.url;
+ const response=await fetch('/api/upload/app',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-Token':csrf,'Content-Type':file.type,'X-File-Name':file.name.replace(/[^\x20-\x7E]/g,'-')},body:file}),result=await response.json();if(!response.ok)throw new Error(result.error||'Das Bild konnte nicht hochgeladen werden.');return result.url;
 }
 export function createMemberWizard({state,api,esc,icon,field,dialog,toast,icons,isAdmin,onSaved,onConfigureMail}){
  let previews={},node=null,draft=null,info={accounts:[],mail:{ready:false}},step=0,files={};

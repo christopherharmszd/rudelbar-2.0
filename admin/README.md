@@ -2,7 +2,7 @@
 
 Das [integrierte Backstage](../BACKSTAGE.md) wird parallel zur bisherigen Redaktion ausgeliefert. Eigenständiger Live-Einstieg: `/live`. Der bestehende Zugang Redaktion bleibt aktiv.
 
-Die öffentliche Staging-Website liegt auf GitHub Pages. Ihre Redaktion läuft als Cloudflare Worker `rudelbar-cms-staging` und nutzt das Sanity-Dataset `staging`. Für Produktion gibt es einen zweiten Worker `rudelbar-cms` mit eigenem Passwort und dem Dataset `production`. Die bestehende Live-Website bleibt bis zum freigegebenen Release getrennt.
+Die öffentliche Staging-Website liegt auf GitHub Pages und liest weiterhin `staging`. Das reale Backstage im historisch benannten Worker `rudelbar-cms-staging` nutzt seit 2. November 2026 für Website-Inhalte `SANITY_WEBSITE_DATASET=production`. Die bisherige Oberfläche `/` und das integrierte `/backstage#website` bearbeiten denselben Produktionsbestand wie der bestehende Worker `rudelbar-cms`. Interne App-Daten bleiben über `SANITY_DATASET=staging` im bisherigen Bestand. Die Produktionswebsite und ihr Build werden durch diese Anbindung nicht neu bereitgestellt.
 
 ## Für Redakteurinnen und Redakteure
 
@@ -20,7 +20,7 @@ Termine und Beiträge haben die Ansichten **Aktiv** und **Archiviert**. „Von W
 
 - Cloudflare-Konto: `87e06345951a028223b167dd69056336`
 - Worker: `rudelbar-cms-staging`
-- Sanity: Projekt `uywmld5e`, Dataset `staging`
+- Sanity: Projekt `uywmld5e`; Website-Inhalte `production`, interne App-Daten `staging`
 - Login: festes Konto `redaktion@rudelbar.local`, in der Oberfläche als **Redaktion** angezeigt
 - Der Sanity-Schreibschlüssel, der Sitzungsschlüssel und der Passwortprüfwert sind nur Cloudflare Worker Secrets. Sie dürfen weder in Git noch in Browsercode stehen.
 
@@ -46,7 +46,7 @@ Das Skript erzeugt ein neues starkes Passwort und zeigt es **einmalig** nach erf
 
 Die Worker-Konfigurationen stehen in `admin/wrangler.jsonc` und `admin/wrangler.production.jsonc`. Der Produktions-Worker wird mit `npm run deploy:production` veröffentlicht. Seine eigenen Secrets setzt `SANITY_DATASET=production node --env-file=admin/.env.local admin/configure-worker.mjs --production`. Dieser Befehl erzeugt ein neues Passwort und meldet bestehende Produktionssitzungen ab; nur für eine bewusste Passwortänderung erneut ausführen. Die Cloudflare-Adresse unter `workers.dev` funktioniert ohne DNS-Änderung. Für `redaktion.rudelbar.de` muss die Domainanbindung separat eingerichtet und geprüft werden; die bestehende Website- und Mail-DNS-Konfiguration darf dabei nicht verändert werden.
 
-Die erste Übernahme der veröffentlichten Inhalte aus Staging erfolgte mit `admin/migrate-staging-to-production.mjs`. Das Skript prüft sechs festgelegte Inhalte und ein leeres Ziel-Dataset. Es dient nicht der laufenden Synchronisierung; spätere Beiträge und Änderungen werden bewusst getrennt in der jeweiligen Redaktion gepflegt.
+Die historische erste Übernahme erfolgte mit `admin/migrate-staging-to-production.mjs`. Dieses Skript darf nicht zur Zusammenführung erneut ausgeführt werden. Seit 2. November 2026 lesen und schreiben alle Website-Oberflächen direkt denselben Produktionsbestand. `/api/upload` speichert Website-Bilder in `production`; `/api/upload/app` speichert Angebots-, Personen- und Partnerbilder in `staging` und erfordert Verwaltungsrechte.
 
 ### Lokal testen
 
@@ -54,7 +54,7 @@ Mit einer Git-ignorierten `admin/.dev.vars`-Datei, die dieselben drei Worker Sec
 
 ## Website
 
-Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` baut die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/) mit `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging`. Das Dataset ist öffentlich lesbar; der Browser erhält keinen Schreibschlüssel. Nach dem Veröffentlichen in der Redaktion zeigt die Website die Inhalte beim nächsten Laden. Der Wechsel zu `rudelbar.de` und `production` ist ein eigener Veröffentlichungsschritt.
+Der GitHub-Pages-Workflow in `.github/workflows/pages.yml` baut die öffentliche [Staging-Website](https://christopherharmszd.github.io/rudelbar-2.0/) mit `VITE_SANITY_PROJECT_ID=uywmld5e` und `VITE_SANITY_DATASET=staging`. Diese historische Vorschau ist kein Nachweis für den aktuellen Website-Inhalt aus Backstage. Nach Veröffentlichung in den gemeinsam angebundenen Website-Oberflächen zeigt `rudelbar.de` den Produktionsinhalt beim nächsten Laden. Der Browser erhält keinen Schreibschlüssel. Entwicklungstests verwenden isolierte Fixtures; auch ein lokaler Worker mit der regulären Konfiguration verbindet sich mit den echten Beständen.
 
 
 ## Abendplanung für die Besucher-App
