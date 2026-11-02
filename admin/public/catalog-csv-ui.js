@@ -12,7 +12,7 @@ export function createCsvUI({state,api,esc,toast,onSaved}){
    },
    async collect(step,fd,d){if(step===0){const file=fd.get('file');if(file?.size){if(file.size>1_000_000)throw new Error('Bitte eine Datei unter 1 MB wählen.');d.csv=await file.text();}if(!d.csv)throw new Error('Bitte eine CSV-Datei wählen.');}if(step===1){d.mapping=Object.fromEntries(Object.keys(labels).map(k=>[k,Number(fd.get('map-'+k))]));d.defaultCategoryId=fd.get('category')||'';d.defaultFormat=fd.get('format')||'';}},
    async next(step,d){if(step===0)Object.assign(d,await api('/api/abend/catalog/csv/inspect','POST',{csv:d.csv}));if(step===1){state.catalog=(await api('/api/abend/catalog')).catalog;d.revision=state.catalog.revision;d.preview=await api('/api/abend/catalog/csv/preview','POST',payload(d));}},
-   finishLabel:'Geprüfte Inhalte übernehmen',async finish(d){if(d.preview.errors.length)throw new Error('Bitte die fehlerhaften Zeilen zuerst korrigieren. Es wurde nichts übernommen.');return api('/api/abend/catalog/csv/apply','POST',{...payload(d),hash:d.preview.hash});},async done(result){state.catalog=result.catalog;await onSaved();toast(`${result.counts.new} Inhalte angelegt, ${result.counts.updated} aktualisiert.`);}
+   finishLabel:'Geprüfte Inhalte übernehmen',async finish(d){if(d.preview.errors.length)throw new Error('Bitte die fehlerhaften Zeilen zuerst korrigieren. Es wurde nichts übernommen.');return api('/api/abend/catalog/csv/apply','POST',{...payload(d),hash:d.preview.hash});},async done(result){state.catalog=result.catalog;await onSaved();toast(`${result.counts.new} ${result.counts.new===1?'Inhalt':'Inhalte'} angelegt, ${result.counts.updated} aktualisiert.`);}
   });
  }
  return {download,open};
