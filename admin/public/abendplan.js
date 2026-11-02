@@ -1,4 +1,4 @@
-import {createReportingUI} from './reporting-ui.js?v=1';
+import {createReportingUI} from './reporting-ui.js?v=2';
 import {createResourceSelectionUI} from './resource-selection.js?v=2';
 import {appTabs} from './app-navigation.js?v=1';
 import {createMapEditor} from './map-editor.js?v=2';

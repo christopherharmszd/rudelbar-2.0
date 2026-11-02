@@ -108,3 +108,18 @@ https://developers.cloudflare.com/workers/runtime-apis/bindings/version-metadata
 Weiter offen: gemeinsame Kontextgespräche und erweiterte Gastprofile, Wall,
 Gewinnaktionen, Dating/Tanz/Kontakte, abschließende Gesamt- und Geräteprüfung.
 Die allgemeinen Gästeoberflächen bleiben bis zum letzten Abschnitt nachrangig.
+
+## Anbieterzugang und korrigierte Statusanzeige
+
+Der Nutzer hat den separaten Analytics-Lesezugang im echten Backstage eingerichtet.
+Remote geprüft: enabled=1, letzter Abruf ok, sechs gespeicherte Tagesstände,
+ausschließlich die zwei Rudelbar-Worker und die Rudelbar-D1-Datenbank. Kein
+Schlüsselinhalt wurde gelesen oder ausgegeben.
+
+Korrektur: Die Anzeige verwechselte einen Zeitraum ohne Anbieterwerte mit einer
+fehlenden Verbindung. Der Verbindungsstatus kommt nun unabhängig vom Zeitraum
+aus der Anbindung. Aktuelle Betriebswerte (gestern/heute UTC) und der Zeitraum der
+Abendauswahl sind getrennt wählbar. CSV benennt den jeweiligen Anbieterzeitraum.
+Die Anzeige lädt nach erfolgreichem Verbinden sofort neu. Ein eigener Regressionstest
+prüft den verbundenen Zustand bei einem alten Abend ohne passende Anbieterwerte.
+143 Tests sowie der Cloudflare-D1-Laufzeittest bestehen.

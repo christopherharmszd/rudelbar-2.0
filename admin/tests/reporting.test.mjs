@@ -61,3 +61,11 @@ test('cursor maintenance does not count as accepted push; only an actual deliver
  await f.db.prepare('UPDATE live_push_subscriptions SET cursor=1 WHERE id=?').bind('push-one').run();assert.equal(f.db.connection.prepare("SELECT COUNT(*) AS n FROM domain_events WHERE type='push.accepted'").get().n,0);
  await f.db.prepare('UPDATE live_push_subscriptions SET cursor=2,last_status=201 WHERE id=?').bind('push-one').run();assert.equal(f.db.connection.prepare("SELECT COUNT(*) AS n FROM domain_events WHERE type='push.accepted'").get().n,1);
  }finally{f.db.connection.close();}});
+test('a connected provider with no data in an older event window stays connected and can show its separate current window',async()=>{const f=fixture();try{
+ await f.db.prepare("UPDATE reporting_provider_settings SET enabled=1,token_cipher='encrypted-placeholder',last_status='ok',last_sync=? WHERE id=1").bind(f.now).run();
+ const start=Date.parse(new Date(f.now).toISOString().slice(0,10)+'T00:00:00Z');
+ await f.db.prepare('INSERT INTO reporting_provider_snapshots VALUES(?,?,?,?,?,?)').bind('cloudflare','rudelbar-cms-staging',start,start+86400000,f.now,JSON.stringify({requests:20,available:true,sampled:true,coverageEndMs:f.now})).run();
+ const past={from:'2026-01-01',to:'2026-01-01',start:Date.parse('2026-01-01'),end:Date.parse('2026-01-02')};
+ const historical=await f.service.report(f.event,past,{providerAllowed:true});assert.equal(historical.provider.state,'connected');assert.equal(historical.provider.dataState,'no-period-data');assert.equal(historical.provider.connection.lastStatus,'ok');assert.equal(historical.provider.snapshots.length,0);assert.equal(JSON.stringify(historical).includes('encrypted-placeholder'),false);
+ const current=await f.service.report(f.event,past,{providerAllowed:true,providerWindow:{start,end:f.now,timeZone:'UTC',mode:'current'}});assert.equal(current.provider.state,'connected');assert.equal(current.provider.snapshots[0].metrics.requests,20);assert.equal(current.provider.window.mode,'current');assert.equal(current.window.from,'2026-01-01');
+ }finally{f.db.connection.close();}});
