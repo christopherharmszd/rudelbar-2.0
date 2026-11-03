@@ -15,7 +15,7 @@ Der technische Detailplan bleibt dort ebenfalls erhalten.
 | 5. Gästegrundlage und Live | Kern online | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
 | 6. Memory Wall | In Arbeit, separat gesichert | Private Medien, Moderation, Leinwand, Archiv und Wiederherstellung lokal geprüft; noch nicht veröffentlicht. |
 | 7. Gewinnaktionen | Lokal durchgängig geprüft, nicht online | Vier Formate, Bestände und sichere Ausgabe. |
-| 8. Begegnungen und Dating | Offen | Freiwillige Begegnungen, Tanz, Dating und gegenseitige Kontakte. |
+| 8. Begegnungen und Dating | Wesentlicher Kern lokal geprüft, nicht online | Profile, gegenseitiges Interesse, private Gespräche/Fotos, betreute Runden, Kontaktfortsetzung; Gesamtintegration noch offen. |
 | 9. Gesamtabnahme und Gäste-UX | Offen | Gesamtprüfung und abschließende Gästeoberflächen. |
 
 ## Veröffentlichter Grundlagenstand
