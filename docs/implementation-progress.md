@@ -14,7 +14,7 @@ Der technische Detailplan bleibt dort ebenfalls erhalten.
 | 4. Auswertung | Online | Fachaktionen, freiwillige Bedienmessung, Abdeckung, CSV, feste Rudelbar-Anbieterquellen; zusätzliche Messung bleibt aus. |
 | 5. Gästegrundlage und Live | Kern online | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
 | 6. Memory Wall | In Arbeit, separat gesichert | Private Medien, Moderation, Leinwand, Archiv und Wiederherstellung lokal geprüft; noch nicht veröffentlicht. |
-| 7. Gewinnaktionen | Offen | Vier Formate, Bestände und sichere Ausgabe. |
+| 7. Gewinnaktionen | Kern in Arbeit, nicht online | Vier Formate, Bestände und sichere Ausgabe. |
 | 8. Begegnungen und Dating | Offen | Freiwillige Begegnungen, Tanz, Dating und gegenseitige Kontakte. |
 | 9. Gesamtabnahme und Gäste-UX | Offen | Gesamtprüfung und abschließende Gästeoberflächen. |
 
@@ -188,3 +188,12 @@ separater Versandcursor, Wall-Auswertung und begrenzte Ablaufbereinigung ergänz
 0012 auf wiederhergestellter Betriebssicherung zweimal geprüft; vorhandene Tabellen
 unverändert. Vier isolierte 1/5/25/100-Sammlungen aufgebaut; visuelle Abnahme noch
 offen, weil Browserwerkzeug lange blockierte. Laufender Betrieb nicht verändert.
+
+## Gewinnaktionen: geprüfter Kern, noch keine vollständige Bedienkette
+
+177 Tests bestehen. Vier Formate, begrenzter Preisvorrat, eingefrorener Pool,
+gleichverteilte serverseitige Auswahl, genaue Wiederholung und konkurrierende
+Ausgabe sind implementiert. Physische Rechte sind gegen alle möglichen Ausgänge
+abgesichert; Neuziehung vergrößert keinen Budgetplatz. Persönlicher HMAC-Nachweis
+schützt die Ausgabe unabhängig von öffentlicher Gewinneranzeige. Einrichtung,
+Live-/Gastoberflächen, Mitteilungen, Laufzeittest und Veröffentlichung noch offen.

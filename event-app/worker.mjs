@@ -33,6 +33,7 @@ export default {
       const args={...input,eventId,sessionToken};
       if(url.pathname==='/api/guest/rounds'){args.operation=input.operation||'list';for(const key of ['offerType','offerId','boothId'])if(!args[key])args[key]=url.searchParams.get(key);if(!args.accessCode)args.accessCode=url.searchParams.get('zugang')||'';}
       let action;
+      if(url.pathname==='/api/guest/raffles'){action='raffle';args.operation=request.method==='GET'?(url.searchParams.get('operation')||'list'):input.operation;if(url.searchParams.has('aktion'))args.configId=url.searchParams.get('aktion');}
       if(url.pathname==='/api/guest/rounds')action='roundAction';
       if(url.pathname==='/api/guest/session'&&request.method==='POST')action='session';
       if(url.pathname==='/api/guest/requests')action=request.method==='GET'?'mine':'submit';
