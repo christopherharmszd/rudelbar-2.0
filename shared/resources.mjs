@@ -14,9 +14,10 @@ export const FUNCTIONS=Object.freeze([
  {id:'game',name:'Spielrunde',implemented:true},
  {id:'message',name:'Fragen & Hilfe',implemented:true},
  {id:'wall',name:'Memory Wall',implemented:true},
- {id:'dating',name:'Dating',implemented:false},
- {id:'dance',name:'Tanzpartnersuche',implemented:false},
- {id:'raffle',name:'Gewinnaktion',implemented:false}
+ {id:'play',name:'Spielpartnersuche',implemented:true},
+ {id:'dating',name:'Kennenlernen',implemented:true},
+ {id:'dance',name:'Tanzpartnersuche',implemented:true},
+ {id:'raffle',name:'Gewinnaktion',implemented:true}
 ]);
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 const id=value=>{if(typeof value!=='string'||!/^[a-z0-9][a-z0-9-]{0,89}$/i.test(value))fail('Ungültige Kennung.');return value;};
@@ -124,20 +125,15 @@ export function resourceSelection(input={},model){
  }
  return selection;
 }
-export function resolveResources(input,sources=[],selection={}){
- const model=cleanResources(input,sources),selected=resourceSelection(selection,model);
- const objects=new Map([...sources,...model.nodes.map(n=>({...n,key:resourceKey(n.kind,n.id)}))].map(n=>[n.key,n]));
- const relations=model.relations.filter(r=>!r.archived),issues=[],warnings=[],occurrences=[];
- const issue=(code,message,refs)=>issues.push({code,message,refs});
- function staffing(offer,content,fn,override){
-  const scopes=new Map([[content.key,10],[offer.from,20],...(fn?[[fn.key,20]]:[]),[resourceKey('occurrence',offer.id),30]]);
+// Resolve the same task priorities for content occurrences and independent hosted offers.
+function resolveStaffing({objects,relations,scopes,override,reference,issue}){
   const requirements=relations.filter(r=>r.kind==='requires'&&scopes.has(r.from));
   const tasks=[...new Set(requirements.map(r=>r.to))];
   return tasks.map(taskKey=>{
    const task=objects.get(taskKey),needs=requirements.filter(r=>r.to===taskKey);
    const topScore=Math.max(...needs.map(r=>scopes.get(r.from))),top=needs.filter(r=>scopes.get(r.from)===topScore);
    const taskIssues=[];
-   const conflict=message=>{taskIssues.push(message);issue('staffing-conflict',message,[offer.id,taskKey]);};
+   const conflict=message=>{taskIssues.push(message);issue('staffing-conflict',message,[reference,taskKey]);};
    if(task.archived)conflict('Die Aufgabe '+task.name+' ist archiviert.');
    if(top.some(r=>r.unattended!==top[0].unattended||r.required!==top[0].required))conflict('Widersprüchliche Vorgaben für '+task.name+'.');
    let mode=top[0].unattended?'unattended':'assigned',personIds=[],source=top.map(r=>r.id),provenance=[];
@@ -156,6 +152,22 @@ export function resolveResources(input,sources=[],selection={}){
    for(const pid of personIds)if(!objects.has('person/'+pid)||objects.get('person/'+pid).archived)conflict('Eine zugeordnete Person ist nicht verfügbar.');
    return {taskId:task.id,name:task.name,mode,required,publicContact:task.publicContact,personIds,source,provenance,issues:taskIssues};
   });
+}
+export function resolveStandStaffing(input,sources,standId,functionId=''){
+ const model=cleanResources(input,sources),objects=new Map([...sources,...model.nodes.map(n=>({...n,key:resourceKey(n.kind,n.id)}))].map(n=>[n.key,n]));
+ const issues=[],issue=(code,message,refs)=>issues.push({code,message,refs}),stand=standId?objects.get('stand/'+standId):null;
+ if(standId&&(!stand||stand.archived))issue('unavailable-stand','Der verknüpfte Stand fehlt oder ist archiviert.',[standId]);
+ const scopes=new Map([...(stand&&!stand.archived?[[stand.key,20]]:[]),...(functionId?[[resourceKey('function',functionId),20]]:[])]);
+ const tasks=resolveStaffing({objects,relations:model.relations.filter(r=>!r.archived),scopes,reference:standId||functionId,issue});
+ return {stand,tasks,issues};
+}
+export function resolveResources(input,sources=[],selection={}){
+ const model=cleanResources(input,sources),selected=resourceSelection(selection,model);
+ const objects=new Map([...sources,...model.nodes.map(n=>({...n,key:resourceKey(n.kind,n.id)}))].map(n=>[n.key,n]));
+ const relations=model.relations.filter(r=>!r.archived),issues=[],warnings=[],occurrences=[];
+ const issue=(code,message,refs)=>issues.push({code,message,refs});
+ function staffing(offer,content,fn,override){
+  return resolveStaffing({objects,relations,scopes:new Map([[content.key,10],[offer.from,20],...(fn?[[fn.key,20]]:[]),[resourceKey('occurrence',offer.id),30]]),override,reference:offer.id,issue});
  }
  for(const offer of relations.filter(r=>r.kind==='offers'&&selected.standIds.includes(r.from.slice(6))&&(selected.occurrenceIds===null||selected.occurrenceIds.includes(r.id)))){
   const stand=objects.get(offer.from),content=objects.get(offer.to),override=selected.overrides.find(r=>r.occurrenceId===offer.id);

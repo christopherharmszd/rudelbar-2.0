@@ -8,7 +8,7 @@ const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status
 const text=(v,max=120,required=false)=>{const s=String(v??'').trim();if(s.length>max||required&&!s)fail('Bitte Name und Textlängen prüfen.');return s;};
 export function createPlanning(client){
  const templates=async()=> (await client.list(TEMPLATE_TYPE)).map(d=>({...strip(d),revision:d._rev||''}));
- async function getTemplate(id){validId(id);const row=await client.getDocument('drafts.'+id);if(!row||row._type!==TEMPLATE_TYPE)fail('Vorlage nicht gefunden.',404);const template={...strip(row),revision:row._rev};if(template.config?.resourceSelection)template.resourceReview=await createResources(client).describe(template.config,{eventId:id,teamIds:template.teamIds});return template;}
+ async function getTemplate(id){validId(id);const row=await client.getDocument('drafts.'+id);if(!row||row._type!==TEMPLATE_TYPE)fail('Vorlage nicht gefunden.',404);const template={...strip(row),revision:row._rev};if(template.config?.resourceSelection||template.config?.encounters?.enabled)template.resourceReview=await createResources(client).describe(template.config,{eventId:id,teamIds:template.teamIds});return template;}
  async function saveTemplate(user,input,id){
   requirePermission(editsContent(user));const previous=id?await getTemplate(id):null;
   if(previous&&input.revision!==previous.revision)fail('Die Vorlage wurde inzwischen geändert. Bitte aktualisieren.',409);

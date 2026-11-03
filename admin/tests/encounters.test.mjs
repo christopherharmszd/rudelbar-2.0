@@ -47,3 +47,9 @@ test('global blocks apply in both directions and consent changes never infer a n
   s.ctx.release.config.encounters.policyVersion='encounters-v2';assert.equal((await s.service.mine(s.guests[0])).profiles[0].consentVersion,'encounters-v1');await assert.rejects(()=>s.service.interest(s.guests[0],{mode:'dating',targetId:b.id,operationKey:crypto.randomUUID()}),e=>e.status===409);
  }finally{s.close();}
 });
+test('hosted staffing retains deliberate inheritance versus local assignment and rejects contradictory selections',()=>{
+ const offer={id:'welcome',title:'Ankommen',kind:'welcome',enabled:true,minPeople:2,maxPeople:8};
+ assert.equal(cleanEncounters({offers:[offer]}).offers[0].staffingMode,'inherit');
+ assert.equal(cleanEncounters({offers:[{...offer,hostPersonIds:['one']}]}).offers[0].staffingMode,'assigned');
+ for(const invalid of [{staffingMode:'assigned'},{staffingMode:'unattended',hostPersonIds:['one']},{staffingMode:'inherit',hostPersonIds:['one']},{staffingMode:'unknown'}])assert.throws(()=>cleanEncounters({offers:[{...offer,...invalid}]}));
+});

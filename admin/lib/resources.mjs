@@ -27,7 +27,7 @@ export function createResources(client){
  }
  async function load(){return (await read()).resources;}
  async function compile(base,event){
-  if(!base.resourceSelection)return compileResourceExperience({base,eventId:event.eventId,teamIds:event.teamIds||[]});
+  if(!base.resourceSelection&&!base.encounters?.enabled)return compileResourceExperience({base,eventId:event.eventId,teamIds:event.teamIds||[]});
   const {resources,catalog,people}=await read();
   return compileResourceExperience({base,model:resources,catalog,people,eventId:event.eventId,teamIds:event.teamIds||[],sourcesVersion:resources.sourcesVersion});
  }

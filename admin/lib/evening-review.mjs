@@ -15,7 +15,7 @@ export async function reviewEvening(client,id){
  if(event.source==='website'&&!event.websitePublished&&!event.revision)issues.push('Veröffentliche zuerst den öffentlichen Website-Termin.');
  try{cleanExperience(current.experience,catalog,id,people,event.teamIds);}catch(error){issues.push(error.message);}
  let config=current.experience;
- if(config.resourceSelection){
+ if(config.resourceSelection||config.encounters?.enabled){
   try{
    const compiled=await createResources(client).compile(config,event);config=compiled.config;
    issues.push(...compiled.issues.map(i=>i.message));warnings.push(...compiled.warnings.map(i=>i.message));

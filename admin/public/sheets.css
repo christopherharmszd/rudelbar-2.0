@@ -1,4 +1,5 @@
 /* Shared app sheets for setup, Live controls and focused tasks. */
+.vm-stand-sheet [hidden]{display:none!important}
 dialog.vm-stand-sheet{width:min(720px,calc(100% - 24px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid #514b3b;border-radius:22px;background:#171715;color:#f3f0e8;box-shadow:0 24px 100px #0009;overflow:hidden}
 dialog.vm-stand-sheet[open]{display:flex;flex-direction:column;min-height:0}
 dialog.vm-stand-sheet::backdrop{background:#000b;backdrop-filter:blur(5px)}

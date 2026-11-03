@@ -1,4 +1,4 @@
-import {resolveResources,sourceObjects} from './resources.mjs';
+import {resolveResources,resolveStandStaffing,sourceObjects} from './resources.mjs';
 import {cleanMap} from './village-map.mjs';
 const distinct=values=>[...new Set(values)].sort();
 export async function runtimeResourceId(prefix,id){
@@ -8,8 +8,8 @@ export async function runtimeResourceId(prefix,id){
 // Compile at preview/publication time. The returned values are frozen into the
 // release; public read paths do not reach back into mutable central definitions.
 export async function compileResourceExperience({base,model,catalog,people,eventId,teamIds=[],sourcesVersion=''}){
- if(!base.resourceSelection)return {config:structuredClone(base),teamIds:[...teamIds],issues:[],warnings:[],ok:true,resolution:null};
- const resolution=resolveResources(model,sourceObjects(catalog,people),base.resourceSelection);
+ if(!base.resourceSelection&&!base.encounters?.enabled)return {config:structuredClone(base),teamIds:[...teamIds],issues:[],warnings:[],ok:true,resolution:null};
+ const resolution=resolveResources(model,sourceObjects(catalog,people),base.resourceSelection||{standIds:[],occurrenceIds:[]});
  const config=structuredClone(base),issues=[...resolution.issues],warnings=[...resolution.warnings],runtime=[];
  const allStaff=new Set(teamIds),publicPeople=new Set();
  const tasksFor=occurrence=>[...occurrence.tasks,...occurrence.functions.flatMap(f=>f.tasks)];
@@ -27,9 +27,22 @@ export async function compileResourceExperience({base,model,catalog,people,event
   }
   config[type].push(row);runtime.push({...o,runtimeOfferId:alias,type,stations});
  }
+ // Hosted offers use central stand tasks even without a selected content occurrence.
+ const encounterStaffing=[];
+ if(config.encounters?.enabled)for(const offer of config.encounters.offers.filter(o=>o.enabled)){
+  const functionId=({'speed-dating':'dating',play:'play',dance:'dance'})[offer.kind]||'',mode=offer.staffingMode|| (offer.hostPersonIds.length?'assigned':'inherit');
+  const inherited=resolveStandStaffing(model,sourceObjects(catalog,people),offer.standId,functionId);
+  issues.push(...inherited.issues.filter(i=>mode==='inherit'||i.code!=='staffing-conflict').map(i=>({...i,message:offer.title+': '+i.message,refs:[offer.id,...i.refs]})));
+  const personIds=mode==='inherit'?distinct(inherited.tasks.flatMap(t=>t.personIds)):mode==='assigned'?offer.hostPersonIds:[];
+  for(const pid of personIds)if(!people.some(p=>p.personId===pid&&!p.archived&&!p.deletedAt))issues.push({code:'unavailable-host',message:offer.title+': Eine zugeordnete Person ist nicht mehr verfügbar.',refs:[offer.id,pid]});else allStaff.add(pid);
+  if(!offer.place&&inherited.stand&&!inherited.stand.archived)offer.place=inherited.stand.name;
+  offer.hostPersonIds=personIds;
+  offer.staffingMode=personIds.length?'assigned':mode==='unattended'?'unattended':'inherit';
+  encounterStaffing.push({offerId:offer.id,standId:offer.standId,mode,personIds,tasks:mode==='inherit'?inherited.tasks:[],placeSource:base.encounters.offers.find(o=>o.id===offer.id)?.place?'offer':offer.standId?'stand':''});
+ }
  const known=new Map(model.nodes.filter(n=>n.kind==='stand').map(n=>[n.id,n]));
  const map=structuredClone(config.map);
- if(map?.layout)map.layout.booths=map.layout.booths.flatMap(b=>{
+ if(map?.layout&&base.resourceSelection)map.layout.booths=map.layout.booths.flatMap(b=>{
   if(!b.standId)return [b];
   if(!resolution.selection.standIds.includes(b.standId))return [];
   const stand=known.get(b.standId),entries=runtime.filter(o=>o.standId===b.standId);
@@ -41,17 +54,22 @@ export async function compileResourceExperience({base,model,catalog,people,event
  const placed=config.map.layout.booths.filter(b=>b.visible!==false&&b.standId).map(b=>b.standId);
  for(const standId of distinct(placed))if(placed.filter(id=>id===standId).length>1)issues.push({code:'duplicate-stand-placement',message:'Der Stand '+known.get(standId)?.name+' ist mehrfach auf demselben Ortsplan platziert.',refs:[standId]});
  for(const o of runtime)if(o.functions.some(f=>f.id==='wall')&&!config.wall?.enabled)issues.push({code:'wall-not-enabled',message:o.name+': Die Memory Wall in dieser Vorlage bewusst einschalten und ihre Freigaben einrichten oder die Funktion abwählen.',refs:[o.id,'wall']});
+ for(const o of runtime)for(const f of o.functions){
+  const enabled=f.id==='raffle'?config.raffle?.enabled&&config.raffle.actions?.length>0:['play','dance','dating'].includes(f.id)?config.encounters?.enabled&&config.encounters[f.id+'Enabled']:true;
+  if(!enabled)issues.push({code:'module-not-enabled',message:o.name+': Für '+f.name+' zuerst die passende Möglichkeit in dieser Vorlage vorbereiten und einschalten oder die Funktion abwählen.',refs:[o.id,f.id]});
+ }
  for(const o of runtime)if(o.functions.some(f=>f.id==='game')&&(!config.map.enabled||!config.map.layout.booths.some(b=>b.visible!==false&&b.standId===o.standId))){
   issues.push({code:'missing-map-placement',message:o.name+': Für Spielrunden muss der Stand auf der eingeschalteten Karte sichtbar sein.',refs:[o.id,o.standId]});
  }
  config.eventId=eventId;
  config._staffIds=distinct([...allStaff]);
- config._publicContactIds=distinct([...publicPeople]);
- config._resourceSnapshot={schemaVersion:1,resourceRevision:model.revision||'',sourcesVersion,sourceRevisions:resolution.sourceRevisions,occurrences:runtime.map(o=>({id:o.id,standId:o.standId,contentKey:o.contentKey,runtimeOfferId:o.runtimeOfferId,functions:o.functions.map(f=>f.id)}))};
+ config._publicContactIds=distinct(base.resourceSelection?[...publicPeople]:teamIds);
+ config._resourceSnapshot={schemaVersion:1,resourceRevision:model.revision||'',sourcesVersion,sourceRevisions:resolution.sourceRevisions,encounterStaffing,occurrences:runtime.map(o=>({id:o.id,standId:o.standId,contentKey:o.contentKey,runtimeOfferId:o.runtimeOfferId,functions:o.functions.map(f=>f.id)}))};
  const selectedCategories=new Set(['equipment','games','program','menu'].flatMap(k=>config[k].map(r=>r.categoryId)));
  for(const cid of selectedCategories)if(!config.sections.some(s=>s.categoryId===cid)){
   const category=catalog.categories.find(c=>c.id===cid);
   if(category)config.sections.push({id:cid,categoryId:cid,title:category.name,enabled:!category.archived,showImages:true,detailsEnabled:true});
  }
+ resolution.encounterStaffing=encounterStaffing;
  return {config,teamIds:config._staffIds,resolution,issues,warnings,ok:issues.length===0};
 }

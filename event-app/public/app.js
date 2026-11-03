@@ -80,7 +80,7 @@
     const action=target.dataset.action;
     if(!experience&&!['reload','messages','conversation','privacy','wall-mine','raffle-mine'].includes(action))return;
     if(action==='bookmark'){const {kind,id}=target.dataset;state.saved=state.saved.some(s=>s.id===id&&s.kind===kind)?state.saved.filter(s=>s.id!==id||s.kind!==kind):[...state.saved,{kind,id}];save();render();return;}
-    if(action==='encounters'){await encounters.open();return;}
+    if(action==='encounters'){await encounters.open({initialMode:target.dataset.mode||''});return;}
     if(action==='raffle'||action==='raffle-mine'){await raffle.open();return;}
     if(action==='wall-mine'){await memoryWall.open({mine:true});return;}
     if(action==='wall'){analytics.track({type:'view.opened',view:'wall'});await memoryWall.open();return;}

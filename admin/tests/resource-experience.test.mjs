@@ -84,3 +84,40 @@ test('a central Wall capability requires deliberate template activation and pres
  const active=await compileResourceExperience(input);assert.equal(active.ok,true);const station=active.config.stations.find(s=>s.functionId==='wall');assert.equal(station.contactEnabled,false);
  const guest=visitorPayload(active.config,{eventId:'evening',teamIds:[],title:'Abend',date:'2027-01-01',venue:'Ort'},people);assert.equal(guest.stations.find(s=>s.id===station.id).functionId,'wall');assert.equal('operatorIds' in guest.stations.find(s=>s.id===station.id),false);
 });
+
+test('new central interaction capabilities require an explicitly prepared module and keep public routing separate from inbox rights',async()=>{
+ const input=fixture(),ids=['play','dance','dating','raffle'];
+ for(const id of ids)input.model.relations.push({id:'cap-'+id,kind:'supports',from:'program/music',to:'function/'+id});
+ const off=await compileResourceExperience(input);assert.deepEqual(off.issues.filter(i=>i.code==='module-not-enabled').map(i=>i.refs[1]).sort(),ids.toSorted());
+ input.base.encounters={...input.base.encounters,enabled:true,playEnabled:true,danceEnabled:true,datingEnabled:true};input.base.raffle={enabled:true,actions:[{id:'configured'}]};
+ const active=await compileResourceExperience(input);assert.equal(active.ok,true);
+ for(const id of ids){const station=active.config.stations.find(s=>s.functionId===id);assert.ok(station);assert.equal(station.contactEnabled,false);assert.equal(station.assignmentRequired,true);}
+ const guest=visitorPayload(active.config,{eventId:'evening',teamIds:[],title:'Abend',date:'2027-01-01',venue:'Ort'},people);
+ assert.deepEqual(guest.stations.filter(s=>ids.includes(s.functionId)).map(s=>s.functionId).sort(),ids.toSorted());assert.ok(guest.stations.every(s=>!Object.hasOwn(s,'operatorIds')));
+});
+const hostedOffer=(extra={})=>({id:'welcome',title:'Zusammen ankommen',kind:'welcome',enabled:true,intro:'Freiwillige Runde',time:'',place:'',standId:'north',hostPersonIds:[],staffingMode:'inherit',minPeople:2,maxPeople:8,...extra});
+function hostedFixture(extra={}){const input=fixture();input.people=structuredClone(people);delete input.base.resourceSelection;input.base.encounters={...input.base.encounters,enabled:true,offers:[hostedOffer(extra)]};input.model.relations.push({id:'stand-host',kind:'requires',from:'stand/north',to:'task/host'});return input;}
+test('a hosted offer independently inherits central stand tasks and location without selecting or duplicating its contents',async()=>{
+ const input=hostedFixture(),compiled=await compileResourceExperience(input),offer=compiled.config.encounters.offers[0];
+ assert.equal(compiled.ok,true);assert.equal(offer.place,'Nordzelt');assert.deepEqual(offer.hostPersonIds,['host']);assert.equal(compiled.config.games.length,0);assert.equal(compiled.config.program.length,0);
+ assert.deepEqual(compiled.config._staffIds,['host']);assert.deepEqual(compiled.config._publicContactIds,[]);assert.equal(compiled.resolution.encounterStaffing[0].mode,'inherit');assert.equal(compiled.resolution.encounterStaffing[0].tasks[0].source[0],'host-assigned');
+ assert.deepEqual(input.base.encounters.offers[0].hostPersonIds,[]);assert.equal(input.base.encounters.offers[0].place,'');
+ assert.deepEqual(compiled.config.map.layout.booths.map(b=>b.id),input.base.map.layout.booths.map(b=>b.id));
+ input.model.nodes[0].name='Neuer Standname';input.model.relations.find(r=>r.id==='host-assigned').archived=true;
+ const changed=await compileResourceExperience(input);assert.equal(changed.ok,false);assert.equal(offer.place,'Nordzelt');assert.deepEqual(offer.hostPersonIds,['host']);
+});
+test('explicit hosted staffing and unattended mode replace inherited requirements while archived stands and people still block publication',async()=>{
+ const input=hostedFixture({staffingMode:'unattended'});input.model.relations.find(r=>r.id==='host-assigned').archived=true;
+ const unattended=await compileResourceExperience(input);assert.equal(unattended.ok,true);assert.deepEqual(unattended.config.encounters.offers[0].hostPersonIds,[]);assert.equal(unattended.resolution.encounterStaffing[0].mode,'unattended');
+ Object.assign(input.base.encounters.offers[0],{staffingMode:'assigned',hostPersonIds:['host'],place:'Treffpunkt am Tor'});
+ const assigned=await compileResourceExperience(input);assert.equal(assigned.ok,true);assert.equal(assigned.config.encounters.offers[0].place,'Treffpunkt am Tor');assert.deepEqual(assigned.config._staffIds,['host']);
+ input.people[0]={...input.people[0],archived:true};assert.ok((await compileResourceExperience(input)).issues.some(i=>i.code==='unavailable-host'));
+ input.model.nodes[0].archived=true;assert.ok((await compileResourceExperience(input)).issues.some(i=>i.code==='unavailable-stand'));
+});
+test('function-scoped hosted tasks resolve independently and explicit local staffing never changes the shared definition',async()=>{
+ const input=hostedFixture({kind:'dance',standId:''});input.base.encounters.danceEnabled=true;
+ input.model.relations.push({id:'dance-host',kind:'requires',from:'function/dance',to:'task/host'});
+ const inherited=await compileResourceExperience(input);assert.equal(inherited.ok,true,JSON.stringify(inherited.issues));assert.deepEqual(inherited.config.encounters.offers[0].hostPersonIds,['host']);assert.equal(inherited.config.encounters.offers[0].place,'');
+ input.base.encounters.offers[0].staffingMode='unattended';assert.deepEqual((await compileResourceExperience(input)).config.encounters.offers[0].hostPersonIds,[]);
+ assert.equal(input.model.relations.find(r=>r.id==='dance-host').unattended,undefined);
+});

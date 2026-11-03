@@ -53,11 +53,11 @@ test('equal-specificity conflicts are stable under relationship ordering, not la
  assert.equal(r.ok,false);assert.ok(r.issues.some(i=>i.code==='staffing-conflict'));
  assert.deepEqual(r.issues.map(i=>i.message).sort(),reversed.issues.map(i=>i.message).sort());
 });
-test('archived people, unavailable functions and stale references fail closed',()=>{
+test('archived people and stale references fail closed while implemented encounters are selectable',()=>{
  const input=graph(),archived=sources().map(s=>s.key==='person/one'?{...s,archived:true}:s);
  assert.equal(resolveResources(input,archived).ok,false);
  input.relations.push(edge('supports','dating','games/poker','function/dating'));
- assert.ok(resolveResources(input,sources()).issues.some(i=>i.code==='function-unavailable'));
+ assert.equal(resolveResources(input,sources()).occurrences[0].functions.find(f=>f.id==='dating').implemented,true);
  assert.equal(resolveResources(input,sources(),{disabledFunctions:['dating']}).ok,true);
  input.relations.push(edge('assignment','missing','task/host','person/missing'));
  assert.throws(()=>cleanResources(input,sources()),/nicht mehr vorhanden/);

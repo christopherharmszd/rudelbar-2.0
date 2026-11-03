@@ -105,7 +105,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
     if(action==='check')return json(200,await reviewEvening(client,id));
     if(action==='preview'){const compiled=await createResources(client).compile(current.experience,event);return json(200,{state:'open',experience:visitorPayload(compiled.config,event,await peopleFor(client),await partnersFor(client)),issues:compiled.issues});}
     if(action)return json(404,{error:'Nicht gefunden.'});
-    return json(200,{...current,...(current.experience.resourceSelection?{resourceReview:await createResources(client).describe(current.experience,event)}:{}),event:{...event,guestUrl:guestUrl(env.VISITOR_APP_URL,event)}});
+    return json(200,{...current,...((current.experience.resourceSelection||current.experience.encounters?.enabled)?{resourceReview:await createResources(client).describe(current.experience,event)}:{}),event:{...event,guestUrl:guestUrl(env.VISITOR_APP_URL,event)}});
   }
   if(request.method==='POST'&&action==='template')return json(200,await planning.applyTemplate(user,id,await data(request)));
   if(request.method==='PUT'&&action==='details'){
@@ -119,7 +119,7 @@ export async function experienceApi(request,env,{client,json,session,authorized,
     const input=await data(request),fields=cleanExperience(input,await catalogFor(client),id,await peopleFor(client,{includeDeleted:true}),event.teamIds);
     const doc=await client.savePrivate(EXPERIENCE_TYPE,experienceId(id),fields,input.revision);
     const experience={...strip(doc),revision:doc._rev||''};
-    return json(200,{ok:true,experience,...(experience.resourceSelection?{resourceReview:await createResources(client).describe(experience,event)}:{})});
+    return json(200,{ok:true,experience,...((experience.resourceSelection||experience.encounters?.enabled)?{resourceReview:await createResources(client).describe(experience,event)}:{})});
   }
   if(request.method==='POST'&&['publish','open','close','unpublish'].includes(action)){
     const release=await snapshotFor(client,event),config=action==='close'||action==='unpublish'?release.config:current.experience;
