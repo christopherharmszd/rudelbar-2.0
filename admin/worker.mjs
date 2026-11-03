@@ -1,3 +1,4 @@
+import {encounterApi} from './lib/encounter-api.mjs';
 import {raffleApi} from './lib/raffle-api.mjs';
 import {wallApi} from './lib/wall-api.mjs';
 import { createContentClient } from "./lib/content-client.mjs";
@@ -193,6 +194,7 @@ async function api(request, env, execution) {
     const headers=new Headers({'Set-Cookie':'rb_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0'});headers.append('Set-Cookie',accountCookie('',0));
     return json(200, { ok: true }, headers);
   }
+  if(path.startsWith('/api/encounters/'))return encounterApi(request,env,{client:sanity(env),session,authorized});
   if(path.startsWith('/api/raffle/'))return raffleApi(request,env,{client:sanity(env),session,authorized});
   if(path.startsWith('/api/wall/'))return wallApi(request,env,{client:sanity(env),session,authorized});
   if(path.startsWith('/api/live/'))return liveApi(request,env,{client:sanity(env),json,session,data,defer:execution?.waitUntil?.bind(execution)});

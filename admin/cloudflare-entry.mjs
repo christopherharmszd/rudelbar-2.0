@@ -1,4 +1,5 @@
 export {WallFeed} from './lib/wall-feed.mjs';
+import {encounterMediaFetch} from './lib/encounter-api.mjs';
 import {guestWallFetch,wallFor} from './lib/wall-api.mjs';
 import {createWallArchive} from './lib/wall-archive.mjs';
 import {createProviderMetrics} from './lib/provider-metrics.mjs';
@@ -11,7 +12,7 @@ import {createLiveService} from './lib/live-service.mjs';
 import {getVisitorExperience} from './lib/abend-service.mjs';
 import {flushReleaseReceipts} from './lib/release-service.mjs';
 export class VisitorContent extends WorkerEntrypoint {
-  async fetch(request){return guestWallFetch(request,this.env,createContentClient(this.env));}
+  async fetch(request){if(new URL(request.url).pathname.startsWith('/api/guest/encounter-media/'))return encounterMediaFetch(request,this.env,createContentClient(this.env));return guestWallFetch(request,this.env,createContentClient(this.env));}
   async getExperience(input){
     const client=createContentClient(this.env);
     if(input.eventId&&input.sessionToken&&!input.accessCode){try{const identity=await createLiveService(this.env,client).guestIdentity(input);input={...input,accessCode:identity.accessCode};}catch{}}
@@ -22,10 +23,10 @@ export class VisitorContent extends WorkerEntrypoint {
   }
   async guestAction(action,input){
     try{
-      const service=createLiveService(this.env,createContentClient(this.env),{defer:promise=>this.ctx.waitUntil(promise)});
-      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction','guestAnalysis','guestLogout','guestProfile','conversation','raffle','encounter','socialConversation','encounterSession'].includes(action))return {status:404,error:'Nicht gefunden.'};
+      const service=createLiveService({...this.env,MAIL_CONNECT:connect},createContentClient(this.env),{defer:promise=>this.ctx.waitUntil(promise)});
+      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction','guestAnalysis','guestLogout','guestProfile','conversation','raffle','encounter','socialConversation','encounterSession','guestContactsAction'].includes(action))return {status:404,error:'Nicht gefunden.'};
       return {status:200,...await service[action](input)};
     }catch(error){return {status:error.status||503,error:error.status?error.message:'Die Nachricht konnte gerade nicht verarbeitet werden.'};}
   }
 }
-export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);const live=createLiveService(env,client);ctx.waitUntil(live.notices.flush());ctx.waitUntil(live.raffles.retention());if(env.RUDELBAR_CONNECTED_SOCIAL==='1'){ctx.waitUntil(live.conversationPush.flush());ctx.waitUntil(live.wallNotices.flush());ctx.waitUntil(live.contextNotices.flush());ctx.waitUntil(live.conversations.retention());}if(env.GUEST_MEDIA){const {wall,live:wallLive}=wallFor(env,client);ctx.waitUntil(createWallArchive(env,{context:wallLive.internalContext,mayArchive:wall.mayArchive}).retention());}ctx.waitUntil(flushReleaseReceipts(client));ctx.waitUntil(createReporting(env.LIVE_DB).retention());ctx.waitUntil(createProviderMetrics(env).sync());}};
+export default {fetch(request,env,ctx){return worker.fetch(request,{...env,MAIL_CONNECT:connect},ctx);},async scheduled(event,env,ctx){const client=createContentClient(env);const live=createLiveService(env,client);ctx.waitUntil(live.notices.flush());ctx.waitUntil(live.raffles.retention());if(env.RUDELBAR_CONNECTED_SOCIAL==='1'){ctx.waitUntil(live.conversationPush.flush());ctx.waitUntil(live.wallNotices.flush());ctx.waitUntil(live.contextNotices.flush());ctx.waitUntil(live.contactNotices.flush());ctx.waitUntil(live.conversations.retention());ctx.waitUntil(live.socialRetention.run());}if(env.GUEST_MEDIA){const {wall,live:wallLive}=wallFor(env,client);ctx.waitUntil(createWallArchive(env,{context:wallLive.internalContext,mayArchive:wall.mayArchive}).retention());}ctx.waitUntil(flushReleaseReceipts(client));ctx.waitUntil(createReporting(env.LIVE_DB).retention());ctx.waitUntil(createProviderMetrics(env).sync());}};

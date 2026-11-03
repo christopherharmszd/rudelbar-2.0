@@ -52,12 +52,14 @@ export function createAccountMail(env,{audit}){
   await audit(actor,'mail.settings_updated','mail');return settings();
  }
  async function reserve(email,purpose){
-  const id=random(),now=Date.now(),emailHash=await hash(email);
+  const id=random(),now=Date.now(),guest=purpose==='guest-contact';
+  const material=guest?await crypto.subtle.importKey('raw',encoder.encode(env.RUDELBAR_SESSION_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']):null;
+  const emailHash=guest?toHex(new Uint8Array(await crypto.subtle.sign('HMAC',material,encoder.encode('rudelbar-guest-mail-rate-v1|'+email)))):await hash(email);
   // One conditional write serializes the global and recipient limits across Worker instances.
   const result=await db.prepare(`INSERT INTO app_mail_attempts(id,email_hash,purpose,state,created_at) SELECT ?,?,?,'sending',? WHERE
-   (SELECT COUNT(*) FROM app_mail_attempts WHERE created_at>?)<30 AND
-   (SELECT COUNT(*) FROM app_mail_attempts WHERE email_hash=? AND created_at>?)<5 AND
-   NOT EXISTS(SELECT 1 FROM app_mail_attempts WHERE email_hash=? AND created_at>?)`).bind(id,emailHash,purpose,now,now-3600000,emailHash,now-3600000,emailHash,now-60000).run();
+   (SELECT COUNT(*) FROM app_mail_attempts WHERE created_at>? AND (purpose='guest-contact')=?)<? AND
+   (SELECT COUNT(*) FROM app_mail_attempts WHERE email_hash=? AND created_at>? AND (purpose='guest-contact')=?)<5 AND
+   NOT EXISTS(SELECT 1 FROM app_mail_attempts WHERE email_hash=? AND created_at>? AND (purpose='guest-contact')=?)`).bind(id,emailHash,purpose,now,now-3600000,Number(guest),guest?180:30,emailHash,now-3600000,Number(guest),emailHash,now-60000,Number(guest)).run();
   if(!result.meta.changes)fail('Bitte warte etwas, bevor du einen weiteren Link versendest.',429);
   await db.prepare('DELETE FROM app_mail_attempts WHERE created_at<?').bind(now-2*86400000).run();return id;
  }
@@ -65,6 +67,7 @@ export function createAccountMail(env,{audit}){
   const row=await db.prepare('SELECT * FROM app_mail_settings WHERE id=1 AND enabled=1').first();
   if(!row?.password_cipher||!((typeof env.MAIL_CONNECT==='function')||env.ACCOUNT_MAILER))fail('Der E-Mail-Versand ist noch nicht eingerichtet. Bitte wende dich an die Administration.',503);
   const message={id,to,subject:purpose==='invite'?'Dein persönlicher Zugang zur Rudelbar':'Dein Rudelbar-Passwort zurücksetzen',text:`Moin ${name},\n\n${purpose==='invite'?'dein persönlicher Zugang zur Rudelbar ist vorbereitet. Wähle über diesen Link dein Passwort:':'über diesen Link kannst du ein neues Passwort für deinen Rudelbar-Zugang wählen:'}\n\n${link}\n\nDer Link gilt ${purpose==='invite'?'24 Stunden':'30 Minuten'} und kann einmal verwendet werden. Teile ihn nicht weiter. ${purpose==='reset'?'Dein bisheriges Passwort bleibt bis zur Änderung gültig. Wenn du die Änderung nicht angefordert hast, ignoriere diese E-Mail.':''}\n\nGemeinsam. Überall. Rudelbar.\ninfo@rudelbar.de`};
+  if(purpose==='guest-contact'){message.subject='Deine Rudelbar-Kontakte wiederfinden';message.text=`Moin ${name},\n\nmit diesem einmaligen Link öffnest du deinen persönlichen Kontaktbereich:\n\n${link}\n\nDer Link gilt 20 Minuten. Er gibt keinen Zugang zum Team oder zu einem geschlossenen Abend. Kontakte werden erst fortgesetzt, wenn beide Seiten das ausdrücklich bestätigen. Teile den Link nicht weiter. Wenn du ihn nicht angefordert hast, ignoriere diese E-Mail.\n\nGemeinsam. Überall. Rudelbar.\ninfo@rudelbar.de`;}
   let state;
   try{const password=await decryptPassword(env.RUDELBAR_SESSION_SECRET,row.password_cipher);const result=env.ACCOUNT_MAILER?await env.ACCOUNT_MAILER.send(message):await sendSmtp(env.MAIL_CONNECT,password,message);state=result?.accepted===true?'accepted':'uncertain';}
   catch(error){state=error.safeToRetry===true?'failed':'uncertain';}

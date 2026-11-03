@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS social_reads(
  seen_seq INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(context_id,profile_id)
 );
 CREATE TABLE IF NOT EXISTS social_reports(
- id TEXT PRIMARY KEY,event_id TEXT NOT NULL,context_id TEXT NOT NULL REFERENCES social_contexts(id),
+ id TEXT PRIMARY KEY,event_id TEXT NOT NULL,context_id TEXT REFERENCES social_contexts(id),
  reporter_profile TEXT NOT NULL REFERENCES guest_profiles(id),message_id TEXT NOT NULL DEFAULT '',media_id TEXT NOT NULL DEFAULT '',
  reason TEXT NOT NULL,comment TEXT NOT NULL,snapshot_json TEXT NOT NULL,operation_key TEXT NOT NULL,request_hash TEXT NOT NULL,
  state TEXT NOT NULL DEFAULT 'new',revision INTEGER NOT NULL DEFAULT 1,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS guest_contact_challenges(
  id TEXT PRIMARY KEY,token_hash TEXT NOT NULL UNIQUE,email_lookup TEXT NOT NULL,
  candidate_profile TEXT REFERENCES guest_profiles(id),purpose TEXT NOT NULL CHECK(purpose IN('enroll','recover')),
  policy_json TEXT NOT NULL,state TEXT NOT NULL DEFAULT 'pending',mail_attempt_id TEXT NOT NULL,
- created_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,consumed_at INTEGER
+ created_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,consumed_at INTEGER,claim_nonce TEXT
 );
 CREATE TABLE IF NOT EXISTS guest_contact_sessions(
  id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES guest_contact_accounts(profile_id),secret_hash TEXT NOT NULL,
@@ -91,6 +91,10 @@ CREATE TABLE IF NOT EXISTS guest_contact_pairs(
  UNIQUE(profile_a,profile_b),CHECK(profile_a<profile_b)
 );
 CREATE TABLE IF NOT EXISTS social_jobs(id TEXT PRIMARY KEY,last_run INTEGER NOT NULL DEFAULT 0,lease_until INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS guest_contact_activity(seq INTEGER PRIMARY KEY AUTOINCREMENT,profile_id TEXT NOT NULL REFERENCES guest_profiles(id),context_id TEXT NOT NULL REFERENCES social_contexts(id),created_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS guest_contact_activity_profile ON guest_contact_activity(profile_id,seq);
+CREATE TABLE IF NOT EXISTS guest_contact_reads(profile_id TEXT NOT NULL REFERENCES guest_profiles(id),context_id TEXT NOT NULL REFERENCES social_contexts(id),seen_seq INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(profile_id,context_id));
+CREATE TABLE IF NOT EXISTS guest_contact_push(id TEXT PRIMARY KEY,profile_id TEXT NOT NULL REFERENCES guest_contact_accounts(profile_id),session_id TEXT NOT NULL REFERENCES guest_contact_sessions(id),endpoint_hash TEXT NOT NULL,subscription_json TEXT NOT NULL,active INTEGER NOT NULL DEFAULT 1,cursor INTEGER NOT NULL DEFAULT 0,lease_until INTEGER NOT NULL DEFAULT 0,next_attempt INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0,last_status INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,UNIQUE(profile_id,endpoint_hash));
 INSERT OR IGNORE INTO social_jobs(id) VALUES('retention');
 CREATE TRIGGER IF NOT EXISTS encounter_activated AFTER INSERT ON encounter_profiles WHEN NEW.mode='dating' AND NEW.state='active' BEGIN
  INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
@@ -115,4 +119,18 @@ END;
 CREATE TRIGGER IF NOT EXISTS social_message_notice AFTER INSERT ON social_messages BEGIN
  INSERT OR IGNORE INTO guest_context_events(event_id,participation_id,kind,object_id,revision,created_at,expires_at)
  SELECT c.event_id,p.participation_id,c.kind,c.id,NEW.seq+1,NEW.created_at,c.expires_at FROM social_contexts c JOIN encounter_profiles p ON p.event_id=c.event_id AND p.mode=c.kind AND p.profile_id IN(c.profile_a,c.profile_b) WHERE c.id=NEW.context_id AND p.profile_id!=NEW.sender_profile;
+END;
+CREATE TRIGGER IF NOT EXISTS contact_match_notice AFTER INSERT ON social_contexts WHEN NEW.kind='contact' BEGIN
+ INSERT INTO guest_contact_activity(profile_id,context_id,created_at) VALUES(NEW.profile_a,NEW.id,NEW.created_at),(NEW.profile_b,NEW.id,NEW.created_at);
+END;
+CREATE TRIGGER IF NOT EXISTS contact_message_notice AFTER INSERT ON social_messages BEGIN
+ INSERT INTO guest_contact_activity(profile_id,context_id,created_at) SELECT CASE WHEN c.profile_a=NEW.sender_profile THEN c.profile_b ELSE c.profile_a END,c.id,NEW.created_at FROM social_contexts c WHERE c.id=NEW.context_id AND c.kind='contact';
+END;
+CREATE TRIGGER IF NOT EXISTS guest_block_social_end AFTER INSERT ON guest_blocks BEGIN
+ UPDATE social_contexts SET state='ended',reason='blocked',revision=revision+1,updated_at=NEW.created_at WHERE state='active' AND ((profile_a=NEW.blocker_profile AND profile_b=NEW.blocked_profile) OR(profile_b=NEW.blocker_profile AND profile_a=NEW.blocked_profile));
+ UPDATE guest_contact_pairs SET state='ended',consent_a=0,consent_b=0,revision=revision+1,updated_at=NEW.created_at WHERE state!='ended' AND ((profile_a=NEW.blocker_profile AND profile_b=NEW.blocked_profile) OR(profile_b=NEW.blocker_profile AND profile_a=NEW.blocked_profile));
+ UPDATE encounter_interests SET state='withdrawn',revision=revision+1,updated_at=NEW.created_at WHERE state='active' AND ((from_profile=NEW.blocker_profile AND to_profile=NEW.blocked_profile) OR(to_profile=NEW.blocker_profile AND from_profile=NEW.blocked_profile));
+END;
+CREATE TRIGGER IF NOT EXISTS contact_context_ended AFTER UPDATE ON social_contexts WHEN NEW.kind='contact' AND OLD.state='active' AND NEW.state='ended' BEGIN
+ UPDATE guest_contact_pairs SET state='ended',consent_a=0,consent_b=0,revision=revision+1,updated_at=NEW.updated_at WHERE id=NEW.reference_id AND state!='ended';
 END;
