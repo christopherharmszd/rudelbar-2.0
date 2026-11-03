@@ -1,4 +1,5 @@
 import {raffleIssues} from '../../shared/raffle.mjs';
+import {encounterIssues} from '../../shared/encounters.mjs';
 import {wallIssues} from '../../shared/wall.mjs';
 import {catalogFor,peopleFor,loadEvent,configurationFor} from './abend-service.mjs';
 import {cleanExperience} from '../../shared/experience.mjs';
@@ -22,6 +23,7 @@ export async function reviewEvening(client,id){
  }
  issues.push(...wallIssues(config.wall||{}));
  issues.push(...raffleIssues(config.raffle||{}));
+ issues.push(...encounterIssues(config.encounters||{}));
  if(config.features?.roundChat&&!config.communication?.privacyUrl)issues.push('Für Gespräche in Spielrunden fehlt die Datenschutzinformation. Ergänze sie unter „Gespräche in der Runde“.');
  const visible=['equipment','games','program','menu'].flatMap(k=>config[k]||[]);
  if(client.runtimeDb)issues.push(...await releaseContinuity(client.runtimeDb,id,config));

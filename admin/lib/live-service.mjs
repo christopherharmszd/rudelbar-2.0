@@ -1,5 +1,8 @@
 import {createContextNotices} from './context-notices.mjs';
 import {createRaffles} from './raffles.mjs';
+import {createEncounters} from './encounters.mjs';
+import {createSocialConversations} from './social-conversations.mjs';
+import {createEncounterSessions} from './encounter-sessions.mjs';
 import {createWallNotices} from './wall-notices.mjs';
 import {createGuestProfiles} from './guest-profile.mjs';
 import {createConversationPush} from './conversation-push.mjs';
@@ -185,7 +188,7 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     }
     return {expiresAt:person.expires_at,...result,...await notices.settings(who)};
    }
-   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&['raffle-','dating-','dance-','contact-'].some(prefix=>input.id?.startsWith(prefix)))return contextNotices.mark(person,input);
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&['raffle-','dating-','dance-','play-','contact-'].some(prefix=>input.id?.startsWith(prefix)))return contextNotices.mark(person,input);
    if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('wall-'))return wallNotices.mark(person,input);
    if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('chat-'))return conversations.mark(person,{conversationId:input.id,seq:input.seq});
    return {expiresAt:person.expires_at,...await notices[action](who,input)};
@@ -196,9 +199,12 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   const conversationPush=createConversationPush(env,{conversations,defer,transport});
   const wallNotices=createWallNotices(env,{context,defer,transport});
   const raffles=createRaffles(env,{context,visitor,notify:eventId=>contextNotices.dispatch(eventId)});
-  const contextNotices=createContextNotices(env,{resolve:(person,row)=>raffles.resolveNotice(person,row),pushAllowed:(person,item)=>raffles.pushAllowed(person,item),defer,transport});
+  const encounters=createEncounters(env,{context,visitor,notify:eventId=>contextNotices.dispatch(eventId)});
+  const socialConversations=createSocialConversations(env,{context,visitor,dispatch:eventId=>contextNotices.dispatch(eventId)});
+  const encounterSessions=createEncounterSessions(env,{encounters,visitor});
+  const contextNotices=createContextNotices(env,{resolve:(person,row)=>row.kind==='raffle'?raffles.resolveNotice(person,row):socialConversations.resolveNotice(person,row),pushAllowed:(person,item)=>item.kind==='raffle'?raffles.pushAllowed(person,item):socialConversations.pushAllowed(person,item),defer,transport});
   async function guestLogout({eventId,sessionToken}){const person=await visitor(eventId,sessionToken);await database().batch([database().prepare('UPDATE guest_sessions SET revoked_at=? WHERE id=? AND participation_id=? AND revoked_at IS NULL').bind(Date.now(),person.session_id||person.id,person.id),database().prepare('UPDATE live_push_subscriptions SET active=0,updated_at=? WHERE event_id=? AND recipient=?').bind(Date.now(),eventId,'v:'+person.id)]);return {ok:true};}
   async function guestAnalysis({eventId,sessionToken,operation,input={},events}){const person=await visitor(eventId,sessionToken),reporting=createReporting(database());if(operation==='settings')return reporting.guestSettings(person);if(operation==='consent')return reporting.guestConsent(person,input);if(operation==='events'){const ctx=await context(eventId);requireOpen(ctx);return reporting.ingest(person,{events},ctx.release);}fail('Nicht gefunden.',404);}
   const gameRounds=createGameRounds(env,{context,visitor,guestAccess,requireOpen,allowed});
-  return {contextNotices,raffles,raffle:input=>raffles.guest(input),wallNotices,internalVisitor:visitor,internalContext:context,conversationPush,conversations,conversation:input=>conversations.guest(input),staffReports:(actor,input)=>conversations.moderation(actor.user||(actor.publisher?{name:'Redaktion'}:{accountId:'grant',roles:[]}),actor.eventId,input),guestProfile,guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
+  return {encounters,encounter:input=>encounters.guest(input),socialConversations,socialConversation:input=>socialConversations.guest(input),encounterSessions,encounterSession:input=>encounterSessions.guest(input),contextNotices,raffles,raffle:input=>raffles.guest(input),wallNotices,internalVisitor:visitor,internalContext:context,conversationPush,conversations,conversation:input=>conversations.guest(input),staffReports:async(actor,input={})=>{const user=actor.user||(actor.publisher?{name:'Redaktion'}:{accountId:'grant',roles:[]});const old=await conversations.moderation(user,actor.eventId,input.kind==='social'?{}:input),social=await socialConversations.moderation(user,actor.eventId,input.kind==='social'?input:{});return {reports:[...old.reports,...social.reports].sort((a,b)=>b.createdAt-a.createdAt)};},guestProfile,guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

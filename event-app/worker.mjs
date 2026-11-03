@@ -33,6 +33,9 @@ export default {
       const args={...input,eventId,sessionToken};
       if(url.pathname==='/api/guest/rounds'){args.operation=input.operation||'list';for(const key of ['offerType','offerId','boothId'])if(!args[key])args[key]=url.searchParams.get(key);if(!args.accessCode)args.accessCode=url.searchParams.get('zugang')||'';}
       let action;
+      if(url.pathname==='/api/guest/encounters'){action='encounter';args.operation=request.method==='GET'?(url.searchParams.get('operation')||'mine'):input.operation;if(url.searchParams.has('mode'))args.mode=url.searchParams.get('mode');}
+      if(url.pathname==='/api/guest/encounter-sessions'){action='encounterSession';args.operation=request.method==='GET'?'list':input.operation;}
+      if(url.pathname==='/api/guest/social'){action='socialConversation';args.operation=request.method==='GET'?(url.searchParams.has('contextId')?'read':'list'):input.operation;for(const key of ['contextId','before'])if(url.searchParams.has(key))args[key]=key==='before'?Number(url.searchParams.get(key)):url.searchParams.get(key);}
       if(url.pathname==='/api/guest/raffles'){action='raffle';args.operation=request.method==='GET'?(url.searchParams.get('operation')||'list'):input.operation;if(url.searchParams.has('aktion'))args.configId=url.searchParams.get('aktion');}
       if(url.pathname==='/api/guest/rounds')action='roundAction';
       if(url.pathname==='/api/guest/session'&&request.method==='POST')action='session';

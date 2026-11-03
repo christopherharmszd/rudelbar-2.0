@@ -23,7 +23,7 @@ export class VisitorContent extends WorkerEntrypoint {
   async guestAction(action,input){
     try{
       const service=createLiveService(this.env,createContentClient(this.env),{defer:promise=>this.ctx.waitUntil(promise)});
-      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction','guestAnalysis','guestLogout','guestProfile','conversation','raffle'].includes(action))return {status:404,error:'Nicht gefunden.'};
+      if(!['session','mine','submit','guestUpdate','guestNotice','roundAction','guestAnalysis','guestLogout','guestProfile','conversation','raffle','encounter','socialConversation','encounterSession'].includes(action))return {status:404,error:'Nicht gefunden.'};
       return {status:200,...await service[action](input)};
     }catch(error){return {status:error.status||503,error:error.status?error.message:'Die Nachricht konnte gerade nicht verarbeitet werden.'};}
   }
