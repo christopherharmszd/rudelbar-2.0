@@ -206,3 +206,15 @@ noch offen. Gemeinsamer Kontext-Mitteilungseingang, persönlicher Gewinnnachweis
 separate Namensfreigabe, Loslimit pro Aktion oder Abend, Auswertung und
 Veröffentlichungsschutz ergänzt. 0013 zweimal auf Sicherung nach 0011/0012 geprüft:
 67 alte Tabellen unverändert. Kein neuer Code oder neue Datenbankmigration online.
+
+
+## Pausenstand am 3. November 2026
+
+Auf Wunsch des Nutzers wegen Reise bewusst unterbrochen. Siehe docs/PAUSED.md.
+200 automatische Tests und echter Begegnungs-/Kontakt-Worker-RPC-/D1-Test
+bestehen. 0014 zweimal auf wiederhergestellter Sicherung nach 0011–0013 geprüft:
+80 vorhandene Tabellen unverändert, Integrität/Fremdschlüssel korrekt. Der Stand
+liegt lokal und auf GitHub. Oberflächen und Gesamtintegration sind noch nicht
+vollständig abgenommen. Neue Abschnitte 6–8/Migrationen 0012–0014 bleiben online
+unveröffentlicht; Abschnitt 9 bleibt offen. Wiederaufnahme erfordert keine
+erneute Umfangsfreigabe.
