@@ -1,3 +1,9 @@
+> Neuester Pausenstand: 3. November 2026, 19:11 Uhr (Europe/Berlin).
+> Nach „mach weiter“ wurde die Entwicklung wieder aufgenommen und nun auf
+> erneuten Nutzerwunsch wegen Zuklappen des Laptops wieder gesichert pausiert.
+> Maßgeblich ist der aktuelle HEAD des unten genannten Arbeitszweigs.
+> Zusätzliche Ergebnisse: docs/qa-2026-11-03-resumed.md.
+
 # Gesicherter Pausenstand
 
 3. November 2026, morgens. Der Nutzer bittet wegen seiner Reise um eine
