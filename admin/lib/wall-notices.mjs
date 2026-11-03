@@ -1,3 +1,4 @@
+import {recordContextPush} from './push-receipts.mjs';
 import {sendPush} from './notifications.mjs';
 // Wall notices share the guest clock and existing device permission. Their
 // delivery cursor is separate, so station and chat deliveries never replay.
@@ -38,7 +39,7 @@ export function createWallNotices(env,{context,defer,transport,deliver=sendPush}
     const listing=await list(person,{after:row.wall_cursor,before:cursor}),ctx=await context(row.event_id);
     if(listing.count&&ctx.release.state==='open'&&ctx.release.config?.wall?.enabled&&await active(row)){
      const item=listing.items[0],response=await deliver(env,JSON.parse(row.subscription_json),{title:'Neues von deinem Abend',body:'Eine Rückmeldung wartet in deiner Memory Wall.',tag:'rudelbar-wall-'+row.event_id,url:row.return_path+'&wall=1',icon:'/assets/rudelbar-logo.png',id:item.id,count:listing.count},{transport});
-     if(!response.ok){if([404,410].includes(response.status))await run('UPDATE live_push_subscriptions SET active=0 WHERE id=?',[row.id]);throw new Error('Push rejected');}sent++;
+     if(!response.ok){if([404,410].includes(response.status))await run('UPDATE live_push_subscriptions SET active=0 WHERE id=?',[row.id]);throw new Error('Push rejected');}await recordContextPush(db,'wall',row,cursor,response.status);sent++;
     }
     await run('UPDATE guest_wall_push_cursors SET cursor=?,lease_until=0,attempts=0,next_attempt=0 WHERE subscription_id=?',[cursor,row.id]);
    }catch{await run('UPDATE guest_wall_push_cursors SET lease_until=0,attempts=attempts+1,next_attempt=? WHERE subscription_id=?',[Date.now()+Math.min(900000,30000*2**Math.min(row.wall_attempts,5)),row.id]);}

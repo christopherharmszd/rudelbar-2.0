@@ -1,3 +1,4 @@
+import {createContextNotices} from './context-notices.mjs';
 import {createRaffles} from './raffles.mjs';
 import {createWallNotices} from './wall-notices.mjs';
 import {createGuestProfiles} from './guest-profile.mjs';
@@ -180,10 +181,11 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
    if(action==='list'){
     const result=await notices.list(who,input);
     if(env.RUDELBAR_CONNECTED_SOCIAL==='1'){
-     await conversations.alertSequences(eventId,result.items,'station');const chats=await conversations.list(person);await conversations.alertSequences(eventId,chats.items,'conversation');const wallItems=await wallNotices.list(person);result.items=[...result.items,...chats.items,...wallItems.items].sort((a,b)=>b.alertSeq-a.alertSeq);result.count=result.items.length;
+     await conversations.alertSequences(eventId,result.items,'station');const chats=await conversations.list(person);await conversations.alertSequences(eventId,chats.items,'conversation');const wallItems=await wallNotices.list(person),contextItems=await contextNotices.list(person);result.items=[...result.items,...chats.items,...wallItems.items,...contextItems.items].sort((a,b)=>b.alertSeq-a.alertSeq);result.count=result.items.length;
     }
     return {expiresAt:person.expires_at,...result,...await notices.settings(who)};
    }
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&['raffle-','dating-','dance-','contact-'].some(prefix=>input.id?.startsWith(prefix)))return contextNotices.mark(person,input);
    if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('wall-'))return wallNotices.mark(person,input);
    if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('chat-'))return conversations.mark(person,{conversationId:input.id,seq:input.seq});
    return {expiresAt:person.expires_at,...await notices[action](who,input)};
@@ -193,9 +195,10 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   const conversations=createConversations(env,{visitor,context,dispatch:eventId=>conversationPush.dispatch(eventId)});
   const conversationPush=createConversationPush(env,{conversations,defer,transport});
   const wallNotices=createWallNotices(env,{context,defer,transport});
-  const raffles=createRaffles(env,{context,visitor});
+  const raffles=createRaffles(env,{context,visitor,notify:eventId=>contextNotices.dispatch(eventId)});
+  const contextNotices=createContextNotices(env,{resolve:(person,row)=>raffles.resolveNotice(person,row),pushAllowed:(person,item)=>raffles.pushAllowed(person,item),defer,transport});
   async function guestLogout({eventId,sessionToken}){const person=await visitor(eventId,sessionToken);await database().batch([database().prepare('UPDATE guest_sessions SET revoked_at=? WHERE id=? AND participation_id=? AND revoked_at IS NULL').bind(Date.now(),person.session_id||person.id,person.id),database().prepare('UPDATE live_push_subscriptions SET active=0,updated_at=? WHERE event_id=? AND recipient=?').bind(Date.now(),eventId,'v:'+person.id)]);return {ok:true};}
   async function guestAnalysis({eventId,sessionToken,operation,input={},events}){const person=await visitor(eventId,sessionToken),reporting=createReporting(database());if(operation==='settings')return reporting.guestSettings(person);if(operation==='consent')return reporting.guestConsent(person,input);if(operation==='events'){const ctx=await context(eventId);requireOpen(ctx);return reporting.ingest(person,{events},ctx.release);}fail('Nicht gefunden.',404);}
   const gameRounds=createGameRounds(env,{context,visitor,guestAccess,requireOpen,allowed});
-  return {raffles,raffle:input=>raffles.guest(input),wallNotices,internalVisitor:visitor,internalContext:context,conversationPush,conversations,conversation:input=>conversations.guest(input),staffReports:(actor,input)=>conversations.moderation(actor.user||(actor.publisher?{name:'Redaktion'}:{accountId:'grant',roles:[]}),actor.eventId,input),guestProfile,guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
+  return {contextNotices,raffles,raffle:input=>raffles.guest(input),wallNotices,internalVisitor:visitor,internalContext:context,conversationPush,conversations,conversation:input=>conversations.guest(input),staffReports:(actor,input)=>conversations.moderation(actor.user||(actor.publisher?{name:'Redaktion'}:{accountId:'grant',roles:[]}),actor.eventId,input),guestProfile,guestLogout,guestAnalysis,roundAction:input=>gameRounds.guest(input),staffRounds:(actor,input)=>gameRounds.staff(actor,input),session,mine,submit,guestUpdate,issueGrant,grants,revoke,operator,publisher,accountActor,staffContext,inbox,staffUpdate,stationState,availability,guestNotice,guestIdentity,notices,recipient,stationPhotos,requireStationPhoto,saveStationPhoto};
 }

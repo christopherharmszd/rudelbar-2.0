@@ -56,6 +56,8 @@ export function createNotifications(env,{context,defer,transport=fetch}={}){
   if(env.RUDELBAR_CONNECTED_SOCIAL==='1'&&recipient.audience==='guest'){
    const chatCursor=Number((await first('SELECT MAX(seq) AS seq FROM guest_conversation_activity WHERE event_id=?',[recipient.eventId]))?.seq||0);
    await run('INSERT INTO guest_chat_push_cursors(subscription_id,cursor) VALUES(?,?) ON CONFLICT(subscription_id) DO UPDATE SET cursor=CASE WHEN ? THEN guest_chat_push_cursors.cursor ELSE excluded.cursor END,lease_until=0,next_attempt=0,attempts=0',[id,chatCursor,Number(!!existing?.active)]);
+   const contextCursor=Number((await first('SELECT MAX(seq) AS seq FROM guest_context_events WHERE event_id=?',[recipient.eventId]))?.seq||0);
+   await run('INSERT INTO guest_context_push_cursors(subscription_id,cursor) VALUES(?,?) ON CONFLICT(subscription_id) DO UPDATE SET cursor=CASE WHEN ? THEN guest_context_push_cursors.cursor ELSE excluded.cursor END,lease_until=0,next_attempt=0,attempts=0',[id,contextCursor,Number(!!existing?.active)]);
    const wallCursor=Number((await first('SELECT MAX(seq) AS seq FROM wall_audit WHERE event_id=?',[recipient.eventId]))?.seq||0);
    await run('INSERT INTO guest_wall_push_cursors(subscription_id,cursor) VALUES(?,?) ON CONFLICT(subscription_id) DO UPDATE SET cursor=CASE WHEN ? THEN guest_wall_push_cursors.cursor ELSE excluded.cursor END,lease_until=0,next_attempt=0,attempts=0',[id,wallCursor,Number(!!existing?.active)]);
   }

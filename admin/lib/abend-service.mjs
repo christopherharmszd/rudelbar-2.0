@@ -83,7 +83,7 @@ export async function getVisitorExperience(client,{eventId='',accessCode=''}={})
     const event=eventId?all.find(e=>e.eventId===eventId):all.find(e=>e.visibility==='public'&&e.app.state==='open'&&e.app.hasRelease)||all.find(e=>e.visibility==='public'&&e.app.hasRelease)||all.find(e=>e.visibility==='public');
     if(!event||(event.visibility==='private'&&(!accessCode||accessCode!==event.accessCode)))return {status:404,error:'Dieser Abend ist nicht verfügbar. Bitte nutze den Gäste-Link deiner Veranstaltung.'};
     const release=await snapshotFor(client,event);
-    if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue,wallEnabled:release.config?.wall?.enabled===true},experience:null};
+    if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue,wallEnabled:release.config?.wall?.enabled===true,raffleEnabled:release.config?.raffle?.enabled===true},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
     return {status:200,state:'open',experience:{...visitorPayload(release.config,{...event,...release.eventSnapshot},await peopleFor(client),await partnersFor(client)),revision:release.versionId||release._rev||release.sourceRevision||'',...(release.versionId?{releaseId:release.versionId}:{})}};
   }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}

@@ -77,3 +77,51 @@ CREATE TRIGGER IF NOT EXISTS raffle_expiry_audit AFTER UPDATE ON raffle_draws WH
  INSERT INTO raffle_audit(id,campaign_id,draw_id,action,actor_id,reason,created_at)
  VALUES('expiry-'||NEW.id,NEW.campaign_id,NEW.id,'expired','system','Festgelegte Abholfrist abgelaufen',NEW.updated_at);
 END;
+
+CREATE TABLE IF NOT EXISTS guest_context_events(
+ seq INTEGER PRIMARY KEY AUTOINCREMENT,event_id TEXT NOT NULL,participation_id TEXT NOT NULL REFERENCES guest_participations(id),
+ kind TEXT NOT NULL,object_id TEXT NOT NULL,revision INTEGER NOT NULL,created_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,
+ UNIQUE(participation_id,kind,object_id,revision)
+);
+CREATE INDEX IF NOT EXISTS guest_context_owner ON guest_context_events(participation_id,seq);
+CREATE TABLE IF NOT EXISTS guest_context_reads(
+ participation_id TEXT NOT NULL REFERENCES guest_participations(id),kind TEXT NOT NULL,object_id TEXT NOT NULL,
+ seen_seq INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(participation_id,kind,object_id)
+);
+CREATE TABLE IF NOT EXISTS guest_context_push_cursors(
+ subscription_id TEXT PRIMARY KEY REFERENCES live_push_subscriptions(id),cursor INTEGER NOT NULL DEFAULT 0,
+ lease_until INTEGER NOT NULL DEFAULT 0,next_attempt INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0
+);
+INSERT OR IGNORE INTO guest_context_push_cursors(subscription_id,cursor)
+ SELECT s.id,COALESCE((SELECT MAX(n.seq) FROM guest_context_events n WHERE n.event_id=s.event_id),0) FROM live_push_subscriptions s WHERE s.audience='guest';
+CREATE TRIGGER IF NOT EXISTS guest_context_clock AFTER INSERT ON guest_context_events BEGIN
+ INSERT OR IGNORE INTO guest_notice_clock(event_id,source,source_seq,created_at) VALUES(NEW.event_id,'context',NEW.seq,NEW.created_at);
+END;
+CREATE TRIGGER IF NOT EXISTS raffle_context_notice AFTER INSERT ON raffle_audit WHEN NEW.draw_id!='' AND NEW.action IN('drawn','redrawn','settle','redeem','cancel','expired') BEGIN
+ INSERT OR IGNORE INTO guest_context_events(event_id,participation_id,kind,object_id,revision,created_at,expires_at)
+ SELECT c.event_id,e.participation_id,'raffle',d.id,d.revision,NEW.created_at,c.expires_at FROM raffle_draws d JOIN raffle_entries e ON e.id=d.entry_id JOIN raffle_campaigns c ON c.id=d.campaign_id WHERE d.id=NEW.draw_id;
+END;
+CREATE TRIGGER IF NOT EXISTS context_read_insert AFTER INSERT ON guest_context_reads WHEN NEW.seen_seq>0 AND NEW.kind!='dating' BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'context-read-'||NEW.participation_id||'-'||NEW.kind||'-'||NEW.object_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.object_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM guest_participations WHERE id=NEW.participation_id AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS context_read_update AFTER UPDATE ON guest_context_reads WHEN NEW.seen_seq>OLD.seen_seq AND NEW.kind!='dating' BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'context-read-'||NEW.participation_id||'-'||NEW.kind||'-'||NEW.object_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.object_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM guest_participations WHERE id=NEW.participation_id AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_read_insert AFTER INSERT ON wall_notice_reads WHEN NEW.seen_seq>0 BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-read-'||NEW.participation_id||'-'||NEW.post_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.post_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM wall_posts WHERE id=NEW.post_id AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_read_update AFTER UPDATE ON wall_notice_reads WHEN NEW.seen_seq>OLD.seen_seq BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-read-'||NEW.participation_id||'-'||NEW.post_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.post_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM wall_posts WHERE id=NEW.post_id AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS conversation_read_insert AFTER INSERT ON guest_conversation_reads WHEN NEW.seen_seq>0 BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'chat-read-'||NEW.participation_id||'-'||NEW.conversation_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.conversation_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM guest_conversations WHERE id=NEW.conversation_id AND kind!='dating' AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS conversation_read_update AFTER UPDATE ON guest_conversation_reads WHEN NEW.seen_seq>OLD.seen_seq BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'chat-read-'||NEW.participation_id||'-'||NEW.conversation_id||'-'||NEW.seen_seq,event_id,NEW.participation_id,'inbox.read',NEW.conversation_id,CAST(NEW.seen_seq AS TEXT),CAST(unixepoch('subsec')*1000 AS INTEGER) FROM guest_conversations WHERE id=NEW.conversation_id AND kind!='dating' AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;

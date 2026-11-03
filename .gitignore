@@ -15,6 +15,7 @@ admin/public/sw.js
 
 # Generated shared wall model
 event-app/public/wall-model.js
+event-app/public/raffle-model.js
 
 # Isolated QA receipts and local fixture credentials
 .qa/

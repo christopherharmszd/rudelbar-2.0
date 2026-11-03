@@ -1,3 +1,4 @@
+import {recordContextPush} from './push-receipts.mjs';
 import {sendPush} from './notifications.mjs';
 // Separate delivery cursor: existing station deliveries are never replayed or
 // renumbered when context conversations are introduced.
@@ -21,7 +22,7 @@ export function createConversationPush(env,{conversations,defer,transport,delive
     const listing=await conversations.list(guest,{after:row.chat_cursor,before:cursor});
     if(listing.count){const item=listing.items[0];await conversations.room(guest,{conversationId:item.id});if(!await person(row))throw Object.assign(new Error('Session changed'),{status:401});
      const response=await deliver(env,JSON.parse(row.subscription_json),{title:'Neues in deiner Runde',body:'Eine neue Nachricht wartet in deinem Rundengespräch.',tag:'rudelbar-chat-'+row.event_id,url:row.return_path+'&anfrage='+encodeURIComponent(item.id),icon:'/assets/rudelbar-logo.png',id:item.id,count:listing.count},{transport});
-     if(!response.ok){if([404,410].includes(response.status))await run('UPDATE live_push_subscriptions SET active=0 WHERE id=?',[row.id]);throw Object.assign(new Error('Push rejected'),{status:response.status});}sent++;
+     if(!response.ok){if([404,410].includes(response.status))await run('UPDATE live_push_subscriptions SET active=0 WHERE id=?',[row.id]);throw Object.assign(new Error('Push rejected'),{status:response.status});}await recordContextPush(db,'conversation',row,cursor,response.status);sent++;
     }
     await run('UPDATE guest_chat_push_cursors SET cursor=?,lease_until=0,attempts=0,next_attempt=0 WHERE subscription_id=?',[cursor,row.id]);
    }catch(error){await run('UPDATE guest_chat_push_cursors SET lease_until=0,attempts=attempts+1,next_attempt=? WHERE subscription_id=?',[Date.now()+Math.min(900000,30000*2**Math.min(row.chat_attempts,5)),row.id]);}
