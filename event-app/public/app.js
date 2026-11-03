@@ -12,11 +12,11 @@
   let activeEventId=eventId||'',mapView=null;const mapCamera={zoom:1,panX:0,panY:0};
   const {mountGuestMap}=await import(preview?'/abend-preview/guest-map.js':'/guest-map.js');
   const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js':'/guest-live.js');
-  const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e),onOpenChat:id=>social.open({conversationId:id}),getExtraInbox:()=>social.tiles(),loadExtraInbox:()=>social.list()});
+  const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e),onOpenChat:id=>social.open({conversationId:id}),onOpenWall:()=>memoryWall.open({mine:true}),getExtraInbox:()=>social.tiles(),loadExtraInbox:()=>social.list()});
   const {createGuestSocial}=await import(preview?'/abend-preview/guest-social.js':'/guest-social.js');
   const social=createGuestSocial({api:live.api,ensureSession:()=>live.ensureSession(),preview,mark:(id,seq)=>live.mark(id,seq),onName:name=>{state.name=name;save();render();}});
   const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js':'/guest-wall.js');
-  const memoryWall=createGuestWall({getEventId:()=>activeEventId,accessCode,ensureSession:()=>live.ensureSession(),isOpen:()=>!!experience,preview});
+  const memoryWall=createGuestWall({getEventId:()=>activeEventId,accessCode,ensureSession:()=>live.ensureSession(),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestAnalytics}=await import(preview?'/abend-preview/guest-analytics.js':'/guest-analytics.js');
   const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:()=>live.ensureSession(),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
   const games=()=>[...experience.equipment.map(g=>({...g,icon:g.kind==='kicker'?'goal':'puzzle'})),...experience.games.map(g=>({...g,icon:'dices'}))];
@@ -91,7 +91,7 @@
   function showClosed(event){mapView?.destroy();mapView=null;document.querySelectorAll('.vm-stand-sheet[open]').forEach(d=>d.close());
     activeEventId=event?.id||activeEventId;experience=null;root.classList.remove('has-navigation','is-editing');root.dataset.view='closed';nav.hidden=true;
     root.querySelector('.re-header-place').textContent='Bis bald im Rudel.';
-    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+button('Meine Wall-Beiträge & Freigaben','wall-mine','',true)+button('Datenschutz & freiwillige Messung','privacy','',true)+'</div>';icons();live.startNotices();if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
+    screen.innerHTML=heading('Bis bald im Rudel.',event?.title||'Dieser Abend ist geschlossen.','Die App für diesen Abend ist gerade geschlossen. Wenn das Rudelbar-Team sie öffnet, kannst du hier mitmachen.')+button('Noch einmal nachsehen','reload')+'<div class="re-section">'+button('Meine Nachrichten','messages','',true)+(event?.wallEnabled?button('Meine Wall-Beiträge & Freigaben','wall-mine','',true):'')+button('Datenschutz & freiwillige Messung','privacy','',true)+'</div>';icons();live.startNotices();if(!event?.wallEnabled){const closedId=activeEventId;memoryWall.hasOwn().then(owned=>{if(owned&&activeEventId===closedId&&!experience&&!screen.querySelector('[data-action=wall-mine]'))screen.querySelector('.re-section')?.insertAdjacentHTML('beforeend',button('Meine Wall-Beiträge & Freigaben','wall-mine','',true));});}if(query.get('wall')==='1')memoryWall.open({mine:true});else if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }
   screen.innerHTML='<p class="re-lead">Dein Abend wird geladen …</p>';
   try{
@@ -116,6 +116,6 @@
       const check=async()=>{if(checking||document.visibilityState==='hidden')return;checking=true;try{const r=await fetch(refreshEndpoint,{cache:'no-store'}),data=await r.json();if(data.state==='closed')showClosed(data.event);else if(r.ok&&data.experience){const changed=experience?.revision!==data.experience.revision;experience=data.experience;if(changed&&!['welcome','name'].includes(view))render();}}catch{}finally{checking=false;}};
       setInterval(check,30000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
     }
-    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();if(state.name){live.startNotices();analytics.refresh();}if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
+    view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();if(state.name){live.startNotices();analytics.refresh();}if(query.get('wall')==='1')memoryWall.open({mine:true});else if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }catch(error){nav.hidden=true;root.querySelector('.re-header-place').textContent='Gemeinsam. Überall.';screen.innerHTML=heading('Wir sind gleich wieder da.','Ein kurzer Moment.',error.message)+button('Erneut versuchen','reload');icons();}
 })();

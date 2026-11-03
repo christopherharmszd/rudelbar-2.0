@@ -178,3 +178,13 @@ Zugangsdaten bleiben außerhalb des öffentlichen Repositorys.
 
 Detaillierte Fortsetzung und noch offene Punkte: docs/resume-2026-11-03.md.
 Der gesamte Neun-Abschnitte-Plan ist weiterhin nicht abgeschlossen.
+
+## Wall-Härtung, weiterhin separat und nicht veröffentlicht
+
+165 Tests bestehen. Freigaberücknahme funktioniert trotz geänderter Information,
+alter Revision oder geschlossenem Abend. HMAC schützt Archivherkunft und Fristen.
+Geschützte Archivgalerie, gemeinsame Wall-Mitteilungen ohne neue Geräteerlaubnis,
+separater Versandcursor, Wall-Auswertung und begrenzte Ablaufbereinigung ergänzt.
+0012 auf wiederhergestellter Betriebssicherung zweimal geprüft; vorhandene Tabellen
+unverändert. Vier isolierte 1/5/25/100-Sammlungen aufgebaut; visuelle Abnahme noch
+offen, weil Browserwerkzeug lange blockierte. Laufender Betrieb nicht verändert.

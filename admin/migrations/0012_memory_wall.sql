@@ -59,3 +59,43 @@ CREATE TRIGGER IF NOT EXISTS wall_status_changed AFTER UPDATE ON wall_posts WHEN
  CASE WHEN NEW.status='approved' THEN 'wall.approved' ELSE 'wall.withdrawn' END,NEW.id,NEW.id||'-'||NEW.revision,NEW.updated_at
  WHERE NEW.status IN('approved','withdrawn') AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
 END;
+
+CREATE TABLE IF NOT EXISTS wall_notice_reads(
+ post_id TEXT NOT NULL REFERENCES wall_posts(id),participation_id TEXT NOT NULL REFERENCES guest_participations(id),
+ seen_seq INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(post_id,participation_id)
+);
+CREATE TABLE IF NOT EXISTS guest_wall_push_cursors(
+ subscription_id TEXT PRIMARY KEY REFERENCES live_push_subscriptions(id),cursor INTEGER NOT NULL DEFAULT 0,
+ lease_until INTEGER NOT NULL DEFAULT 0,next_attempt INTEGER NOT NULL DEFAULT 0,attempts INTEGER NOT NULL DEFAULT 0
+);
+INSERT OR IGNORE INTO guest_wall_push_cursors(subscription_id,cursor)
+ SELECT s.id,COALESCE((SELECT MAX(a.seq) FROM wall_audit a WHERE a.event_id=s.event_id),0)
+ FROM live_push_subscriptions s WHERE s.audience='guest';
+CREATE TRIGGER IF NOT EXISTS wall_notice_clock AFTER INSERT ON wall_audit WHEN NEW.action IN('approved','hidden') BEGIN
+ INSERT OR IGNORE INTO guest_notice_clock(event_id,source,source_seq,created_at) VALUES(NEW.event_id,'wall',NEW.seq,NEW.recorded_at);
+END;
+
+CREATE TABLE IF NOT EXISTS wall_upload_failures(
+ media_id TEXT NOT NULL REFERENCES wall_media(id) ON DELETE CASCADE,variant TEXT NOT NULL CHECK(variant IN('original','preview')),
+ recorded_at INTEGER NOT NULL,PRIMARY KEY(media_id,variant)
+);
+CREATE TRIGGER IF NOT EXISTS wall_uploaded AFTER UPDATE ON wall_media WHEN NEW.original_ready=1 AND NEW.preview_ready=1 AND (OLD.original_ready=0 OR OLD.preview_ready=0) BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-upload-'||NEW.id,NEW.event_id,'wall.uploaded',NEW.id,NEW.id,CAST(unixepoch('subsec')*1000 AS INTEGER) WHERE (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_upload_failed AFTER INSERT ON wall_upload_failures BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-upload-failed-'||m.id||'-'||NEW.variant,m.event_id,'wall.upload_failed',m.id,m.id||'-'||NEW.variant,NEW.recorded_at FROM wall_media m WHERE m.id=NEW.media_id AND (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_external_withdrawn AFTER UPDATE ON wall_posts WHEN NEW.external_consent=0 AND OLD.external_consent=1 BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,participation_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-external-withdrawn-'||NEW.id,NEW.event_id,NEW.participation_id,'wall.external_withdrawn',NEW.id,NEW.id,NEW.updated_at WHERE (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_archived AFTER INSERT ON wall_archive_exports BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-archive-'||NEW.id,NEW.event_id,'wall.archived',NEW.id,NEW.id,NEW.created_at WHERE (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;
+CREATE TRIGGER IF NOT EXISTS wall_restored AFTER UPDATE ON wall_restored_archives WHEN NEW.ready=1 AND OLD.ready=0 BEGIN
+ INSERT OR IGNORE INTO domain_events(id,event_id,type,object_id,operation_key,recorded_at)
+ SELECT 'wall-restore-'||NEW.id,NEW.event_id,'wall.restored',NEW.id,NEW.id,CAST(unixepoch('subsec')*1000 AS INTEGER) WHERE (SELECT enabled FROM reporting_settings WHERE id=1)=1;
+END;

@@ -59,7 +59,7 @@ export function cleanExperience(input,catalog,eventId,people=[],teamIds=[]){
     const offerType=row.offerType||'',offerId=row.offerId||'';
     if(offerType&&!['equipment','games','program','menu'].includes(offerType))fail('Ungültige Angebotsverknüpfung.');
     if(offerId&&(!offerType||!result[offerType].some(item=>item.id===offerId)))fail('Bitte ein für diesen Abend ausgewähltes Angebot verknüpfen.');
-    return {_key:id,id,name:text(row.name,100,true),kind,description:text(row.description,800),place:text(row.place,160),operatorIds,...(!operatorIds.length&&row.assignmentRequired?{assignmentRequired:true}:{}),offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false,detailsEnabled:row.detailsEnabled!==false,showImages:row.showImages!==false,contactEnabled:row.contactEnabled!==false,allowOperatorPhotos:row.allowOperatorPhotos===true,imageUrl:image(row.imageUrl),imageAlt:text(row.imageAlt,300)};
+    return {_key:id,id,name:text(row.name,100,true),kind,functionId:row.functionId?validId(row.functionId):'',description:text(row.description,800),place:text(row.place,160),operatorIds,...(!operatorIds.length&&row.assignmentRequired?{assignmentRequired:true}:{}),offerType,offerId:offerId?validId(offerId):'',enabled:row.enabled!==false,detailsEnabled:row.detailsEnabled!==false,showImages:row.showImages!==false,contactEnabled:row.contactEnabled!==false,allowOperatorPhotos:row.allowOperatorPhotos===true,imageUrl:image(row.imageUrl),imageAlt:text(row.imageAlt,300)};
   }));
   result.modules.encounters={enabled:input.modules?.encounters?.enabled===true};
   result.modules.help={enabled:input.modules?.help?.enabled!==false};

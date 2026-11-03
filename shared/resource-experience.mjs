@@ -40,6 +40,7 @@ export async function compileResourceExperience({base,model,catalog,people,event
  config.map=cleanMap(map,config,people,[...allStaff]);
  const placed=config.map.layout.booths.filter(b=>b.visible!==false&&b.standId).map(b=>b.standId);
  for(const standId of distinct(placed))if(placed.filter(id=>id===standId).length>1)issues.push({code:'duplicate-stand-placement',message:'Der Stand '+known.get(standId)?.name+' ist mehrfach auf demselben Ortsplan platziert.',refs:[standId]});
+ for(const o of runtime)if(o.functions.some(f=>f.id==='wall')&&!config.wall?.enabled)issues.push({code:'wall-not-enabled',message:o.name+': Die Memory Wall in dieser Vorlage bewusst einschalten und ihre Freigaben einrichten oder die Funktion abwählen.',refs:[o.id,'wall']});
  for(const o of runtime)if(o.functions.some(f=>f.id==='game')&&(!config.map.enabled||!config.map.layout.booths.some(b=>b.visible!==false&&b.standId===o.standId))){
   issues.push({code:'missing-map-placement',message:o.name+': Für Spielrunden muss der Stand auf der eingeschalteten Karte sichtbar sein.',refs:[o.id,o.standId]});
  }

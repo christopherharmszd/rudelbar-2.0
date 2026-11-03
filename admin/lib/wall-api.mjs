@@ -2,7 +2,7 @@ import {createWallArchive} from './wall-archive.mjs';
 import {createLiveService} from './live-service.mjs';
 import {createWallService} from './wall-service.mjs';
 import {fail,id,json,readJson} from './wall-policy.mjs';
-export function wallFor(env,client,options={}){const live=createLiveService(env,client,options);return {wall:createWallService(env,{context:live.internalContext,visitor:live.internalVisitor}),live};}
+export function wallFor(env,client,options={}){const live=createLiveService(env,client,options);return {wall:createWallService(env,{context:live.internalContext,visitor:live.internalVisitor,notifyOwner:eventId=>live.wallNotices.dispatch(eventId)}),live};}
 export async function guestWallFetch(request,env,client,options={}){
  try{const url=new URL(request.url),eventId=id(url.searchParams.get('abend')),accessCode=url.searchParams.get('zugang')||'',{wall,live}=wallFor(env,client,options),token=request.headers.get('x-rudelbar-guest-token')||'';let person=null;if(token)try{person=await live.internalVisitor(eventId,token);}catch(error){if(request.method!=='GET')throw error;}
   const action=url.pathname.replace(/^\/api\/guest\/wall\/?/,'');

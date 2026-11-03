@@ -13,7 +13,7 @@ export const FUNCTIONS=Object.freeze([
  {id:'karaoke',name:'Karaoke-Anmeldung',implemented:true},
  {id:'game',name:'Spielrunde',implemented:true},
  {id:'message',name:'Fragen & Hilfe',implemented:true},
- {id:'wall',name:'Memory Wall',implemented:false},
+ {id:'wall',name:'Memory Wall',implemented:true},
  {id:'dating',name:'Dating',implemented:false},
  {id:'dance',name:'Tanzpartnersuche',implemented:false},
  {id:'raffle',name:'Gewinnaktion',implemented:false}

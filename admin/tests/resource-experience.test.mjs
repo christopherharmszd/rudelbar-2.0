@@ -76,3 +76,11 @@ test('long central stand names and descriptions survive the map projection witho
  const result=await compileResourceExperience(input);
  assert.equal(result.ok,true);assert.equal(result.config.map.layout.booths[0].title,input.model.nodes[0].name);assert.equal(result.config.map.layout.booths[0].description,input.model.nodes[0].description);
 });
+
+test('a central Wall capability requires deliberate template activation and preserves its public route without granting private team access',async()=>{
+ const input=fixture();input.model.relations.push({id:'wall',kind:'supports',from:'program/music',to:'function/wall'});
+ const disabled=await compileResourceExperience(input);assert.equal(disabled.ok,false);assert.ok(disabled.issues.some(i=>i.code==='wall-not-enabled'));assert.equal(disabled.config.wall.enabled,false);
+ input.base.wall={...input.base.wall,enabled:true,privacyUrl:'https://example.test/privacy',policyVersion:'v1',notice:'Nur isolierter Test',archiveDays:30};
+ const active=await compileResourceExperience(input);assert.equal(active.ok,true);const station=active.config.stations.find(s=>s.functionId==='wall');assert.equal(station.contactEnabled,false);
+ const guest=visitorPayload(active.config,{eventId:'evening',teamIds:[],title:'Abend',date:'2027-01-01',venue:'Ort'},people);assert.equal(guest.stations.find(s=>s.id===station.id).functionId,'wall');assert.equal('operatorIds' in guest.stations.find(s=>s.id===station.id),false);
+});
