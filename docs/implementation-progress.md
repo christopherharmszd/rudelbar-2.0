@@ -13,10 +13,10 @@ Der technische Detailplan bleibt dort ebenfalls erhalten.
 | 3. Backstage und Vorbereitung | Kern online | Vorlagen ohne Termin, zentrale Stände/Ortspläne, Zuordnungsassistent, CSV und mobile Navigation. Weitere Modulkonfiguration folgt mit den Modulen. |
 | 4. Auswertung | Online | Fachaktionen, freiwillige Bedienmessung, Abdeckung, CSV, feste Rudelbar-Anbieterquellen; zusätzliche Messung bleibt aus. |
 | 5. Gästegrundlage und Live | Kern online | Editierbare eigene Profile, echte Rundengespräche, Sperren, Meldungen, Schutz-Team und getrennte Push-Cursor geprüft. |
-| 6. Memory Wall | Lokal durchgängig geprüft, nicht online | Private Medien, Moderation, Leinwand für 1/5/25/100 Beiträge, mobiles Blättern, Archiv und Wiederherstellung. |
-| 7. Gewinnaktionen | Lokal durchgängig geprüft, nicht online | Vier Formate, Bestände und sichere Ausgabe. |
-| 8. Begegnungen und Dating | Wesentlicher Kern lokal geprüft, nicht online | Profile, gegenseitiges Interesse, private Gespräche/Fotos, betreute Runden, Kontaktfortsetzung; Gesamtintegration noch offen. |
-| 9. Gesamtabnahme und Gäste-UX | In Arbeit | Gemeinsame mobile Gästewege und Standaktionen lokal geprüft; Veröffentlichung und echte Geräteabnahme offen. |
+| 6. Memory Wall | Online, noch nicht für echte Gäste aktiviert | Private Medien, Moderation, Leinwand für 1/5/25/100 Beiträge, mobiles Blättern, Archiv und Wiederherstellung. |
+| 7. Gewinnaktionen | Online, noch nicht für echte Gäste aktiviert | Vier Formate, Bestände und sichere Ausgabe. |
+| 8. Begegnungen und Dating | Kern online, ergänzte Auswertung geprüft | Profile, gegenseitiges Interesse, private Gespräche/Fotos, betreute Runden und Kontaktfortsetzung; neue Module bleiben aus. |
+| 9. Gesamtabnahme und Gäste-UX | Verbundene Prüfung bestanden; Geräteabnahme offen | Gesamter Abend einschließlich Auswertung geprüft. Echte iPhone-/Android-Abnahme bleibt ausstehend. |
 
 ## Veröffentlichter Grundlagenstand
 

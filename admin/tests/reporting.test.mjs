@@ -26,6 +26,7 @@ test('changed policy invalidates old consent; conflicting concurrent reuse of on
  }finally{f.db.connection.close();}});
 test('raw retention produces bounded non-sensitive totals exactly once, without retaining guest references',async()=>{const f=fixture();try{
  await enable(f);request(f);f.db.connection.prepare('INSERT INTO domain_events(id,event_id,participation_id,type,operation_key,recorded_at) VALUES(?,?,?,?,?,?)').run('sensitive',f.event.eventId,f.person.id,'dating.activated','sensitive',f.now);
+ f.db.connection.prepare('INSERT INTO domain_events(id,event_id,participation_id,type,operation_key,recorded_at) VALUES(?,?,?,?,?,?)').run('sensitive-contact',f.event.eventId,f.person.id,'contact.confirmed','sensitive-contact',f.now);
  await f.service.retention(f.now+31*86400000);await f.service.retention(f.now+31*86400000);
  const raw=f.db.connection.prepare('SELECT COUNT(*) AS n FROM domain_events').get().n;assert.equal(raw,0);const rows=f.db.connection.prepare('SELECT * FROM reporting_daily').all();assert.equal(rows.length,1);assert.equal(rows[0].count,1);assert.equal(rows[0].type,'request.created');assert.equal(rows[0].expires_at,f.now+396*86400000);assert.equal('participation_id'in rows[0],false);
  await f.service.retention(f.now+397*86400000);assert.equal(f.db.connection.prepare('SELECT COUNT(*) AS n FROM reporting_daily').get().n,0);
