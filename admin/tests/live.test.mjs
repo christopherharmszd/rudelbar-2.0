@@ -163,3 +163,11 @@ test('station photos require explicit operator permission and protect against st
  }finally{s.close();}
 });
 test('disabled station contact is enforced for direct guest API requests',async()=>{const s=await setup();try{s.ctx.stations.find(s=>s.id==='dj').contactEnabled=false;await assert.rejects(()=>submit(s,'dj','music'),status(409));assert.equal((await s.service.mine({eventId:'evening-a',sessionToken:s.a.sessionToken})).requests.length,0);}finally{s.close();}});
+test('functional modules are not empty message inboxes or forwarding targets',async()=>{
+ const s=await setup();try{
+  s.ctx.stations.push({id:'wall',name:'Memory Wall',kind:'message',functionId:'wall',contactEnabled:false,operatorIds:['person-a'],enabled:true});
+  const view=await s.service.staffContext(s.actorA);assert.ok(!view.stations.some(s=>s.id==='wall'));assert.ok(!view.destinations.some(s=>s.id==='wall'));
+  const {request}=await submit(s,'technik');await assert.rejects(()=>s.service.staffUpdate(s.actorA,request.id,{stationId:'wall',revision:request.revision}),/Zielstation/);
+  assert.equal((await s.service.inbox(s.actorA,{id:request.id})).request.stationId,'technik');
+ }finally{s.close();}
+});

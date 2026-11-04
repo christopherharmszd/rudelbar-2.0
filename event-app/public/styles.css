@@ -137,3 +137,26 @@ noscript{display:block;padding:24px}
 .re-detail-photo{display:block;width:100%;max-height:420px;object-fit:cover;border-radius:14px;margin:24px 0}.re-content-thumb{width:60px;height:60px;object-fit:cover;border-radius:10px;flex-shrink:0}
 
 .social-message-actions{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.6rem}.social-message-actions button{border:0;background:none;color:var(--muted,#bdb9ae);font:inherit;font-size:.8rem;text-decoration:underline;padding:.4rem 0;min-height:40px}.gr-dialog .re-conversation{max-width:100%;overflow-wrap:anywhere}.gr-dialog .re-field input,.gr-dialog .re-field textarea{max-width:100%;box-sizing:border-box}
+
+/* A welcoming home with a short, purposeful choice of actions. */
+.re-home-welcome{margin-bottom:26px}
+.re-home-welcome h1{font-size:clamp(34px,8vw,48px);line-height:1.08;max-width:16ch;margin:0 0 14px}
+.re-home-welcome .re-kicker{margin:0 0 10px}
+.re-home-context{font-size:15px;color:var(--re-ink);margin:0 0 3px}
+.re-home-welcome>span{font-size:12px;color:var(--re-muted)}
+.re-home-section{margin-top:26px}
+.re-home-section .re-section-head{margin:0 0 12px}
+.re-home-section .re-section-head h2{font:700 23px/1.2 Georgia,serif;letter-spacing:-.4px}
+.re-home-actions,.re-home-offers{display:grid;gap:10px}
+.re-home-actions .re-tile{border-color:#5e4b29;background:linear-gradient(120deg,#292215,#1a1915);min-height:90px}
+.re-home-actions .re-tile-title,.re-home-offers .re-tile-title{font-size:24px}
+.re-home-actions .re-tile-sub,.re-home-offers .re-tile-sub{font-size:12px;line-height:1.45}
+.re-home-offers .re-tile{min-height:84px}
+.re-home-help{margin:26px 0 0}
+.re-home-help .re-tile{background:transparent;border-style:dashed}
+.re-home-help .re-tile-title{font-size:22px}
+.re-contacts-link{text-decoration:none;margin:24px 0}
+.re-app [data-view="evening"] .re-btn{margin-top:10px}
+@media(min-width:720px){.re-home-actions,.re-home-offers{grid-template-columns:repeat(2,minmax(0,1fr))}.re-home-actions .re-tile:only-child{grid-column:1/-1}.re-home-welcome{margin-bottom:32px}.re-home-section{margin-top:32px}}
+
+.re-screen .re-notice-banner{padding:0;margin:24px 0}.re-screen .re-notice-banner:empty{margin:0}

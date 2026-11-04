@@ -82,7 +82,7 @@ test('a central Wall capability requires deliberate template activation and pres
  const disabled=await compileResourceExperience(input);assert.equal(disabled.ok,false);assert.ok(disabled.issues.some(i=>i.code==='wall-not-enabled'));assert.equal(disabled.config.wall.enabled,false);
  input.base.wall={...input.base.wall,enabled:true,privacyUrl:'https://example.test/privacy',policyVersion:'v1',notice:'Nur isolierter Test',archiveDays:30};
  const active=await compileResourceExperience(input);assert.equal(active.ok,true);const station=active.config.stations.find(s=>s.functionId==='wall');assert.equal(station.contactEnabled,false);
- const guest=visitorPayload(active.config,{eventId:'evening',teamIds:[],title:'Abend',date:'2027-01-01',venue:'Ort'},people);assert.equal(guest.stations.find(s=>s.id===station.id).functionId,'wall');assert.equal('operatorIds' in guest.stations.find(s=>s.id===station.id),false);
+ const guest=visitorPayload(active.config,{eventId:'evening',teamIds:[],title:'Abend',date:'2027-01-01',venue:'Ort'},people);assert.equal(guest.stations.find(s=>s.id===station.id).functionId,'wall');assert.equal('operatorIds' in guest.stations.find(s=>s.id===station.id),false);assert.ok(guest.map.layout.booths.flatMap(b=>b.offers).flatMap(o=>o.actions).some(a=>a.stationId===station.id&&a.label==='Eure Memory Wall öffnen'));
 });
 
 test('new central interaction capabilities require an explicitly prepared module and keep public routing separate from inbox rights',async()=>{
