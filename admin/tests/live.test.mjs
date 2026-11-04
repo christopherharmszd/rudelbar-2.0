@@ -171,3 +171,14 @@ test('functional modules are not empty message inboxes or forwarding targets',as
   assert.equal((await s.service.inbox(s.actorA,{id:request.id})).request.stationId,'technik');
  }finally{s.close();}
 });
+
+test('switching off a contact form preserves assigned historical inbox and reply notification ownership',async()=>{
+ const s=await setup();try{
+  const {request}=await submit(s,'dj','music');s.ctx.stations[0].contactEnabled=false;
+  const view=await s.service.staffContext(s.actorA);assert.ok(view.stations.some(v=>v.id==='dj'));assert.ok(!view.destinations.some(v=>v.id==='dj'));
+  assert.ok(s.service.recipient(s.actorA).stations.includes('dj'));assert.equal((await s.service.inbox(s.actorA,{id:request.id})).request.id,request.id);
+  await s.service.staffUpdate(s.actorA,request.id,{reply:'Wir haben deinen Wunsch erhalten.',revision:request.revision});
+  const own=await s.service.mine({eventId:'evening-a',sessionToken:s.a.sessionToken,id:request.id});assert.ok(own.messages.some(m=>m.body==='Wir haben deinen Wunsch erhalten.'));
+  await assert.rejects(()=>submit(s,'dj','music'),status(409));
+ }finally{s.close();}
+});
