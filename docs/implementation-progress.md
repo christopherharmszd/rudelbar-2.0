@@ -1,3 +1,6 @@
+> Aktueller verbindlicher Stand vom 4. November 2026: [CURRENT.md](CURRENT.md).
+> Die folgenden Abschnitte dokumentieren auch historische Zwischenstände.
+
 # Rudelbar: genehmigter Umbau
 
 Freigabe am 2. November 2026: „Plan einschließlich Tätigkeitsrahmen freigegeben.“

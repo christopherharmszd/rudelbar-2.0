@@ -1,3 +1,6 @@
+> Neuer Stand: Funktionsumbau am 4. November 2026 veröffentlicht.
+> Maßgeblich: [CURRENT.md](CURRENT.md). Diese Pausennotizen sind historisch.
+
 > Wieder aufgenommen am 4. November 2026. Die folgenden Pausennotizen sind historisch.
 > Aktuelle Ergebnisse stehen am Ende von docs/resume-2026-11-03.md.
 > Neuester Pausenstand davor: 3. November 2026, 19:11 Uhr (Europe/Berlin).
