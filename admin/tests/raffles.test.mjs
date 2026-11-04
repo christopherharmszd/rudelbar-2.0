@@ -128,3 +128,13 @@ test('raffle reports separate original rights, redraws, reservations and actual 
  const s=await setup();try{const {createReporting}=await import('../lib/reporting.mjs');s.db.connection.prepare('UPDATE reporting_settings SET enabled=1 WHERE id=1').run();await s.ready();const d=(await s.draw()).draw;await s.mutate({drawId:d.id,revision:1,operationKey:crypto.randomUUID(),prizeId:'first'},'redeem');const report=await createReporting(s.db).report({eventId:'evening',title:'Nur lokale Prüfung',date:'2026-11-03',app:{state:'open'}},{from:'2026-11-03',to:'2026-11-03',start:Date.now()-60000,end:Date.now()+60000}),r=report.metrics.raffle,events=Object.fromEntries(r.events.map(e=>[e.type,e.count]));assert.equal(events['raffle.entered'],4);assert.equal(events['raffle.drawn'],1);assert.equal(events['prize.redeemed'],1);assert.equal(r.draws[0].originalSlots,1);assert.equal(r.stock[0].issued,1);assert.equal(r.stock[0].reserved,0);assert.ok(!JSON.stringify(report).includes('Gleicher Name'));assert.ok(!JSON.stringify(report).includes('claimCode'));
  }finally{s.close();}
 });
+test('closed-evening receipts expose their actual late-redemption policy and only explicitly allowed issues succeed',async()=>{
+ for(const redeemAfterClose of [false,true]){
+  const s=await setup({redeemAfterClose});try{
+   await s.ready(1);const draw=(await s.draw()).draw;s.ctx.release.state='closed';s.db.connection.prepare("UPDATE app_active_releases SET state='closed' WHERE event_id='evening'").run();
+   const receipt=await s.service.mine(s.guests[0]);assert.equal(receipt.actions[0].redeemAfterClose,redeemAfterClose);assert.equal(receipt.actions[0].draws[0].id,draw.id);
+   const issue=()=>s.mutate({drawId:draw.id,revision:draw.revision,operationKey:crypto.randomUUID(),prizeId:'first'},'redeem');
+   if(redeemAfterClose){await issue();assert.equal((await s.staff()).stock[0].issued,1);}else{await assert.rejects(issue,bad(409));assert.equal((await s.staff()).stock[0].issued,0);}
+  }finally{s.close();}
+ }
+});

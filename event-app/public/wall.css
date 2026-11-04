@@ -16,3 +16,18 @@
 
 .rw-archive-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
 .rw-moderation-card img{object-fit:contain;background:#0d0d0c}
+
+/* Small guest previews preserve the whole photo and separate its caption. */
+.rw-explorer .rw-card.has-photo{display:flex;flex-direction:column;background:#171714}
+.rw-explorer .rw-card.has-photo:after{display:none}
+.rw-explorer .rw-card.has-photo img{flex:1;min-height:0;height:0;object-fit:contain;background:#0d0d0c}
+.rw-explorer .rw-card.has-photo .rw-caption{position:static;padding:10px 12px;flex:none}
+.rw-explorer .rw-card.has-photo .rw-caption p{-webkit-line-clamp:2}
+.rw-explorer .rw-caption p{font-size:clamp(15px,2.8vw,27px);hyphens:auto;text-wrap:pretty}
+
+.gr-dialog nav[aria-label="Memory Wall"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 20px}
+.gr-dialog nav[aria-label="Memory Wall"] button{min-width:0;padding:10px 6px;font-size:13px;line-height:1.25}
+.rw-action[aria-pressed="true"]{background:#342a15;border-color:#a28242;color:#f0d38c}
+.gr-dialog>.rw-paging{justify-content:space-between;font-size:13px}
+.gr-dialog>.rw-paging button{min-height:44px;padding:8px 14px;border:1px solid #5e5030;border-radius:9px;background:#1b1a16;color:#eadbb3;font:inherit;cursor:pointer}
+.gr-dialog>.rw-paging button:disabled{opacity:.45;cursor:default}

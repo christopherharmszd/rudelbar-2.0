@@ -16,3 +16,10 @@ dialog.vm-stand-sheet::backdrop{background:#000b;backdrop-filter:blur(5px)}
 .vm-stand-sheet fieldset{border:1px solid #4d4839;border-radius:12px;padding:14px}
 .vm-stand-sheet :focus-visible{outline:3px solid #e8c977;outline-offset:3px}
 @media(max-width:600px){dialog.vm-stand-sheet{width:calc(100% - 16px);max-height:calc(100dvh - 16px);border-radius:18px;margin:auto}.vm-stand-sheet>.vm-sheet-head{padding:18px 18px 16px}.vm-stand-sheet .vm-sheet-head h2{font-size:24px}.vm-stand-sheet .vm-sheet-body{padding:18px}.vm-stand-sheet .dialog-actions,.vm-stand-sheet>.vm-sheet-foot{padding:14px 18px calc(14px + env(safe-area-inset-bottom));gap:10px}.vm-stand-sheet .dialog-actions>.btn,.vm-stand-sheet>.vm-sheet-foot>.btn{font-size:14px;min-width:0}}
+
+.rw-stock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+.rw-stock-card{border:1px solid #45402f;border-radius:14px;padding:18px;min-width:0}
+.rw-stock-card h3{font-size:17px;line-height:1.35;margin:0 0 18px;overflow-wrap:anywhere}
+.rw-stock-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:0}
+.rw-stock-card dt{font-size:12px;color:#c9c4b8;margin-bottom:4px}
+.rw-stock-card dd{font-size:25px;line-height:1.15;font-weight:700;color:#dfc679;margin:0}
