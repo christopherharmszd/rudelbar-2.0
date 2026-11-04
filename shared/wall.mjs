@@ -11,6 +11,19 @@ export function cleanWall(input={}){
 }
 export function wallIssues(config){const c=cleanWall(config);if(!c.enabled)return [];return [...(!c.privacyUrl?['Für die Memory Wall fehlt die Datenschutzinformation.']:[]),...(!c.policyVersion||!c.notice?['Für die Memory Wall fehlen Hinweistext und Fassung der freiwilligen Freigabe.']:[]),...(c.archiveDays<1?['Für die Memory Wall muss die Archivdauer ausdrücklich festgelegt werden.']:[])];}
 export const STAGE_DEFAULTS=Object.freeze({mode:'invite',layout:'mosaic',focusId:'',page:0,density:12,frame:'gallery',header:true,qr:true});
-export function wallScene(posts,settings={}){const c={...STAGE_DEFAULTS,...settings};if(c.mode==='invite'||!posts.length)return {layout:'invite',posts:[],page:0,pages:1};const size=c.layout==='editorial'?3:c.density,pages=Math.max(1,Math.ceil(posts.length/size)),page=Math.min(c.page,pages-1),focus=posts.find(p=>p.id===c.focusId)||posts.find(p=>p.hasPhoto)||posts[0];return {layout:c.mode==='focus'?'focus':c.layout,posts:c.mode==='focus'?[focus]:posts.slice(page*size,(page+1)*size),focus,page,pages};}
-// Deterministic composition; no automatic rotation and no invented content.
-export function wallComposition(posts){return posts.slice(-100).map((post,i,all)=>{let h=2166136261;for(const c of post.id){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}const f=(h>>>0)/4294967295,front=i>=all.length-5,rank=all.length-1-i,positions=all.length===1?[[50,50]]:all.length===2?[[34,47],[66,52]]:[[24,35],[51,30],[77,42],[35,73],[65,70]];return {post,front,x:front?positions[rank][0]:12+(i*.618+f*.17)%1*76,y:front?positions[rank][1]:19+(i*.414+f*.13)%1*62,width:front?(all.length===1?42:all.length===2?33:24):14+f*5,angle:(f-.5)*(front?6:13),opacity:front?1:.32+i/Math.max(1,all.length)*.35,z:front?200+5-rank:i};});}
+export function wallScene(posts,settings={}){const c={...STAGE_DEFAULTS,...settings};if(c.mode==='invite'||!posts.length)return {layout:'invite',posts:[],page:0,pages:1};const size=c.layout==='editorial'?3:c.density,pages=Math.max(1,Math.ceil(posts.length/size)),page=Math.min(c.page,pages-1),focus=posts.find(p=>p.id===c.focusId)||posts.find(p=>p.hasPhoto)||posts[0];return {layout:c.mode==='focus'||posts.length===1?'focus':c.layout==='mosaic'&&posts.length<6?'growing':c.layout,posts:c.mode==='focus'?[focus]:posts.slice(page*size,(page+1)*size),focus,page,pages};}
+// Deterministic, content-weighted regions. Every contribution owns its full area;
+// no random stacking, overlap, invented content or automatic playback.
+export function wallComposition(posts,{aspect=16/9}={}){
+ const items=posts.slice(-100);if(!items.length)return [];
+ const weight=p=>p.hasPhoto?3:String(p.text||'').length>180?4:3;
+ // Balanced rows prevent narrow text slivers. Content weight changes width
+ // within each row, while every row retains a readable, predictable height.
+ const rows=Math.max(items.length>3?2:1,Math.ceil(items.length/6),Math.min(items.length,Math.round(Math.sqrt(items.length/Math.max(.5,aspect))))),result=[];let offset=0;
+ for(let row=0;row<rows;row++){
+  const count=Math.ceil((items.length-offset)/(rows-row)),entries=items.slice(offset,offset+count),total=entries.reduce((sum,p)=>sum+weight(p),0);let x=0;
+  for(const post of entries){const width=weight(post)/total*100;result.push({post,x,y:row/rows*100,width,height:100/rows});x+=width;}
+  offset+=count;
+ }
+ return result;
+}

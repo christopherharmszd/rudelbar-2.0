@@ -68,3 +68,26 @@ test('Wall reporting distinguishes full and failed uploads, status and external 
   await archive.retention(Date.now()+31*86400000);for(const table of ['wall_media','wall_posts','wall_consent_history','wall_upload_failures','wall_notice_reads','wall_audit','wall_archive_exports'])assert.equal(s.db.connection.prepare('SELECT COUNT(*) AS n FROM '+table).get().n,0,table);assert.equal(s.db.connection.prepare("SELECT COUNT(*) AS n FROM guest_notice_clock WHERE source='wall'").get().n,0);assert.equal(s.bucket.objects.size,0);
  }finally{s.close();}
 });
+
+test('gallery composition allocates every real contribution one bounded nonoverlapping region and gives long messages enough area',()=>{
+ for(const count of [0,1,2,5,12,20,100]){
+  const posts=Array.from({length:count},(_,i)=>({id:'post-'+i,text:i%3===0?'Ein längerer Gruß. '.repeat(20):'Ein Hallo',hasPhoto:i%2===0})),layout=wallComposition(posts);
+  assert.equal(layout.length,count);assert.equal(new Set(layout.map(r=>r.post.id)).size,count);assert.deepEqual(layout,wallComposition(posts));
+  if(count)assert.ok(Math.abs(layout.reduce((sum,r)=>sum+r.width*r.height,0)-10000)<.00001);
+  for(let i=0;i<layout.length;i++){const a=layout[i];assert.ok(a.width>0&&a.height>0&&a.x>=0&&a.y>=0&&a.x+a.width<=100.00001&&a.y+a.height<=100.00001);for(const b of layout.slice(i+1))assert.ok(Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x)<.00001||Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y)<.00001);}
+ }
+ const [short,long]=wallComposition([{id:'short',text:'Hallo'},{id:'long',text:'Viele Grüße. '.repeat(30)}]);assert.ok(long.width*long.height>short.width*short.height);
+});
+test('projector gallery pages through the complete approved collection without stacking all contributions or losing the selected page',async()=>{
+ const s=await setup();try{
+  for(let i=0;i<13;i++){const post=(await s.wall.submit(s.guests[i%2],input({text:'Galerie-Beitrag '+i}))).post;await s.wall.moderate(s.admin,'evening',{id:post.id,status:'approved',revision:1});}
+  let revision=0;const ids=[];
+  for(let page=0;page<3;page++){
+   const next=await s.wall.controls(s.admin,'evening',{revision,config:{...STAGE_DEFAULTS,mode:'wall',layout:'growing',density:6,page}});revision=next.revision;
+   const state=await s.wall.publicState('evening','',null,{stage:true});assert.equal(state.controls.page,page);assert.equal(state.totalPages,3);assert.equal(state.totalCount,13);assert.equal(state.posts.length,page===2?1:6);ids.push(...state.posts.map(p=>p.id));
+  }
+  assert.equal(new Set(ids).size,13);
+ }finally{s.close();}
+});
+
+test('small projector collections use a full focus or a balanced gallery instead of leaving most mosaic cells empty',()=>{const post={id:'one',hasPhoto:true};assert.equal(wallScene([post],{...STAGE_DEFAULTS,mode:'wall'}).layout,'focus');assert.equal(wallScene(Array.from({length:5},(_,i)=>({id:String(i)})),{...STAGE_DEFAULTS,mode:'wall'}).layout,'growing');assert.equal(wallScene([post],{...STAGE_DEFAULTS,mode:'invite'}).layout,'invite');});
