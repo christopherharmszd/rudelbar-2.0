@@ -1,16 +1,15 @@
 {
   "date": "2026-11-05",
-  "source": "48ef0309ce26495daaa040658f71329176872f13",
-  "sourceMainMerge": "05ffa55925c4f982b91ef78ad7cc676d7e8c5fc0",
-  "productionRepositoryRelease": "8eae34365c70acf5065053b9ac8af9d25bd2fad1",
+  "source": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9",
+  "productionRepositoryRelease": "009eaa5f226bf86e4f6af8d077c384fa0de4492c",
   "modernWorker": {
-    "version": "97fde78a-1c11-4180-8c81-97dab058260f",
-    "source": "48ef0309ce26495daaa040658f71329176872f13",
+    "version": "987ea38f-c8ed-4d35-81dd-04f2c7c495ec",
+    "source": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9",
     "databaseMigrations": false
   },
   "legacyWorker": {
-    "version": "0f4ea295-546c-488b-bd5f-03f0fa3b1039",
-    "source": "501e68804feb79b96d7b7a8f4d6ac15e26e6a027"
+    "version": "31c09e26-84ac-4e41-b1a7-e2ae86616fd3",
+    "source": "a241031bfc0e9c975e6f45ea09550520fa994a40"
   },
   "beforeReleaseParity": {
     "websiteCurrentProductionFiles": true,
@@ -19,21 +18,21 @@
     "legacyServerByteIdentical": true
   },
   "automatedTests": {
-    "modernCMS": 233,
-    "independentLegacyCMS": 10,
-    "productionWebsite": 11,
-    "stagingWebsite": 11
+    "modernCMS": 231,
+    "independentLegacyCMS": 8,
+    "productionWebsite": 12,
+    "stagingWebsite": 12
   },
   "publicChecks": {
     "pagesAndAliases": 15,
-    "assets": 31,
+    "assets": 33,
     "sitemapEntries": 10,
     "allPassed": true
   },
   "workflowRuns": {
     "staging": "https://github.com/christopherharmszd/rudelbar-2.0/actions/runs/42114533389",
-    "productionRelease": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42114899361",
-    "actualCMSPublication": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42115309220"
+    "productionRelease": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42121101717",
+    "initialCMSDirectBuildHistorical": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42115309220"
   },
   "forms": {
     "contact": "accepted; mailbox receipt confirmed by owner",
@@ -54,10 +53,10 @@
     "searchConsole": "No authenticated access available; submission and actual indexing not verified"
   },
   "buildCredential": {
-    "storage": "both existing Worker Secrets only; temporary transfer file removed at completion",
-    "repository": "christopherharmszd/rudelbar-pages",
-    "permissions": "Actions write, Metadata read; no source write",
-    "expires": "2027-02-03"
+    "status": "removed from both Worker Secrets and revoked at GitHub; empty token list verified after reload",
+    "sourceCodeTrigger": "removed from both CMS implementations",
+    "rotationRequired": false,
+    "scheduledBuilds": "existing nominal 15-minute schedules retained; delays possible"
   },
   "boundaries": [
     "no guest-app deployment",
@@ -70,5 +69,19 @@
   "remainingExternalChecks": [
     "Google Search Console ownership, sitemap submission and actual index status",
     "real iPhone/Android and push acceptance from prior guest-app work remain outside this website release"
-  ]
+  ],
+  "initialReleaseSource": "48ef0309ce26495daaa040658f71329176872f13",
+  "googleLogo": {
+    "source": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9",
+    "logo": "https://rudelbar.de/assets/favicon-192.png",
+    "size": [
+      192,
+      192
+    ],
+    "mode": "RGB",
+    "darkBackground": true,
+    "favicon192Linked": true
+  },
+  "initialSourceMainMerge": "05ffa55925c4f982b91ef78ad7cc676d7e8c5fc0",
+  "sourceMainCode": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9"
 }

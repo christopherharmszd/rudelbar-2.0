@@ -1,3 +1,20 @@
+# Aktueller Nachtrag: Direkttrigger entfernt
+
+## Abschluss der Vereinfachung am 5. November
+
+Build-Schlüssel aus beiden Worker Secrets entfernt und bei GitHub widerrufen; nach Neuladen zeigt GitHub keinen Fine-grained Token mehr. Direkter Bau-Aufruf entfernt. Der vorhandene regelmäßige Zeitplan bleibt unverändert.
+
+Aktuelle Produktionsquelle: ab5395d1e0a1bd0190564f6e32a9ee7066c221a9; Produktionsrepository: 009eaa5f226bf86e4f6af8d077c384fa0de4492c. Backstage-Version: 987ea38f-c8ed-4d35-81dd-04f2c7c495ec. Notfallredaktion: 31c09e26-84ac-4e41-b1a7-e2ae86616fd3 aus a241031bfc0e9c975e6f45ea09550520fa994a40. Gäste-App unverändert.
+
+Google-Organisationslogo und 192-Pixel-Favicon sind live als dunkle RGB-Datei ohne Transparenz geprüft. 15 Seiten/Aliasse und 33 eingebundene Dateien erneut erfolgreich geprüft. 231/8 CMS-Tests und je 12 Website-Tests erfolgreich.
+
+Weiterhin offen und im Bericht prominent: Google Search Console einrichten und tatsächlichen Google-Indexstatus einschließlich Bilddarstellung prüfen. Echte iPhone-/Android-Abnahme der Gäste-App bleibt ein gesonderter offener Punkt.
+
+
+---
+
+## Ursprünglicher Release-Nachweis (historisch)
+
 # Website-Audit und Veröffentlichung: 5. November 2026
 
 ## Ausgangsstand vor dem Release
