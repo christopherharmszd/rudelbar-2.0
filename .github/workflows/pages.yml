@@ -27,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Node einrichten
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
           node-version: 22
           cache: npm
@@ -44,9 +44,9 @@ jobs:
           npm run build
           npm test
       - name: GitHub Pages vorbereiten
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6.0.0
       - name: Website hochladen
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: app/dist/client
 
@@ -63,4 +63,4 @@ jobs:
     steps:
       - name: GitHub Page veröffentlichen
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1
