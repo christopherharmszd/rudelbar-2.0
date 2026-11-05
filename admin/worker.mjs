@@ -1,4 +1,3 @@
-import { requestWebsiteBuild } from "./lib/website-build.mjs";
 import { createSanity } from "./lib/sanity.mjs";
 
 const editorEmail = "redaktion@rudelbar.local";
@@ -214,8 +213,7 @@ async function api(request, env) {
       else if (action === "archive") await client.archive(id, type);
       else if (action === "restore") await client.restore(id, type);
       else await client.deleteForever(id, type);
-      const websiteBuild = ["publish", "unpublish", "archive"].includes(action) ? await requestWebsiteBuild(env) : undefined;
-      return json(200, { ok: true, websiteBuild });
+      return json(200, { ok: true });
     }
   }
   return json(404, { error: "Nicht gefunden." });

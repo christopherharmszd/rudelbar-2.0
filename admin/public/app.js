@@ -316,7 +316,7 @@ function bind() {
     try {
       await api(`${state.section}/${state.selected}/${action}`, { method: "POST" });
       state.message = {
-        publish: "Veröffentlicht. Die Website zeigt den Inhalt nach dem nächsten Laden.",
+        publish: "Veröffentlicht. Inhalte werden beim Laden aktualisiert. Neue Seitenadressen und Vorschauen folgen mit der nächsten regelmäßigen Website-Aktualisierung.",
         unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv.",
         archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert.",
         restore: "Wiederhergestellt als Entwurf. Veröffentliche ihn bei Bedarf erneut.",
