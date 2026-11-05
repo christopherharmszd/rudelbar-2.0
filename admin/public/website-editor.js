@@ -79,7 +79,7 @@ function postImageRow(image) {
       <button type="button" class="move-post-image-down" aria-label="Bild nach unten verschieben">↓</button>
     </div></div>
     <img src="${esc(image.url)}" alt="" draggable="false" />
-    <div class="post-image-fields"><label>Bildbeschreibung für Screenreader (optional)<input class="post-image-alt" maxlength="300" value="${esc(image.alt)}" /><small>Leer lassen: Der Kurztext wird beim Speichern übernommen.</small></label>
+    <div class="post-image-fields"><label>Bildbeschreibung für Screenreader (optional)<input class="post-image-alt" maxlength="300" value="${esc(image.alt)}" placeholder="Was ist auf diesem Bild zu sehen?" /><small>Beschreibe jedes Bild kurz für sich. Leer lassen: Der Kurztext wird als Ersatz übernommen.</small></label>
       <button type="button" class="use-teaser-for-alt">Kurztext übernehmen</button>
       <label>Bildunterschrift (optional)<input class="post-image-caption" maxlength="240" value="${esc(image.caption)}" /></label>
       <button type="button" class="danger remove-post-image">Bild entfernen</button></div></div>`;
@@ -123,7 +123,7 @@ function renderPostForm(item) {
       <div class="field span"><label for="f-title">Überschrift</label><input id="f-title" name="title" maxlength="120" required value="${esc(item?.title)}" /></div>
       <div class="field span"><label for="f-date">Beitragsdatum</label><input id="f-date" name="date" type="date" required value="${esc(item?.date || localDate)}" /><small>Neuere Beiträge stehen zuerst.</small></div>
       <div class="field span"><label for="f-teaser">Kurztext für die Übersicht</label><textarea id="f-teaser" name="teaser" maxlength="300" required>${esc(item?.teaser)}</textarea></div>
-      <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen erzeugen Absätze. Bilder erscheinen als Galerie unter dem Text.</small></div>
+      <div class="field span"><label for="f-body">Beitrag</label><textarea id="f-body" name="body" maxlength="12000" required placeholder="Erzähl die Geschichte. Leerzeilen trennen Absätze.">${esc(item?.body)}</textarea><small>Leerzeilen trennen Absätze. ## vor einer Zeile erzeugt eine Zwischenüberschrift, - vor jeder Zeile eine Liste. Bilder erscheinen als Galerie. Reine Hashtag-Absätze werden auf der Website ausgeblendet.</small></div>
     </div><div class="form-aside"><div class="post-image-manager"><strong>Bilder</strong><p>Das erste Bild ist das Titelbild. Bild oder Kartenkopf anfassen und an die markierte Stelle ziehen. Auf dem Handy gehen auch die Pfeile. Bis zu 12 Bilder pro Beitrag.</p>
       <div id="post-images">${(item?.images || []).map(postImageRow).join("")}</div>
       <button type="button" class="secondary" id="post-image-library" ${disabled}>Bild auswählen / Foto aufnehmen</button><label class="post-upload-label" for="post-image-upload">Bilder hinzufügen</label><input id="post-image-upload" type="file" accept="image/jpeg,image/png,image/webp" multiple ${disabled} />
@@ -329,9 +329,9 @@ function bind() {
     try {
       await api(`${state.section}/${state.selected}/${action}`, { method: "POST" });
       state.message = {
-        publish: "Veröffentlicht. Die Website zeigt den Inhalt nach dem nächsten Laden.",
-        unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv.",
-        archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert.",
+        publish: "Veröffentlicht. Inhalte werden direkt aktualisiert; Seitenadressen und Linkvorschauen werden im Hintergrund aufgebaut.",
+        unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv. Die gespeicherten Seiten werden im Hintergrund aktualisiert.",
+        archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert. Die gespeicherten Seiten werden im Hintergrund aktualisiert.",
         restore: "Wiederhergestellt als Entwurf. Veröffentliche ihn bei Bedarf erneut.",
         delete: "Eintrag endgültig aus der Redaktion entfernt.",
       }[action];

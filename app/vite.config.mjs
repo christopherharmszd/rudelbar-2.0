@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
   const redirectPage = editorRedirect(cmsUrl);
 
   return {
-    base: "./",
+    base: new URL(env.VITE_SITE_URL || "https://rudelbar.de/").pathname.replace(/\/?$/, "/"),
     build: {
       outDir: "dist/client",
     },

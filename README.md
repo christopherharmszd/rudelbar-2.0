@@ -1,22 +1,23 @@
 # Rudelbar 2.0
 
-Staging-Repository für die Weiterentwicklung der Rudelbar-Website und die CMS-Anbindung.
+Bearbeitbare Quelle für Website, Redaktion und Gäste-App. Der historische Ordner site/ bleibt als alter Website-Snapshot erhalten und ist kein aktuelles Deployment.
 
-## Stand
+- app/ enthält die öffentliche React/Vite-Website. Sie baut eigene HTML-Seiten aus veröffentlichten Sanity-Inhalten und aktualisiert diese zusätzlich im Browser. Die Startseite zeigt den nächsten kommenden Termin. Aktuelles erscheint mit dem ersten veröffentlichten Beitrag.
+- admin/ enthält den aktuellen Backstage- und Servercode. event-app/ enthält die Gäste-Oberfläche; shared/ gemeinsame Regeln.
+- Quellcode-main veröffentlicht die Testwebsite unter https://christopherharmszd.github.io/rudelbar-2.0/ mit dem Dataset staging und noindex.
+- https://rudelbar.de/ bleibt beim Produktions-Repository christopherharmszd/rudelbar-pages. Dessen Produktionsworkflow baut einen festen freigegebenen Quellcode-Commit aus diesem Repository. Ein späterer main-Push wird nicht automatisch neuer Produktionscode.
+- Publish, Unpublish und Archivieren starten den Produktionsseitenbau. Ein regelmäßiger Build dient als Rückfallebene. Neue Detailseiten, Sitemap und Social-Metadaten entstehen mit dem nächsten erfolgreichen Build; Sanity-Inhalte werden auf geöffneten Seiten zusätzlich aktuell geladen.
+- /redaktion leitet auf den vorhandenen Backstage-Einstieg weiter. Sein historisch benannter Worker rudelbar-cms-staging bearbeitet öffentliche Website-Inhalte ausdrücklich im Dataset production. Interne App-Daten bleiben im Dataset staging. Keine automatische Inhaltskopie.
+- Die unabhängige Notfallredaktion rudelbar-cms bleibt ein eigener älterer Dienst. Ihr gezielter Audit-Hotfix liegt auf fix/legacy-cms-audit-2026-11-05. Nicht mit dem modernen Backstage-Code überschreiben.
 
-- `site/` ist ein unverändertes Abbild des veröffentlichten GitHub-Pages-Stands aus `christopherharmszd/rudelbar-pages`, Commit `4318743789a5ac911edd5416d557531ec45ae5b0` vom 27. September 2026 – mit einer einzigen Ausnahme: `CNAME` wurde absichtlich **nicht** übernommen. `rudelbar.de` bleibt beim bestehenden Produktions-Repository.
-- `app/` ist der bearbeitbare React/Vite-Quellcode. Termine, Teamprofile und Beiträge werden aus veröffentlichten Sanity-Inhalten geladen. Die Startseite zeigt automatisch den nächsten kommenden Termin. Der Bereich „Aktuelles“ erscheint erst mit dem ersten veröffentlichten Beitrag.
-- Die Staging-Website wird aus `app/` automatisch mit GitHub Actions gebaut und unter `https://christopherharmszd.github.io/rudelbar-2.0/` veröffentlicht. Sie liest veröffentlichte Termine, Teamprofile und Beiträge aus dem Sanity-Projekt `uywmld5e`, Dataset `staging`. Die bestehende Produktionsseite bleibt separat. `/redaktion` leitet auf die Online-Redaktion weiter.
-- Die Online-Redaktion läuft als Cloudflare Worker `rudelbar-cms-staging` unter `https://rudelbar-cms-staging.christopher-harms.workers.dev/`. Ihr Schreibschlüssel liegt nur in den Worker Secrets.
+## Lokal
 
-## Lokal ansehen
+Im Ordner app/ npm ci ausführen. npm run build und npm test prüfen Staging; npm run build:production und npm run test:production prüfen Produktion. Ausgaben: app/dist/client und app/dist/production. Für richtige Unterseiten einen Server mit Verzeichnis-index.html und eigener 404.html verwenden.
 
-Im Repository-Verzeichnis `python3 -m http.server 8767 --directory site` starten und `http://127.0.0.1:8767/` öffnen. Für die bearbeitbare Version in `app/` `npm ci`, `npm run build` und danach im Repository-Verzeichnis `python3 -m http.server 8768 --directory app/dist/client` ausführen. Die Formulare nutzen bereits den echten Web3Forms-Endpunkt; Testanfragen werden tatsächlich versendet.
+Die Formulare verwenden den echten Web3Forms-Endpunkt. Testanfragen werden tatsächlich versendet.
 
-## Staging und Produktion
+## Verbindlicher Betriebsstand
 
-`rudelbar-2.0` bleibt der bearbeitbare Quellcode und die Staging-Website. Der veröffentlichte Produktions-Build wird zusätzlich im bestehenden Repository `christopherharmszd/rudelbar-pages` abgelegt. Dessen `main` steuert `rudelbar.de`. Änderungen an `app/` auf `main` hier lösen nur den Staging-Build aus.
+[Website-Release und Live-Abgleich vom 5. November](docs/website-audit-release-2026-11-05.md) beschreibt Seitenbau, feste Produktionsfreigabe, Token-Ablauf und Rückkehr.
 
-Die öffentliche Staging-Website nutzt weiterhin das Sanity-Dataset `staging`. Das reale Backstage im historisch benannten Worker `rudelbar-cms-staging` nutzt seit 2. November 2026 für Website-Inhalte ausdrücklich `SANITY_WEBSITE_DATASET=production`: Beide Website-Oberflächen und die bestehende Produktionsredaktion bearbeiten damit dieselben Beiträge, öffentlichen Termine und Website-Teamprofile. Interne App-Daten bleiben im vorhandenen Dataset `staging`. Website- und App-Bilder haben getrennte Uploadziele. Es findet keine automatische Inhaltskopie statt. Siehe [BACKSTAGE.md](BACKSTAGE.md). Die Produktionswebsite liest veröffentlichte Inhalte direkt aus `production`, ohne dass für jede Inhaltsänderung ein neuer Website-Push nötig ist.
-
-Der Produktions-Build entsteht mit `cd app && npm run build:production && npm run test:production` in `app/dist/production`. Er enthält `CNAME` für `rudelbar.de` und die Weiterleitung `/redaktion` zur Produktions-Redaktion. Die Übernahme nach `rudelbar-pages/main` ist der eigentliche Go-live-Schritt und erfolgt erst nach der Freigabe des vorbereiteten Releases. Ablauf und Nachkontrolle stehen in [docs/production-release.md](docs/production-release.md).
+[Backstage-Betriebsstand](docs/CURRENT.md) und [Betriebsleitfaden](docs/betrieb-gaeste-app.md) beschreiben den zuletzt verifizierten Gäste-/Live-Funktionsstand. Die damalige echte iPhone-/Android-Abnahme bleibt eine gesonderte offene Aufgabe. Dieses Website-Release verändert weder Datenbankschema noch Gäste-App, Passwörter, Mailkonfiguration oder Inhaltsbestände.

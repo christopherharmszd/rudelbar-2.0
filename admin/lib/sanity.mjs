@@ -54,7 +54,8 @@ export function createSanity({ projectId, dataset, token }) {
     if (requireExisting && !existing && !published) throw Object.assign(new Error("Eintrag nicht gefunden. Bitte die Liste neu laden."), { status: 404 });
     if ((existing || published) && (existing || published)._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), { status: 404 });
     if (existing?.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
-    await mutate([{ createOrReplace: { _id: `drafts.${id}`, _type: type, ...fields } }]);
+    const stableSlug = (existing || published)?.slug;
+    await mutate([{ createOrReplace: { _id: `drafts.${id}`, _type: type, ...fields, ...(stableSlug ? { slug: stableSlug } : {}) } }]);
   }
 
   async function publish(id) {
@@ -62,6 +63,11 @@ export function createSanity({ projectId, dataset, token }) {
     if (!draft) throw new Error("Kein Entwurf zum Veröffentlichen vorhanden.");
     if (draft.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
     const { _id, _rev, _createdAt, _updatedAt, ...content } = draft;
+    if (["rudelPost", "rudelEvent"].includes(content._type) && !content.slug) {
+      const previous = await getDocument(id);
+      const title = String(content.title || "rudelabend").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 90);
+      content.slug = previous?.slug || `${title || "rudelabend"}-${id}`;
+    }
     await mutate([{ createOrReplace: { _id: id, ...content } }, { delete: { id: `drafts.${id}` } }]);
   }
 

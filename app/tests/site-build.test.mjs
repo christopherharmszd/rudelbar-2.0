@@ -34,7 +34,7 @@ test("build targets the selected website and editorial server", async () => {
     await assert.rejects(access(built("CNAME")));
   }
   const index = await readFile(built("index.html"), "utf8");
-  assert.match(index, /\.\/assets\/rudelbar-logo\.png/);
+  assert.match(index, /assets\/rudelbar-logo-192\.webp/);
   const scripts = (await readdir(built("assets"))).filter(file => /^index-.*\.js$/.test(file));
   if (production) {
     const bundle = await readFile(built(`assets/${scripts[0]}`), "utf8");
