@@ -1,0 +1,84 @@
+{
+  "checkedAt": "2026-11-02T13:34:41.044Z",
+  "commit": "05f7281",
+  "workers": {
+    "cms": "6417945e-fd84-4121-8421-e8492237cb46",
+    "guest": "1d59cc1c-eece-49db-a1ad-f290a9e8c2bb"
+  },
+  "migration": "0006_station_photos.sql",
+  "automatedTests": {
+    "passed": 79,
+    "failed": 0
+  },
+  "runtime": {
+    "passwordHashing": true,
+    "mailboxEncryption": true,
+    "pushEncryption": true
+  },
+  "checks": [
+    "Published file matches admin/public/backstage.html",
+    "Published file matches admin/public/backstage.css",
+    "Published file matches admin/public/abendplan.css",
+    "Published file matches admin/public/abendplan.js",
+    "Published file matches admin/public/website-editor.js",
+    "Published file matches admin/public/member-wizard.js",
+    "Published file matches admin/public/planning-ui.js",
+    "Published file matches admin/public/content-workspace.js",
+    "Published file matches admin/public/catalog-csv-ui.js",
+    "Published file matches admin/public/flow-dialog.js",
+    "Published file matches admin/public/image-picker.js",
+    "Published file matches admin/public/image-picker.css",
+    "Published file matches admin/public/team.js",
+    "Published file matches admin/public/team.html",
+    "Published file matches event-app/public/index.html",
+    "Published file matches event-app/public/app.js",
+    "Published file matches event-app/public/guest-live.js",
+    "Published file matches event-app/public/styles.css",
+    "Anonymous access rejected /api/abend/catalog",
+    "Anonymous access rejected /api/abend/templates",
+    "Anonymous access rejected /api/media?scope=website",
+    "Anonymous access rejected /api/media?scope=app",
+    "Anonymous access rejected /api/accounts",
+    "Anonymous access rejected /api/posts",
+    "Personal passwords and shared Redaktion remain enabled",
+    "Archived example evening is not accessible",
+    "Archived example evening is not accessible",
+    "Transient photo previews allowed; scripts remain restricted",
+    "Main website entry still opens Backstage",
+    "Every Website and App content document retains its original revision"
+  ],
+  "workingData": {
+    "productionDocuments": 30,
+    "appDocuments": 41,
+    "allRevisionsPreserved": true,
+    "accounts": 1,
+    "visitors": 3,
+    "requests": 5,
+    "pushSubscriptions": 1,
+    "testDataCreated": false,
+    "mailSent": false,
+    "stationPhotos": 0
+  },
+  "browser": {
+    "isolatedWritesOnly": true,
+    "dynamicCategoryAndFood": true,
+    "csvMappingPreviewAndApply": true,
+    "undatedPreparation": true,
+    "saveAndEditTemplate": true,
+    "releaseCheckAndOpen": true,
+    "stationPhoto": true,
+    "publishedNavigation": true,
+    "existingLoginRetained": true,
+    "websiteEditorAndEmergencyLink": true,
+    "responsiveWidths": [
+      320,
+      390
+    ],
+    "horizontalPageOverflow": false
+  },
+  "limitations": [
+    "Physical iPhone camera capture not tested; file input and image processing tested in browser",
+    "Media library displays the latest 500 images per content source",
+    "Comprehensive guest UX redesign remains a separate iteration"
+  ]
+}

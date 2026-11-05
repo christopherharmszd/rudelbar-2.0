@@ -1,0 +1,49 @@
+# Paralleles integriertes Backstage
+
+## Einstiege
+
+- **Haupteinstieg:** `https://rudelbar.de/redaktion` öffnet direkt den Website-Bereich im neuen Backstage.
+- **Neues Backstage:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage`
+- **Eigenständiger Live-Einstieg:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/live`
+- **Notfall-Redaktion:** `https://rudelbar-cms.christopher-harms.workers.dev/`, im Bereich Website über Bisherige Redaktion erreichbar.
+- **Bisheriges Layout im neuen Worker:** `https://rudelbar-cms-staging.christopher-harms.workers.dev/`, weiterhin erreichbar.
+- **Bestehende Abendplanung:** `/abendplan`, weiterhin erreichbar.
+- **Bestehende Stationseingänge:** `/team?abend=…` und persönliche Team-Links, weiterhin erreichbar.
+
+Am 2. November 2026 wurde der Haupteinstieg auf ausdrücklichen Wunsch auf das neue Backstage umgestellt. Die bisherige Produktionsredaktion bleibt als unabhängiger Notfallzugang erhalten; sie verwendet denselben Website-Produktionsbestand und behält ihren bisherigen Login. Beim Wechsel kann eine erneute Anmeldung nötig sein. Der neue Bereich öffnet sie in einem separaten Tab. Reine Beitragsautoren erhalten diesen Verwaltungslink nicht. Das Konto Redaktion bleibt aktiv; Passwörter, Sitzungen und persönliche Konten werden durch die Weiterleitung nicht geändert.
+
+## Gemeinsame Verwaltung
+
+Das neue Backstage bündelt Website (Aktuelles, öffentliche Termine, Das Rudel), Veranstaltungen, Angebote und interne Personen mit Benutzerverwaltung. Die Daten kommen aus den vorhandenen Sanity- und D1-Beständen. Es gibt keinen Datenumzug, keine zweite Kontendatenbank und keine Datenkopie für die neue Oberfläche.
+
+Seit 2. November 2026 verwenden beide Website-Oberflächen des neuen Workers (`/` und `/backstage#website`) denselben Produktionsbestand wie die bisherige Redaktion unter `rudelbar-cms.christopher-harms.workers.dev`. `SANITY_WEBSITE_DATASET=production` gilt für Beiträge, öffentliche Website-Termine, Das Rudel und deren Bild-Uploads. Abendplanung und Gäste-App übernehmen öffentliche Termine ebenfalls aus dieser Quelle. Eigene Abende, Angebote, interne Personen, Partner, Konfigurationen und Freigaben bleiben im vorhandenen App-Dataset `staging`; Konten, Nachrichten und Push-Anmeldungen bleiben in derselben D1-Datenbank. Die historischen Worker-Namen kennzeichnen hier keine isolierte Testumgebung. Produktionsinhalte werden gemeinsam bearbeitet, nicht synchronisiert oder kopiert. Speichern erzeugt weiterhin einen Entwurf; Veröffentlichung bleibt eine eigene Aktion. Prüfbericht: [WEBSITE-SOURCE-VERIFICATION.json](WEBSITE-SOURCE-VERIFICATION.json).
+
+Der Webseiteneditor ist jetzt ein gemeinsamer Baustein (`admin/public/website-editor.js`). Die bisherige Redaktion lädt ihn über ihre bisherige Startdatei und behält ihr Layout, ihre Formulare und ihre Adresse. Das neue Backstage lädt denselben Baustein mit eigenem Rahmen und eigenen, ausschließlich dort geltenden Styles. Das bisherige HTML und die bisherige Stylesheet-Datei werden nicht umgestaltet. Speichern, Bilder, Archiv und Veröffentlichung verwenden in beiden Oberflächen dieselben vorhandenen Schnittstellen.
+
+Live bleibt eine eigenständige Anwendung mit Eingängen, Wartelisten und Gesprächen. Das neue Backstage öffnet sie separat und übergibt den ausgewählten Abend. Live erhält keine Verwaltungsnavigation. Eine berechtigte Person kann über den bestehenden Vorbereitungslink zum selben Abend im neuen Backstage zurückkehren. Die bisherigen direkten Live- und Team-Links funktionieren weiter.
+
+## Anmeldung und Rechte
+
+Die gemeinsame Anmeldeseite `/anmelden` unterstützt persönliche E-Mail-/Passwort-Konten sowie den bisherigen Zugang Redaktion. Nach erfolgreicher Anmeldung führt sie zum ursprünglichen Arbeitsbereich zurück. Rücksprungadressen sind auf bekannte lokale Rudelbar-Oberflächen beschränkt; private Team-Zugangscodes werden nicht übernommen. Die bisherigen Anmeldeformulare bleiben als Übergangsweg verfügbar.
+
+Die gemeinsame Sitzung und serverseitigen Berechtigungen gelten für Redaktion, Backstage und Live. Personen ohne Verwaltungsaufgabe gelangen beim allgemeinen Einstieg zum eigenständigen Live-Bereich. Die Benutzerverwaltung bleibt der Administration vorbehalten. Live behält seine eigene Oberfläche.
+
+Teammitglied einrichten führt jetzt durch einen gemeinsamen Assistenten für Profil, persönlichen Zugang, Rechte und Einladung. Reine Ansprechpartnerprofile bleiben ausdrücklich möglich. Profilfoto, Rudelbar-Team und Partner/Verein mit eigener Logokennzeichnung sind unabhängig von den Berechtigungen. Partner werden zentral verwaltet. Die neue Rolle Redaktion · Beiträge verfassen kann nur eigene Entwürfe bearbeiten; umfassende bisherige Redaktionsrechte heißen Backstage-Verwaltung. Live-Team und Empfang bleiben auf ihre zugeordneten Abende und Eingänge beschränkt. Details und Grenzen stehen in [ACCOUNTS.md](ACCOUNTS.md), die aktuelle Prüfung in [MEMBERS-VERIFICATION.json](MEMBERS-VERIFICATION.json).
+
+Die zuvor vorbereitete externe OIDC-Anmeldung wurde durch eigene Rudelbar-Konten nach dem Prinzip der Elbmafia-Anmeldung ersetzt. Einladungen und Passwort-Links sind funktional; Links können persönlich weitergegeben werden. Für automatischen E-Mail-Versand über `info@rudelbar.de` muss die Administration noch den Postfachzugang direkt in Backstage hinterlegen. Gemeinsames Redaktionspasswort, bestehende Sitzungen und Push-Schlüssel bleiben erhalten. Siehe [Konten und Einrichtung](ACCOUNTS.md) und [aktuellen Prüfbericht](NATIVE-AUTH-VERIFICATION.json).
+
+## Prüfung und Datenhygiene
+
+Ein unveröffentlichter Prüfeintrag „Prüfung Backstage-Übergang“ wurde im neuen Editor angelegt, in der bisherigen Redaktion bearbeitet und im neuen Editor wieder gelesen. Er ist anschließend archiviert worden und wurde nicht veröffentlicht. Die Veröffentlichung der Produktionswebsite bleibt unberührt.
+
+Die neue Oberfläche schützt ungespeicherte Formulare beim Verlassen, verwendet fokussierte Bearbeitungsdialoge und behält beim Wechsel zu Live den ausgewählten Abend. Responsive Prüfungen umfassen die Navigation und den Webseiteneditor auf 320 und 390 Pixel Breite sowie die Desktopansicht. Prüfbericht: [BACKSTAGE-VERIFICATION.json](BACKSTAGE-VERIFICATION.json).
+
+## Profile und Angebote löschen
+
+Bei Personen gibt es direkt am Profil „Profil löschen“. Die Bestätigung nennt zugeordnete Abende. Das Profil wandert in den Papierkorb und verschwindet aus der Auswahl und Gäste-App. Verknüpfte Benutzerkonten, persönliche Sitzungen, Team-Links, Passwort-Links und interne Push-Zugänge werden deaktiviert. Bestehende Nachrichten und historische Zuordnungen werden nicht gelöscht. Verknüpfte Konten erfordern Administration; das eigene Profil kann nicht selbst gelöscht werden.
+
+Wiederhergestellte Profile bleiben zunächst pausiert und Benutzerkonten deaktiviert. Eine Freigabe erfolgt bewusst über die jeweilige Bearbeitung. Die letzte Zuständigkeit einer Station fällt beim Entfernen einer Person nicht automatisch an das gesamte Team; zunächst sieht nur die Abendleitung diesen Eingang.
+
+Im Angebotsdialog gibt es „Angebot löschen“. Gelöschte Einträge erscheinen unter Angebote → Papierkorb und können wiederhergestellt werden. Angebote mit Zuordnungen in bestehenden Abenden sind vor dem Löschen geschützt. Sie müssen zunächst dort entfernt und die Änderungen übernommen werden. Änderungen und Löschungen prüfen die aktuelle Version, damit parallele Bearbeitungen keine gelöschten Angebote versehentlich zurückholen.
+
+Backstage ist die Arbeitsumgebung. Neue Kataloge starten leer. Tests verwenden isolierte Fixtures und schreiben keine erfundenen Personen, Termine, Angebote oder Preise in diesen Bestand. Am 1. November wurden auf Wunsch die beiden von uns angelegten Beispielabende vom 1. und 7. November aus der aktiven Ansicht genommen und ihre Gästezugänge geschlossen. Die Beispielprodukte bleiben auf ausdrücklichen Wunsch erhalten. Der echte Premierentermin vom 2. Oktober und der Produktions-Datenbestand der Website bleiben unverändert.

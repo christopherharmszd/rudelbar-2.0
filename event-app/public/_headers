@@ -1,0 +1,7 @@
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://cdn.sanity.io; font-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'

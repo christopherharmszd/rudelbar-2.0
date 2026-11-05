@@ -14,7 +14,7 @@ export const previewTeam = [
   ["Patryk", "Teammitglied · Einsatzbeauftragter", "Unser Mann für den Einsatz. Er packt an, wo Hilfe gebraucht wird, behält auch dann die Ruhe, wenn es hektisch wird, und macht aus Ideen echte Rudelbar-Momente.", "team-patryk-portrait-v1.png"],
 ].map(([name, role, bio, photo], order) => ({ _id: `preview-${name.toLowerCase()}`, name, role, bio, photoUrl: `./assets/${photo}`, order }));
 
-export const todayLocal = (now = new Date()) => `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+export const todayLocal = (now = new Date()) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 export const upcomingEvents = (events, today = todayLocal()) => events.filter(event => /^\d{4}-\d{2}-\d{2}$/.test(event.date || "") && event.date >= today);
 export const nextEvent = (events, today = todayLocal()) => [...upcomingEvents(events, today)].sort((a, b) => a.date.localeCompare(b.date) || (a.order ?? 0) - (b.order ?? 0))[0] || null;
 export const orderedContent = items => [...items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || String(a.date || a.name || "").localeCompare(String(b.date || b.name || "")));
@@ -31,12 +31,12 @@ export async function loadPublishedContent(config, signal) {
   if (!config) return { events: previewEvents, team: previewTeam, posts: [], preview: true };
   const base = `https://${config.projectId}.api.sanity.io/v2025-02-19/data/query/${config.dataset}`;
   async function query(type) {
-    const url = `${base}?perspective=published&query=${encodeURIComponent(`*[_type == "${type}"]`)}`;
+    const url = `${base}?perspective=published&query=${encodeURIComponent(`*[_type == "${type}" && archived != true]`)}`;
     const response = await fetch(url, { signal });
     if (!response.ok) throw new Error(`Sanity HTTP ${response.status}`);
     const data = await response.json();
     return data.result || [];
   }
-  const [events, team, posts] = await Promise.all([query("rudelEvent"), query("rudelTeamMember"), query("rudelPost").catch(() => [])]);
+  const [events, team, posts] = await Promise.all([query("rudelEvent"), query("rudelTeamMember"), query("rudelPost")]);
   return { events, team, posts, preview: false };
 }

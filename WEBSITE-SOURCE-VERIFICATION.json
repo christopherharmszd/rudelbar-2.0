@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-11-02T11:21:13.304Z",
+  "scope": "Both website editor layouts share the existing production content source",
+  "source": {
+    "project": "uywmld5e",
+    "website": "production",
+    "app": "staging",
+    "accounts": "existing LIVE_DB"
+  },
+  "preserved": {
+    "productionDocuments": 30,
+    "appDocuments": 41,
+    "allRevisionsUnchanged": true,
+    "visitorSessions": 3,
+    "requests": 5,
+    "pushRegistrations": 1,
+    "accounts": 1
+  },
+  "tests": {
+    "passed": 68,
+    "failed": 0,
+    "covers": [
+      "production website reads, draft save and publication",
+      "separate website and app image uploads",
+      "production public events combined with existing guest release",
+      "author-only permissions remain enforced"
+    ]
+  },
+  "productionWriteCheck": {
+    "dryRun": true,
+    "status": 200,
+    "executed": false,
+    "documentation": "https://www.sanity.io/docs/http-reference/mutation"
+  },
+  "publicChecks": [
+    "production: every document and revision unchanged after deployment",
+    "staging: every document and revision unchanged after deployment",
+    "Published source matches backstage.html",
+    "Published source matches abendplan.html",
+    "Published source matches abendplan.js",
+    "Published source matches member-wizard.js",
+    "Website, app data and accounts still require authentication",
+    "Guest service reads production event and preserves closed app state",
+    "Removed example events remain inaccessible"
+  ],
+  "browser": {
+    "backstagePostVisible": true,
+    "classicPostVisible": true,
+    "productionEventVisible": true,
+    "sharedSessionPreserved": true
+  },
+  "screenshots": [
+    "../rudelbar-app-preview/website-production-backstage.png",
+    "../rudelbar-app-preview/website-production-classic.png"
+  ],
+  "websiteBuildChanged": false,
+  "contentCopied": false,
+  "workerVersion": "94e2fa6e-0914-40bb-8143-81a791a533ab",
+  "existingProductionEditorVersion": "e8fffdea-45b8-409c-810b-949b2267c369",
+  "existingProductionEditorRedeployed": false
+}

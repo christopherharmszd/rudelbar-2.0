@@ -12,7 +12,7 @@ export function createSanity({ projectId, dataset, token }) {
       headers: { Authorization: `Bearer ${token}`, ...options.headers },
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error?.description || data.message || `Sanity: HTTP ${response.status}`);
+    if (!response.ok) throw Object.assign(new Error(response.status === 409 ? "Der Eintrag wurde inzwischen geändert. Bitte neu laden." : data.error?.description || data.message || `Sanity: HTTP ${response.status}`), {status: response.status === 409 ? 409 : 502});
     return data;
   }
 
@@ -54,7 +54,8 @@ export function createSanity({ projectId, dataset, token }) {
     if (requireExisting && !existing && !published) throw Object.assign(new Error("Eintrag nicht gefunden. Bitte die Liste neu laden."), { status: 404 });
     if ((existing || published) && (existing || published)._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), { status: 404 });
     if (existing?.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
-    await mutate([{ createOrReplace: { _id: `drafts.${id}`, _type: type, ...fields } }]);
+    const stableSlug = (existing || published)?.slug;
+    await mutate([{ createOrReplace: { _id: `drafts.${id}`, _type: type, ...fields, ...(stableSlug ? { slug: stableSlug } : {}) } }]);
   }
 
   async function publish(id) {
@@ -62,6 +63,11 @@ export function createSanity({ projectId, dataset, token }) {
     if (!draft) throw new Error("Kein Entwurf zum Veröffentlichen vorhanden.");
     if (draft.archived) throw Object.assign(new Error("Bitte den Eintrag zuerst aus dem Archiv wiederherstellen."), { status: 409 });
     const { _id, _rev, _createdAt, _updatedAt, ...content } = draft;
+    if (["rudelPost", "rudelEvent"].includes(content._type) && !content.slug) {
+      const previous = await getDocument(id);
+      const title = String(content.title || "rudelabend").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 90);
+      content.slug = previous?.slug || `${title || "rudelabend"}-${id}`;
+    }
     await mutate([{ createOrReplace: { _id: id, ...content } }, { delete: { id: `drafts.${id}` } }]);
   }
 
@@ -99,11 +105,36 @@ export function createSanity({ projectId, dataset, token }) {
     await mutate([{ delete: { id } }, { delete: { id: `drafts.${id}` } }]);
   }
 
+  async function savePrivate(type, id, fields, expectedRevision) {
+    const docId = `drafts.${id}`;
+    const existing = await getDocument(docId);
+    if (existing && existing._type !== type) throw Object.assign(new Error("Eintrag nicht gefunden."), {status:404});
+    if (existing && expectedRevision !== undefined && existing._rev !== expectedRevision) throw Object.assign(new Error("Der Eintrag wurde inzwischen geändert. Bitte neu laden."), {status:409});
+    if (existing) await mutate([{patch:{id:docId, ifRevisionID:existing._rev, set:fields}}]);
+    else await mutate([{createIfNotExists:{_id:docId,_type:type,...fields}}]);
+    return getDocument(docId);
+  }
+
   async function uploadImage(buffer, mime, filename) {
     const path = `/assets/images/${dataset}?filename=${encodeURIComponent(filename)}`;
     const data = await request(path, { method: "POST", headers: { "Content-Type": mime }, body: buffer });
     return { assetId: data.document?._id, url: data.document?.url };
   }
 
-  return { list, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage };
+  async function commitPrivate(changes){
+    const mutations=changes.map(({type,id,fields,revision})=>revision?{patch:{id:'drafts.'+id,ifRevisionID:revision,set:fields}}:{create:{_id:'drafts.'+id,_type:type,...fields}});
+    await mutate(mutations);
+  }
+
+  async function listImages(){
+    const query=encodeURIComponent('*[_type == "sanity.imageAsset"] | order(_createdAt desc)[0...500]{_id,url,originalFilename,title,description,metadata{dimensions},_createdAt}');
+    return (await request(`/data/query/${dataset}?perspective=raw&query=${query}`)).result||[];
+  }
+
+  async function imageUsage(assetId,url){
+    const query=encodeURIComponent('*[_type != "sanity.imageAsset" && (references($id) || avatarUrl==$url || logoUrl==$url || photoUrl==$url || count(equipment[imageUrl==$url])>0 || count(games[imageUrl==$url])>0 || count(program[imageUrl==$url])>0 || count(drinks[imageUrl==$url])>0 || count(stations[imageUrl==$url])>0 || count(config.equipment[imageUrl==$url])>0 || count(config.games[imageUrl==$url])>0 || count(config.program[imageUrl==$url])>0 || count(config.menu[imageUrl==$url])>0 || count(config.stations[imageUrl==$url])>0)]{_id,_type,title,name,eventId}');
+    return (await request(`/data/query/${dataset}?perspective=raw&query=${query}&%24id=${encodeURIComponent(JSON.stringify(assetId))}&%24url=${encodeURIComponent(JSON.stringify(url))}`)).result||[];
+  }
+
+  return { list, getDocument, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage,commitPrivate,listImages,imageUsage };
 }

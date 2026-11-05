@@ -5,26 +5,39 @@
 | Bereich | Staging | Produktion |
 | --- | --- | --- |
 | Website | `christopherharmszd.github.io/rudelbar-2.0` | `rudelbar.de` über `christopherharmszd/rudelbar-pages` |
-| Redaktion | `rudelbar-cms-staging.christopher-harms.workers.dev` | `rudelbar-cms.christopher-harms.workers.dev` |
+| Redaktion (Haupteinstieg) | Neues Backstage, Website-Bereich | `rudelbar.de/redaktion` → `rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website` |
+| Notfall-Redaktion | Im Backstage unter Website erreichbar | `rudelbar-cms.christopher-harms.workers.dev` |
 | Sanity-Dataset | `staging` | `production` |
 
-Der Quellcode für Website und Redaktion liegt in `rudelbar-2.0`. `rudelbar-pages` enthält nur die fertigen statischen Dateien für die Live-Domain. Eine Veröffentlichung aus der Redaktion wirkt jeweils nur auf das verbundene Dataset. Der erste Produktionsstand enthält den Termin „Premiere in Scharnebeck“ und die fünf Teamprofile samt Fotos; Testbeiträge wurden nicht übernommen.
+Der Quellcode für Website und Redaktion liegt in `rudelbar-2.0`. `rudelbar-pages` enthält nur die fertigen statischen Dateien für die Live-Domain. Seit 2. November 2026 verwenden beide Website-Editoren im neuen Worker und die Notfall-Redaktion gemeinsam den Bestand `production`. Die übrigen App-Daten bleiben erhalten; Details stehen in [BACKSTAGE.md](../BACKSTAGE.md). Bei der Umstellung des Haupteinstiegs wurden ausschließlich `redaktion.html` und `redaktion/index.html` im veröffentlichten Repository geändert. Ein vollständiger Website-Neubau ist dafür nicht erforderlich.
 
 ## Release vorbereiten
 
 1. Im Quellcode-Repository `app/` und `admin/` testen. `npm run build` und `npm test` in `app/` prüfen Staging. `npm run build:production` und `npm run test:production` bauen und prüfen Produktion. `npm test` in `admin/` prüft die Redaktion.
 2. `app/dist/production` ist der vollständige statische Produktionsstand einschließlich `CNAME`, Impressum, Datenschutz und `/redaktion`-Weiterleitung. Die Dateien auf einen Release-Branch von `rudelbar-pages` kopieren und dort einen Pull Request gegen `main` prüfen. Alte, im neuen Build nicht mehr vorhandene Dateien dürfen auf dem Release-Branch entfernt werden.
-3. Den Produktions-Worker unter `https://rudelbar-cms.christopher-harms.workers.dev/` und die Anmeldung prüfen. Er muss im Sanity-Dataset `production` genau die gewünschten Inhalte zeigen. Einen Testbeitrag nur in Staging anlegen, nicht in Produktion.
+3. Das neue Backstage unter `https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website`, seine Anmeldung und den Notfall-Link zur bisherigen Produktionsredaktion prüfen. Beide müssen dieselben Website-Produktionsinhalte zeigen. Entwicklungstests verwenden isolierte Fixtures; die historisch staging benannte Arbeitsumgebung enthält echte Daten.
 4. Den Pull Request erst nach Freigabe nach `rudelbar-pages/main` übernehmen. Das ist der Schritt, der die Website auf `rudelbar.de` ersetzt. Es sind dafür keine Änderungen an Nameservern oder Mail-DNS nötig.
 
 ## Direkt nach der Veröffentlichung prüfen
 
 - `https://rudelbar.de/` und `https://www.rudelbar.de/`: Startseite, nächster Termin, Team und Bilder.
-- `https://rudelbar.de/redaktion` (beziehungsweise `/redaktion.html`): Weiterleitung zur Produktions-Redaktion, Anmeldung und Inhalteliste.
+- `https://rudelbar.de/redaktion` (beziehungsweise `/redaktion.html`): Weiterleitung direkt zum Website-Bereich im neuen Backstage; nach Anmeldung muss dieser Bereich erhalten bleiben. Dort muss Bisherige Redaktion den unabhängigen Notfallzugang öffnen.
 - Datenschutz und Impressum über den Footer öffnen; die Seiten müssen im Website-Design erscheinen.
 - „Aktuelles“ darf erst mit einem im Produktions-CMS veröffentlichten Beitrag erscheinen.
 - Kontaktformular nur mit einer ausdrücklich als Test markierten Anfrage prüfen, weil es echte Nachrichten versendet.
 - Eine mobile Breite sowie Navigation und Dialoge in der Redaktion prüfen.
+
+## Suchmaschinen und interne Redaktion
+
+Die öffentliche Website soll auffindbar sein. Die Redaktion einschließlich Anmeldung, Backstage, bisherigen CMS-Seiten und internen Schnittstellen soll nicht in Suchergebnissen erscheinen. Das gilt für beide Worker `rudelbar-cms-staging` und `rudelbar-cms` sowie alle späteren eigenen Redaktionsdomains.
+
+`admin/public/_headers` liefert deshalb für statische Dateien unter allen Pfaden `X-Robots-Tag: noindex, nofollow`. `admin/worker.mjs` ergänzt denselben Header bei dynamischen Antworten und Weiterleitungen. Die bisherige CMS-Startseite enthält zusätzlich ein Robots-Meta-Tag; Anmeldung und Backstage besitzen bereits entsprechende Angaben. WebSocket-Upgrades werden unverändert weitergereicht.
+
+Nach einem gezielten Worker-Release per HTTP-Abruf prüfen: `/`, `/anmelden`, `/backstage`, `/api/session` und eine nicht vorhandene Adresse müssen den Header tragen. Die Weiterleitungsseiten `/redaktion`, `/redaktion.html` und `/redaktion/` auf der öffentlichen Domain behalten ihr `noindex`-Meta-Tag. Die öffentliche Startseite und öffentliche Inhalte erhalten dagegen kein `noindex` aus der Redaktionskonfiguration.
+
+Keine zusätzliche `robots.txt`-Sperre vor den `noindex`-Seiten setzen: Google muss den Ausschlusshinweis abrufen können. Bereits vorhandene Suchtreffer verschwinden erst nach erneuter Verarbeitung; bei Bedarf die Search Console zur erneuten Prüfung oder Entfernung verwenden. Der Passwort- und Berechtigungsschutz bleibt die eigentliche Zugriffskontrolle. `noindex` ist kein Zugangsschutz.
+
+Fachgrundlage: [Google Search Central zu noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
 
 ## Rückweg
 

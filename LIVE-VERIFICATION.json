@@ -1,0 +1,193 @@
+{
+  "checkedAt": "2026-11-01T18:55:46.759Z",
+  "iteration": 5,
+  "dataset": "staging",
+  "editor": "https://rudelbar-cms-staging.christopher-harms.workers.dev/abendplan",
+  "app": "https://rudelbar-app-staging.christopher-harms.workers.dev",
+  "workerVersions": {
+    "rudelbar-cms-staging": "f54cc1b0-e8da-4761-b0ea-3f12014cdcd4",
+    "rudelbar-app-staging": "60b4398e-a0d4-42d6-b19b-012959ec9fe2"
+  },
+  "automatedTests": {
+    "passed": 28,
+    "failed": 0
+  },
+  "responsive": {
+    "previousBackstageViews": 28,
+    "previousLiveViewsAndDialogs": 20,
+    "notificationDialogWidthsChecked": 5,
+    "notificationGuideWidths": [
+      320,
+      390,
+      430,
+      768,
+      1280
+    ],
+    "widths": [
+      320,
+      390,
+      768,
+      1280
+    ],
+    "horizontalOverflow": false,
+    "smallDialogFooterFullyVisible": true,
+    "physicalIphoneTested": false
+  },
+  "browser": {
+    "authenticatedLiveSession": true,
+    "cloudMusicRoundtrip": true,
+    "cloudKaraokeRoundtrip": true,
+    "customStationCreatedInEditor": true,
+    "cloudCustomStationRoundtrip": true,
+    "cloudVisitorReply": true,
+    "cloudInternalNoteHiddenFromGuest": true,
+    "cloudForwardAcrossOperatorScopes": true,
+    "personalTeamSessionsRemainSeparate": true,
+    "guestHistoryReadableAfterClosure": true,
+    "directProgramStationLinks": true,
+    "rapidThreadSwitchVerifiedLocally": true,
+    "cloudUnreadRoundtrip": true,
+    "cloudReadClearsBadge": true,
+    "cloudPrivateConversationReturnWithoutInviteInUrl": true,
+    "pushSetupAvailable": true,
+    "iosGuideVisuallyChecked": true,
+    "systemPermissionAcceptedByAgent": false,
+    "physicalPushDeliveryTested": true,
+    "physicalPushDeliveryReportedByUser": true,
+    "cloudflareRuntimePushTransportVerified": true,
+    "cloudflareRuntimeRedirectRejectionVerified": true,
+    "encryptedPushAndVapidSignatureUnitVerified": true,
+    "retryScheduleDeployed": true,
+    "privateExampleFinalState": "closed"
+  },
+  "checks": [
+    {
+      "name": "published public event over service binding",
+      "status": 200
+    },
+    {
+      "name": "public profile names resolved and internal fields absent",
+      "passed": true
+    },
+    {
+      "name": "private event without invitation is hidden",
+      "status": 404
+    },
+    {
+      "name": "private event with forged invitation is hidden",
+      "status": 404
+    },
+    {
+      "name": "anonymous team notifications",
+      "status": 401
+    },
+    {
+      "name": "anonymous guest notifications",
+      "status": 401
+    },
+    {
+      "name": "private manifest without invitation",
+      "status": 404
+    },
+    {
+      "name": "guest web app manifest",
+      "status": 200
+    },
+    {
+      "name": "anonymous live inbox",
+      "status": 401
+    },
+    {
+      "name": "anonymous guest inbox",
+      "status": 401
+    },
+    {
+      "name": "cross-origin guest write",
+      "status": 403
+    },
+    {
+      "name": "cross-origin team login",
+      "status": 403
+    },
+    {
+      "name": "anonymous profile access",
+      "status": 401
+    },
+    {
+      "name": "anonymous event access",
+      "status": 401
+    },
+    {
+      "name": "anonymous preview access",
+      "status": 401
+    },
+    {
+      "name": "raw Sanity query without credential",
+      "status": 200
+    },
+    {
+      "name": "private profiles, events and releases are absent from public Sanity",
+      "passed": true
+    },
+    {
+      "name": "backstage script",
+      "status": 200,
+      "sha256": "93ea9aab36d07d54056083a77903a9f8146fe7356b0f6223a6f050b595eeeccc"
+    },
+    {
+      "name": "backstage stylesheet",
+      "status": 200,
+      "sha256": "41e465f6518ffc0f800758585b6f3ac2c2fdcb4befc4cf6bf2ba70ef0e29989b"
+    },
+    {
+      "name": "visitor script",
+      "status": 200,
+      "sha256": "2679f83a2279820b2ef6d772f28fd3155448ec795be95115305114342e79f993"
+    },
+    {
+      "name": "visitor communications",
+      "status": 200,
+      "sha256": "37d5b33c5d7393cb0791660719a1baa700daa1bebae46a96f8e704515ed639f7"
+    },
+    {
+      "name": "live team script",
+      "status": 200,
+      "sha256": "665b4f06a75c2c9a4d8d904e2a9d1c9dee4c6190c3e92d33009e30ce66f849d2"
+    },
+    {
+      "name": "live team stylesheet",
+      "status": 200,
+      "sha256": "62fa5d3152893b0d89172a51d573980c6a54cf51f2e6f94d5aecdd7fb6414cb7"
+    },
+    {
+      "name": "guest notifications UI",
+      "status": 200,
+      "sha256": "bc6b6bf0d09ccf2ee94e407dee1ba98c698cf828f36a5aeecc80bf89a6f003f8"
+    },
+    {
+      "name": "team notifications UI",
+      "status": 200,
+      "sha256": "bc6b6bf0d09ccf2ee94e407dee1ba98c698cf828f36a5aeecc80bf89a6f003f8"
+    },
+    {
+      "name": "notifications stylesheet",
+      "status": 200,
+      "sha256": "dc58a92acf9e1b385a2c6ec1fc2012979300899809a11147ececa1d57e9794ca"
+    },
+    {
+      "name": "guest push worker",
+      "status": 200,
+      "sha256": "0dadae428eb5721990482d5acfebe302fe274b42eb9855c0b340c8c54b634beb"
+    },
+    {
+      "name": "team push worker",
+      "status": 200,
+      "sha256": "0dadae428eb5721990482d5acfebe302fe274b42eb9855c0b340c8c54b634beb"
+    },
+    {
+      "name": "editorial preview communications",
+      "status": 200,
+      "sha256": "37d5b33c5d7393cb0791660719a1baa700daa1bebae46a96f8e704515ed639f7"
+    }
+  ]
+}

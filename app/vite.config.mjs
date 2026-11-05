@@ -1,12 +1,12 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
-const stagingCmsUrl = "https://rudelbar-cms-staging.christopher-harms.workers.dev/";
+const backstageUrl = "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website";
 
 function editorRedirect(url) {
   const target = new URL(url);
-  if (target.protocol !== "https:" || target.username || target.password || target.hash) {
-    throw new Error("RUDELBAR_CMS_URL muss eine HTTPS-Adresse ohne Zugangsdaten oder Fragment sein.");
+  if (target.protocol !== "https:" || target.username || target.password || (target.hash && target.hash !== '#website')) {
+    throw new Error("RUDELBAR_CMS_URL muss eine HTTPS-Adresse ohne Zugangsdaten mit optionalem Website-Einstieg sein.");
   }
   const safeUrl = target.href.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
   return `<!doctype html>
@@ -28,15 +28,15 @@ function editorRedirect(url) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const dataset = env.VITE_SANITY_DATASET || "staging";
-  const cmsUrl = env.RUDELBAR_CMS_URL || (dataset === "staging" ? stagingCmsUrl : "");
+  const cmsUrl = env.RUDELBAR_CMS_URL || (dataset === "staging" ? backstageUrl : "");
   if (!cmsUrl) throw new Error("Für den Produktions-Build muss RUDELBAR_CMS_URL gesetzt sein.");
-  if (dataset === "production" && cmsUrl === stagingCmsUrl) {
-    throw new Error("Der Produktions-Build darf nicht zur Staging-Redaktion weiterleiten.");
+  if (dataset === "production" && cmsUrl !== backstageUrl) {
+    throw new Error("Der Produktions-Build muss zum freigegebenen Backstage mit Produktionsinhalten weiterleiten.");
   }
   const redirectPage = editorRedirect(cmsUrl);
 
   return {
-    base: "./",
+    base: new URL(env.VITE_SITE_URL || "https://rudelbar.de/").pathname.replace(/\/?$/, "/"),
     build: {
       outDir: "dist/client",
     },

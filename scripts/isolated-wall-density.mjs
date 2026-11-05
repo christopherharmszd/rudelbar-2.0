@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';import {defaultExperience} from '../shared/experience.mjs';
+const repo=new URL('../',import.meta.url),context=JSON.parse(await readFile(new URL('.qa/wall-local-context.json',repo),'utf8')),cms=context.cms,guest=context.guest;
+const headers={Origin:cms,Cookie:context.cookie,'X-CSRF-Token':context.csrf,'Content-Type':'application/json'};
+async function editor(path,method='GET',input){const r=await fetch(cms+path,{method,headers,...(input?{body:JSON.stringify(input)}:{})});const value=await r.json();assert.ok(r.ok,JSON.stringify(value));return value;}
+if(new URL(cms).hostname!=='localhost'||new URL(guest).hostname!=='localhost')throw Error('This fixture runs only on localhost.');
+const preview=new Uint8Array(await readFile(new URL('.qa/wall-preview.jpg',repo)));
+const original=new Uint8Array(await readFile(new URL('event-app/public/assets/rudelbar-wagen.jpeg',repo))),hash=async b=>Buffer.from(await crypto.subtle.digest('SHA-256',b)).toString('hex'),originalHash=await hash(original),previewHash=await hash(preview),events=[];
+for(const count of [1,5,25,100]){
+ const e=(await editor('/api/abend/events','POST',{title:'Isolierte Wall · '+count+' Momente',date:'2027-06-13',time:'18 Uhr',venue:'Nur lokale Vorschau',visibility:'public'})).event,eventId=e.eventId;
+ await editor('/api/abend/events/'+eventId,'PUT',{...defaultExperience(eventId),wall:{enabled:true,title:'Momente, die bleiben.',intro:'Gute Leute. Gute Begegnungen. Euer gemeinsamer Abend.',privacyUrl:'https://rudelbar.de/datenschutz',policyVersion:'qa-v1',notice:'Isolierte Darstellung ohne reale Gäste.',archiveDays:30,maxPhotoMB:10}});const review=await editor('/api/abend/events/'+eventId+'/check');assert.equal(review.ok,true);await editor('/api/abend/events/'+eventId+'/open','POST',{reviewToken:review.token,operationKey:crypto.randomUUID()});let cookie;
+ for(let i=0;i<count;i++){
+  if(i%10===0){const r=await fetch(guest+'/api/guest/session',{method:'POST',headers:{Origin:guest,'Content-Type':'application/json'},body:JSON.stringify({eventId,name:'Isolierte Bildprüfung '+(Math.floor(i/10)+1)})});assert.ok(r.ok);cookie=r.headers.getSetCookie().map(c=>c.split(';')[0]).find(c=>!c.endsWith('='));}
+  async function post(action,input,method='POST'){const r=await fetch(guest+'/api/guest/wall/'+action+'?abend='+eventId,{method,headers:{Origin:guest,Cookie:cookie,...(input instanceof Uint8Array?{'Content-Type':'image/jpeg','Content-Length':String(input.length)}:{'Content-Type':'application/json'})},body:input instanceof Uint8Array?input:JSON.stringify(input)}),value=await r.json();assert.ok(r.ok,JSON.stringify(value));return value;}
+  let mediaId='';if(i%3!==1){mediaId=crypto.randomUUID();await post('reserve',{id:mediaId,mime:'image/jpeg',originalBytes:original.length,previewBytes:preview.length,originalHash,previewHash});await post('upload/'+mediaId+'/original',original,'PUT');await post('upload/'+mediaId+'/preview',preview,'PUT');}
+  const p=(await post('submit',{text:i%5===1?'Ein guter Abend beginnt mit einem freundlichen Hallo. '.repeat(12):i%3?'Gute Leute. Gute Begegnungen.':'Schön, dass wir heute zusammenkommen.',mediaId,displayConsent:true,externalConsent:false,policyVersion:'qa-v1',clientKey:crypto.randomUUID()})).post;await editor('/api/wall/moderation?abend='+eventId,'POST',{id:p.id,status:'approved',revision:1});
+ }
+ const current=await editor('/api/wall/controls?abend='+eventId);await editor('/api/wall/controls?abend='+eventId,'POST',{revision:current.revision,config:{...current.config,mode:'wall',layout:count===100?'growing':'mosaic',density:12}});
+ const state=await(await fetch(guest+'/api/guest/wall/state?abend='+eventId)).json();assert.equal(state.totalCount,count);events.push({count,eventId,url:guest+'/wall.html?abend='+eventId,guestUrl:guest+'/?abend='+eventId});
+}
+await writeFile(new URL('.qa/wall-density.json',repo),JSON.stringify({isolated:true,events},null,2));console.log(JSON.stringify({isolated:true,events}));
