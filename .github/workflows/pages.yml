@@ -35,6 +35,7 @@ jobs:
       - name: Website bauen
         working-directory: app
         env:
+          RUDELBAR_SOURCE_SHA: ${{ github.sha }}
           VITE_SANITY_PROJECT_ID: uywmld5e
           VITE_SANITY_DATASET: staging
           RUDELBAR_CMS_URL: "https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website"

@@ -1,4 +1,26 @@
-# Aktueller Rudelbar-Stand
+# Aktueller Website- und Backstage-Release: 5. November 2026
+
+Die Website-Audit-Korrekturen sind veröffentlicht und nachgeprüft. Vor der Veröffentlichung wurden die tatsächlich laufende Website, alle 86 Backstage-Oberflächendateien und der ausführbare Servercode direkt mit dem Ausgangsstand abgeglichen.
+
+- Öffentliche Website: freigegebene Quelle 48ef0309ce26495daaa040658f71329176872f13; Produktionsworkflow in rudelbar-pages, Release 8eae34365c70acf5065053b9ac8af9d25bd2fad1.
+- Backstage: Version 97fde78a-1c11-4180-8c81-97dab058260f aus derselben Quelle.
+- Unabhängige Notfallredaktion: Version 0f4ea295-546c-488b-bd5f-03f0fa3b1039 aus Zweig fix/legacy-cms-audit-2026-11-05, Quelle 501e68804feb79b96d7b7a8f4d6ac15e26e6a027.
+- Gäste-App unverändert. Keine Abendfreigabe, SQL-Migration, Passwort-, Mail- oder DNS-Änderung.
+- 233 Backstage-, 10 Notfallredaktions- und je 11 Website-Tests erfolgreich. 15 tatsächliche Seiten/Aliasse und 31 eingebundene Dateien erfolgreich geprüft.
+- Der tatsächliche CMS-Publish hat den Produktionsbau erfolgreich gestartet. Vier vorhandene Beitragsbilder haben individuelle Beschreibungen, alle sonstigen sichtbaren Beitragsdaten und die Bildreihenfolge sind erhalten.
+- Beide Web3Forms-Formulare erfolgreich getestet; E-Mail-Eingang vom Inhaber bestätigt.
+- Sitemap und technische Indexierbarkeit geprüft. Google Search Console ist nicht angemeldet; tatsächliche Google-Indexierung ist nicht nachgewiesen.
+- Der beschränkte Build-Schlüssel liegt in beiden Worker Secrets und läuft am 3. Februar 2027 ab. Rechtzeitig rotieren; zeitgesteuerte Builds bleiben als Rückfallebene.
+
+Einzelheiten: [Release und Rückkehr](website-audit-release-2026-11-05.md), [Prüfnachweis](website-audit-verification-2026-11-05.json).
+
+---
+
+## Historischer Funktions- und Datenbanknachweis vom 4. November
+
+Die folgenden Versionen und Prüfungen beschreiben den Zustand vor dem gezielten Website-Audit-Release. Die Gäste-App und ihre noch offene echte Geräteabnahme bleiben davon unverändert.
+
+# Rudelbar-Stand am 4. November
 
 4. November 2026. Der genehmigte Funktionsumbau ist auf den bestehenden Rudelbar-
 Adressen veröffentlicht. Keine Pause, kein Verlust ungesicherter Entwicklung.

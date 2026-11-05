@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-05",
+  "source": "48ef0309ce26495daaa040658f71329176872f13",
+  "sourceMainMerge": "05ffa55925c4f982b91ef78ad7cc676d7e8c5fc0",
+  "productionRepositoryRelease": "8eae34365c70acf5065053b9ac8af9d25bd2fad1",
+  "modernWorker": {
+    "version": "97fde78a-1c11-4180-8c81-97dab058260f",
+    "source": "48ef0309ce26495daaa040658f71329176872f13",
+    "databaseMigrations": false
+  },
+  "legacyWorker": {
+    "version": "0f4ea295-546c-488b-bd5f-03f0fa3b1039",
+    "source": "501e68804feb79b96d7b7a8f4d6ac15e26e6a027"
+  },
+  "beforeReleaseParity": {
+    "websiteCurrentProductionFiles": true,
+    "backstageStaticFilesMatched": 86,
+    "backstageServerCodeMatchedExceptPathComments": true,
+    "legacyServerByteIdentical": true
+  },
+  "automatedTests": {
+    "modernCMS": 233,
+    "independentLegacyCMS": 10,
+    "productionWebsite": 11,
+    "stagingWebsite": 11
+  },
+  "publicChecks": {
+    "pagesAndAliases": 15,
+    "assets": 31,
+    "sitemapEntries": 10,
+    "allPassed": true
+  },
+  "workflowRuns": {
+    "staging": "https://github.com/christopherharmszd/rudelbar-2.0/actions/runs/42114533389",
+    "productionRelease": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42114899361",
+    "actualCMSPublication": "https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42115309220"
+  },
+  "forms": {
+    "contact": "accepted; mailbox receipt confirmed by owner",
+    "event": "accepted without optional date/place; mailbox receipt confirmed by owner",
+    "provider": "existing Web3Forms configuration"
+  },
+  "contentChange": {
+    "post": "722bbab2-f024-4696-a83b-3ce7e85d2185",
+    "change": "four image descriptions and stable URL slug",
+    "imageURLsAndOrderPreserved": true,
+    "titleDateTeaserBodyPreserved": true,
+    "revision": "Z73K6vxLdzWNPvyDf5XAA5"
+  },
+  "indexing": {
+    "production": "index, follow",
+    "publicStaging": "noindex, follow",
+    "bothEditorialWorkers": "noindex, nofollow HTTP header including static assets and unauthorized APIs",
+    "searchConsole": "No authenticated access available; submission and actual indexing not verified"
+  },
+  "buildCredential": {
+    "storage": "both existing Worker Secrets only; temporary transfer file removed at completion",
+    "repository": "christopherharmszd/rudelbar-pages",
+    "permissions": "Actions write, Metadata read; no source write",
+    "expires": "2027-02-03"
+  },
+  "boundaries": [
+    "no guest-app deployment",
+    "no evening activation",
+    "no schema migration",
+    "no password or mail changes",
+    "no DNS changes",
+    "no artificial production events"
+  ],
+  "remainingExternalChecks": [
+    "Google Search Console ownership, sitemap submission and actual index status",
+    "real iPhone/Android and push acceptance from prior guest-app work remain outside this website release"
+  ]
+}
