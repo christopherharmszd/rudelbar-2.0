@@ -1,4 +1,5 @@
 /*
+  X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
   Content-Security-Policy: default-src 'self'; img-src 'self' https://cdn.sanity.io data: blob:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff

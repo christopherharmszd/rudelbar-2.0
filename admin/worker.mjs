@@ -255,7 +255,7 @@ async function api(request, env, execution) {
   return json(404, { error: "Nicht gefunden." });
 }
 
-export default {
+const editorialWorker = {
   async fetch(request, env, execution) {
     if (!new URL(request.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     try { return await api(request, env, execution); }
@@ -263,5 +263,16 @@ export default {
       console.error("Redaktionsanfrage fehlgeschlagen", error);
       return json(error.status || 500, { error: error.status ? error.message : "Die Anfrage konnte nicht abgeschlossen werden." });
     }
+  },
+};
+
+export default {
+  async fetch(request, env, execution) {
+    const response = await editorialWorker.fetch(request, env, execution);
+    // WebSocket upgrades are passed through intact; they are not indexable pages.
+    if (response.status === 101) return response;
+    const result = new Response(response.body, response);
+    result.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return result;
   },
 };

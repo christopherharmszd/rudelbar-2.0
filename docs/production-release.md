@@ -27,6 +27,18 @@ Der Quellcode für Website und Redaktion liegt in `rudelbar-2.0`. `rudelbar-page
 - Kontaktformular nur mit einer ausdrücklich als Test markierten Anfrage prüfen, weil es echte Nachrichten versendet.
 - Eine mobile Breite sowie Navigation und Dialoge in der Redaktion prüfen.
 
+## Suchmaschinen und interne Redaktion
+
+Die öffentliche Website soll auffindbar sein. Die Redaktion einschließlich Anmeldung, Backstage, bisherigen CMS-Seiten und internen Schnittstellen soll nicht in Suchergebnissen erscheinen. Das gilt für beide Worker `rudelbar-cms-staging` und `rudelbar-cms` sowie alle späteren eigenen Redaktionsdomains.
+
+`admin/public/_headers` liefert deshalb für statische Dateien unter allen Pfaden `X-Robots-Tag: noindex, nofollow`. `admin/worker.mjs` ergänzt denselben Header bei dynamischen Antworten und Weiterleitungen. Die bisherige CMS-Startseite enthält zusätzlich ein Robots-Meta-Tag; Anmeldung und Backstage besitzen bereits entsprechende Angaben. WebSocket-Upgrades werden unverändert weitergereicht.
+
+Nach einem gezielten Worker-Release per HTTP-Abruf prüfen: `/`, `/anmelden`, `/backstage`, `/api/session` und eine nicht vorhandene Adresse müssen den Header tragen. Die Weiterleitungsseiten `/redaktion`, `/redaktion.html` und `/redaktion/` auf der öffentlichen Domain behalten ihr `noindex`-Meta-Tag. Die öffentliche Startseite und öffentliche Inhalte erhalten dagegen kein `noindex` aus der Redaktionskonfiguration.
+
+Keine zusätzliche `robots.txt`-Sperre vor den `noindex`-Seiten setzen: Google muss den Ausschlusshinweis abrufen können. Bereits vorhandene Suchtreffer verschwinden erst nach erneuter Verarbeitung; bei Bedarf die Search Console zur erneuten Prüfung oder Entfernung verwenden. Der Passwort- und Berechtigungsschutz bleibt die eigentliche Zugriffskontrolle. `noindex` ist kein Zugangsschutz.
+
+Fachgrundlage: [Google Search Central zu noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
+
 ## Rückweg
 
 Bei einem Website-Problem den Produktions-Pull-Request auf `rudelbar-pages/main` zurücknehmen beziehungsweise den vorherigen Website-Commit erneut veröffentlichen. Das Produktions-Dataset und der Produktions-Worker bleiben dabei erhalten. Inhalte in Sanity nur gezielt ändern; ein Website-Rollback setzt Sanity nicht zurück.
