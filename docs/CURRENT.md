@@ -2,6 +2,10 @@
 
 Dieser Betreiberpunkt bleibt ausdrücklich offen: ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestätigen, https://rudelbar.de/sitemap.xml einreichen und tatsächliche Indexierung/Bilddarstellung prüfen. Erreichbarkeit allein ist kein Indexierungsnachweis.
 
+## Veröffentlichungsautomatik gewartet am 5. November
+
+Die veralteten GitHub-Actions wurden auf Node24-kompatible Versionen aktualisiert. Staging und Produktion sind vollständig erfolgreich veröffentlicht; je 12 Tests bestanden, Bau und Veröffentlichung ohne Warnungen. Website-Code, feste Produktionsquelle, Zeitpläne und Berechtigungen bleiben unverändert. [Nachweis und Rückkehr](actions-maintenance-2026-11-05.md).
+
 ## Abschluss der Vereinfachung am 5. November
 
 Build-Schlüssel aus beiden Worker Secrets entfernt und bei GitHub widerrufen; nach Neuladen zeigt GitHub keinen Fine-grained Token mehr. Direkter Bau-Aufruf entfernt. Der vorhandene regelmäßige Zeitplan bleibt unverändert.

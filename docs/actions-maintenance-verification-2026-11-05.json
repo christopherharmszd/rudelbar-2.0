@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-05",
+  "sourceRepository": "christopherharmszd/rudelbar-2.0",
+  "productionRepository": "christopherharmszd/rudelbar-pages",
+  "sourceMerge": "c8dc7e230f587ebe35555f3167a0391c31e5923a",
+  "productionMerge": "44317175283269586ab716b3880527d3fadf9f82",
+  "productionWebsiteSource": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9",
+  "changes": [
+    "setup-node v7.1.0",
+    "configure-pages v6.0.0",
+    "upload-pages-artifact v5.0.0",
+    "deploy-pages v5.0.1"
+  ],
+  "unchanged": [
+    "website code and source pin",
+    "Node22 website build",
+    "schedules",
+    "permissions",
+    "artifact paths",
+    "domains",
+    "CMS and Cloudflare Workers"
+  ],
+  "runs": {
+    "staging": 42123530676,
+    "production": 42123896653
+  },
+  "validation": {
+    "staging": {
+      "build": "success",
+      "deploy": "success",
+      "tests": 12,
+      "node20Warnings": 0,
+      "allWarnings": 0
+    },
+    "production": {
+      "build": "success",
+      "deploy": "success",
+      "tests": 12,
+      "node20Warnings": 0,
+      "allWarnings": 0
+    }
+  },
+  "liveChecks": [
+    {
+      "url": "https://rudelbar.de/",
+      "source": "ab5395d1e0a1bd0190564f6e32a9ee7066c221a9",
+      "dataset": "production",
+      "robots": "index, follow",
+      "canonical": "https://rudelbar.de/",
+      "resourcesAndSubpagesChecked": 6
+    },
+    {
+      "url": "https://christopherharmszd.github.io/rudelbar-2.0/",
+      "source": "c8dc7e230f587ebe35555f3167a0391c31e5923a",
+      "dataset": "staging",
+      "robots": "noindex, follow",
+      "canonical": "https://christopherharmszd.github.io/rudelbar-2.0/",
+      "resourcesAndSubpagesChecked": 5
+    }
+  ],
+  "productionCMSRevisionsUnchanged": true
+}
