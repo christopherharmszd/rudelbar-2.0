@@ -10,7 +10,6 @@ import {accountsApi} from './lib/accounts-api.mjs';
 import {peopleFor,eventList} from './lib/abend-service.mjs';
 import {publicUser,editsContent,writesPosts,requirePermission} from './lib/permissions.mjs';
 import {mediaApi} from './lib/media-api.mjs';
-import {requestWebsiteBuild} from './lib/website-build.mjs';
 
 const editorEmail = "redaktion@rudelbar.local";
 const encoder = new TextEncoder();
@@ -250,8 +249,7 @@ async function api(request, env, execution) {
       else if (action === "archive") await client.archive(id, type);
       else if (action === "restore") await client.restore(id, type);
       else await client.deleteForever(id, type);
-      const websiteBuild = ["publish", "unpublish", "archive"].includes(action) ? await requestWebsiteBuild(env) : undefined;
-      return json(200, { ok: true, websiteBuild });
+      return json(200, { ok: true });
     }
   }
   return json(404, { error: "Nicht gefunden." });

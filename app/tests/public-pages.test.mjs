@@ -78,3 +78,20 @@ test('structured events use the visible time with the Berlin daylight-saving off
   assert.equal(schema.offers, undefined);
   assert.equal(todayLocal(new Date('2026-11-05T23:30:00Z')), '2026-11-06');
 });
+
+
+test('Google logo and favicon use the same opaque square artwork', async () => {
+  const html = await readFile(out('index.html'), 'utf8');
+  const data = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+  const organization = data['@graph'].find(item => item['@type'] === 'Organization');
+  assert.equal(organization.logo, origin + 'assets/favicon-192.png');
+  assert.match(html, /rel="icon" type="image\/png" sizes="192x192"/);
+  const { default: sharp } = await import('sharp');
+  const image = sharp(await readFile(out('assets/favicon-192.png')));
+  const metadata = await image.metadata();
+  assert.equal(metadata.width, 192);
+  assert.equal(metadata.height, 192);
+  assert.equal(metadata.hasAlpha, false);
+  const {data:pixels} = await image.raw().toBuffer({resolveWithObject:true});
+  assert.deepEqual([...pixels.slice(0,3)], [13,13,13]);
+});

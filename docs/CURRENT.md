@@ -1,3 +1,17 @@
+# Noch offen: Google Search Console
+
+Dieser Betreiberpunkt bleibt ausdrücklich offen: ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestätigen, https://rudelbar.de/sitemap.xml einreichen und tatsächliche Indexierung/Bilddarstellung prüfen. Erreichbarkeit allein ist kein Indexierungsnachweis.
+
+## Nachtrag am 5. November
+
+Der direkte GitHub-Bau-Aufruf wurde auf Wunsch entfernt. Die Redaktion speichert und veröffentlicht weiterhin in Sanity. Website-Neubauten erfolgen über den vorhandenen Zeitplan und reguläre Code-Veröffentlichungen; neue statische Adressen und Vorschauen können bis zum folgenden erfolgreichen Lauf warten. Die Zeitpläne wurden nicht geändert. Für diesen Ablauf ist kein zusätzlicher GitHub-PAT in der Redaktion erforderlich.
+
+Das Google-Organisationslogo und das 192-Pixel-Favicon referenzieren die vorhandene undurchsichtige dunkle Bilddatei. Automatische Prüfungen: 231 Backstage-, 8 Notfallredaktions- und je 12 Website-Tests erfolgreich. Die Ausgangsversionen wurden erneut mit den laufenden Diensten abgeglichen.
+
+Die folgenden Abschnitte dokumentieren den ursprünglichen Release einschließlich des inzwischen entfallenen Direkttriggers. Maßgeblich ist dieser Nachtrag.
+
+---
+
 # Aktueller Website- und Backstage-Release: 5. November 2026
 
 Die Website-Audit-Korrekturen sind veröffentlicht und nachgeprüft. Vor der Veröffentlichung wurden die tatsächlich laufende Website, alle 86 Backstage-Oberflächendateien und der ausführbare Servercode direkt mit dem Ausgangsstand abgeglichen.

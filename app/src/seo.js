@@ -29,7 +29,7 @@ export function pageMetadata(route, content, pathname) {
   let missing = route.page === "404";
   const schema = [{
     "@type": "Organization", "@id": `${SITE_URL}#organisation`, name: SITE_NAME,
-    url: SITE_URL, logo: full(sitePath("assets/rudelbar-logo.png")), email: CONTACT_EMAIL,
+    url: SITE_URL, logo: full(sitePath("assets/favicon-192.png")), email: CONTACT_EMAIL,
     telephone: CONTACT_PHONE, sameAs: [INSTAGRAM],
     address: { "@type": "PostalAddress", streetAddress: "Kielort 16c", postalCode: "22850", addressLocality: "Norderstedt", addressCountry: "DE" },
   }];

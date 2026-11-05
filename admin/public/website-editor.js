@@ -329,9 +329,9 @@ function bind() {
     try {
       await api(`${state.section}/${state.selected}/${action}`, { method: "POST" });
       state.message = {
-        publish: "Veröffentlicht. Inhalte werden direkt aktualisiert; Seitenadressen und Linkvorschauen werden im Hintergrund aufgebaut.",
-        unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv. Die gespeicherten Seiten werden im Hintergrund aktualisiert.",
-        archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert. Die gespeicherten Seiten werden im Hintergrund aktualisiert.",
+        publish: "Veröffentlicht. Inhalte werden beim Laden aktualisiert. Neue Seitenadressen und Vorschauen folgen mit der nächsten regelmäßigen Website-Aktualisierung.",
+        unpublish: "Von der Website genommen. Der Eintrag liegt nun als Entwurf unter Aktiv. Die gespeicherten Seiten folgen mit der nächsten regelmäßigen Website-Aktualisierung.",
+        archive: "Archiviert und von der Website genommen. Du findest den Eintrag unter Archiviert. Die gespeicherten Seiten folgen mit der nächsten regelmäßigen Website-Aktualisierung.",
         restore: "Wiederhergestellt als Entwurf. Veröffentliche ihn bei Bedarf erneut.",
         delete: "Eintrag endgültig aus der Redaktion entfernt.",
       }[action];
