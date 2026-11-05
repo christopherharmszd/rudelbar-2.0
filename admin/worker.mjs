@@ -1,3 +1,4 @@
+import { requestWebsiteBuild } from "./lib/website-build.mjs";
 import { createSanity } from "./lib/sanity.mjs";
 
 const editorEmail = "redaktion@rudelbar.local";
@@ -213,13 +214,14 @@ async function api(request, env) {
       else if (action === "archive") await client.archive(id, type);
       else if (action === "restore") await client.restore(id, type);
       else await client.deleteForever(id, type);
-      return json(200, { ok: true });
+      const websiteBuild = ["publish", "unpublish", "archive"].includes(action) ? await requestWebsiteBuild(env) : undefined;
+      return json(200, { ok: true, websiteBuild });
     }
   }
   return json(404, { error: "Nicht gefunden." });
 }
 
-export default {
+const editorialWorker = {
   async fetch(request, env) {
     if (!new URL(request.url).pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     try { return await api(request, env); }
@@ -227,5 +229,15 @@ export default {
       console.error("Redaktionsanfrage fehlgeschlagen", error);
       return json(error.status || 500, { error: error.status ? error.message : "Die Anfrage konnte nicht abgeschlossen werden." });
     }
+  },
+};
+
+export default {
+  async fetch(request, env) {
+    const response = await editorialWorker.fetch(request, env);
+    if (response.status === 101) return response;
+    const result = new Response(response.body, response);
+    result.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return result;
   },
 };
