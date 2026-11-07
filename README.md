@@ -1,23 +1,41 @@
-# Rudelbar 2.0
+# Rudelbar: verbindliche Quelle
 
-Bearbeitbare Quelle für Website, Redaktion und Gäste-App. Der historische Ordner site/ bleibt als alter Website-Snapshot erhalten und ist kein aktuelles Deployment.
+Dieses Repository enthält den bearbeitbaren Quellcode für Website, Backstage und Gäste-App. Es gibt keinen zweiten Website-Snapshot mehr im Repository.
 
-- app/ enthält die öffentliche React/Vite-Website. Sie baut eigene HTML-Seiten aus veröffentlichten Sanity-Inhalten und aktualisiert diese zusätzlich im Browser. Die Startseite zeigt den nächsten kommenden Termin. Aktuelles erscheint mit dem ersten veröffentlichten Beitrag.
-- admin/ enthält den aktuellen Backstage- und Servercode. event-app/ enthält die Gäste-Oberfläche; shared/ gemeinsame Regeln.
-- Quellcode-main veröffentlicht die Testwebsite unter https://christopherharmszd.github.io/rudelbar-2.0/ mit dem Dataset staging und noindex.
-- https://rudelbar.de/ bleibt beim Produktions-Repository christopherharmszd/rudelbar-pages. Dessen Produktionsworkflow baut einen festen freigegebenen Quellcode-Commit aus diesem Repository. Ein späterer main-Push wird nicht automatisch neuer Produktionscode.
-- Publish, Unpublish und Archivieren starten den Produktionsseitenbau. Ein regelmäßiger Build dient als Rückfallebene. Neue Detailseiten, Sitemap und Social-Metadaten entstehen mit dem nächsten erfolgreichen Build; Sanity-Inhalte werden auf geöffneten Seiten zusätzlich aktuell geladen.
-- /redaktion leitet auf den vorhandenen Backstage-Einstieg weiter. Sein historisch benannter Worker rudelbar-cms-staging bearbeitet öffentliche Website-Inhalte ausdrücklich im Dataset production. Interne App-Daten bleiben im Dataset staging. Keine automatische Inhaltskopie.
-- Die unabhängige Notfallredaktion rudelbar-cms bleibt ein eigener älterer Dienst. Ihr gezielter Audit-Hotfix liegt auf fix/legacy-cms-audit-2026-11-05. Nicht mit dem modernen Backstage-Code überschreiben.
+| Bereich | Quelle / Aufgabe |
+| --- | --- |
+| Öffentliche Website | `app/` |
+| Backstage und Backend | `admin/` |
+| Gäste-Oberfläche | `event-app/` |
+| Gemeinsame Regeln | `shared/` |
+| Betriebsstand und offene Aufgaben | [docs/CURRENT.md](docs/CURRENT.md) |
 
-## Lokal
+## Entwicklung und Veröffentlichung
 
-Im Ordner app/ npm ci ausführen. npm run build und npm test prüfen Staging; npm run build:production und npm run test:production prüfen Produktion. Ausgaben: app/dist/client und app/dist/production. Für richtige Unterseiten einen Server mit Verzeichnis-index.html und eigener 404.html verwenden.
+- Entwicklung erfolgt auf `main` in diesem Repository. Die aktuelle lokale Arbeitskopie liegt unter `/Users/christopher.harms/Documents/GitHub/rudelbar-2.0`.
+- Die Testwebsite unter https://christopherharmszd.github.io/rudelbar-2.0/ wird aus `main` mit Sanity `staging` gebaut und trägt `noindex`.
+- https://rudelbar.de/ wird über [rudelbar-pages](https://github.com/christopherharmszd/rudelbar-pages) veröffentlicht. Dort steht ausschließlich die Veröffentlichungssteuerung; der Workflow baut einen ausdrücklich freigegebenen Commit aus diesem Quellcode-Repository.
+- Ein Code-Release kopiert keine CMS-Inhalte. Öffentliche Inhalte liegen in Sanity `production`; interne App-Daten bleiben im historisch benannten Dataset `staging`.
+- Der regelmäßige Website-Bau bleibt bestehen. Es gibt keinen GitHub-Build-Schlüssel in der Redaktion und keinen direkten Build-Aufruf beim Veröffentlichen. Neue statische Seiten, Sitemap und Vorschauinformationen entstehen mit dem nächsten erfolgreichen Bau.
 
-Die Formulare verwenden den echten Web3Forms-Endpunkt. Testanfragen werden tatsächlich versendet.
+Ablauf und Rückweg: [docs/production-release.md](docs/production-release.md).
 
-## Verbindlicher Betriebsstand
+## Aktive Dienste
 
-[Website-Release und Live-Abgleich vom 5. November](docs/website-audit-release-2026-11-05.md) beschreibt Seitenbau, feste Produktionsfreigabe, Token-Ablauf und Rückkehr.
+- `rudelbar-cms-staging`: aktuelles Backstage und Backend; der historische Name ist keine ungenutzte Testumgebung. https://rudelbar.de/redaktion führt hierhin.
+- `rudelbar-app-staging`: echte Gäste-App, verwendet das Backend über eine Servicebindung.
+- `rudelbar-cms`: bewusst beibehaltener unabhängiger Notfallzugang. Sein eigener Quellcode liegt auf `fix/legacy-cms-audit-2026-11-05`, nicht auf modernem `main`.
+- `rudelbar-gtm-feedback`: getrennte Feedback-Anwendung mit eigener Datenbank und eigenen Quellen; bleibt erhalten.
+- Der frühere simulierte Prototyp `rudelbar-event-demo` wurde am 7. November 2026 entfernt.
 
-[Backstage-Betriebsstand](docs/CURRENT.md) und [Betriebsleitfaden](docs/betrieb-gaeste-app.md) beschreiben den zuletzt verifizierten Gäste-/Live-Funktionsstand. Die damalige echte iPhone-/Android-Abnahme bleibt eine gesonderte offene Aufgabe. Dieses Website-Release verändert weder Datenbankschema noch Gäste-App, Passwörter, Mailkonfiguration oder Inhaltsbestände.
+## Lokal prüfen
+
+Im Ordner `app/`: `npm ci`, `npm run build`, `npm test`; für Produktion zusätzlich `npm run build:production` und `npm run test:production`.
+
+Im Ordner `admin/`: `npm ci`, `npm test`. Isolierte Bedienprüfungen stehen in `scripts/`. Die reguläre Worker-Konfiguration ist mit echten Beständen verbunden. Web3Forms-Testanfragen werden tatsächlich versendet.
+
+[Redaktionsbetrieb](admin/README.md) · [Gäste-App betreuen](docs/betrieb-gaeste-app.md)
+
+## Noch offen
+
+Google Search Console einrichten und echte Indexierung/Bilddarstellung prüfen. Die Gäste-App benötigt weiterhin die abschließende Abnahme auf tatsächlichen iPhones und Android-Geräten. Einzelheiten in [CURRENT.md](docs/CURRENT.md).

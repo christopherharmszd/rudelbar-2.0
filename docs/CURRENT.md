@@ -1,125 +1,41 @@
 # Noch offen: Google Search Console
 
-Dieser Betreiberpunkt bleibt ausdrücklich offen: ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestätigen, https://rudelbar.de/sitemap.xml einreichen und tatsächliche Indexierung/Bilddarstellung prüfen. Erreichbarkeit allein ist kein Indexierungsnachweis.
+Ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestätigen, https://rudelbar.de/sitemap.xml einreichen und tatsächliche Indexierung/Bilddarstellung prüfen. Erreichbarkeit allein ist kein Indexierungsnachweis.
 
-## Veröffentlichungsautomatik gewartet am 5. November
+# Noch offen: echte Geräteabnahme der Gäste-App
 
-Die veralteten GitHub-Actions wurden auf Node24-kompatible Versionen aktualisiert. Staging und Produktion sind vollständig erfolgreich veröffentlicht; je 12 Tests bestanden, Bau und Veröffentlichung ohne Warnungen. Website-Code, feste Produktionsquelle, Zeitpläne und Berechtigungen bleiben unverändert. [Nachweis und Rückkehr](actions-maintenance-2026-11-05.md).
+QR-Einstieg, Anmeldung, Angebote, Teilnahme, Postfach, Fotos und Benachrichtigungen auf tatsächlichen iPhones und Android-Geräten prüfen. Browsergrößenprüfungen ersetzen diese Abnahme nicht. Es wurde kein echter Abend dafür aktiviert.
 
-## Abschluss der Vereinfachung am 5. November
+# Verbindlicher Betriebsstand · 7. November 2026
 
-Build-Schlüssel aus beiden Worker Secrets entfernt und bei GitHub widerrufen; nach Neuladen zeigt GitHub keinen Fine-grained Token mehr. Direkter Bau-Aufruf entfernt. Der vorhandene regelmäßige Zeitplan bleibt unverändert.
+## Quelle und Veröffentlichung
 
-Aktuelle Produktionsquelle: ab5395d1e0a1bd0190564f6e32a9ee7066c221a9; Produktionsrepository: 009eaa5f226bf86e4f6af8d077c384fa0de4492c. Backstage-Version: 987ea38f-c8ed-4d35-81dd-04f2c7c495ec. Notfallredaktion: 31c09e26-84ac-4e41-b1a7-e2ae86616fd3 aus a241031bfc0e9c975e6f45ea09550520fa994a40. Gäste-App unverändert.
+- Bearbeitbare Quelle: `christopherharmszd/rudelbar-2.0`, `main`.
+- Lokale Arbeitskopie: `/Users/christopher.harms/Documents/GitHub/rudelbar-2.0`.
+- Produktionssteuerung: `christopherharmszd/rudelbar-pages`, lokal `/Users/christopher.harms/Documents/GitHub/rudelbar-pages`.
+- Website-Produktionsquelle: `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`. Direkt mit dem Live-Manifest abgeglichen; der aktuelle Anwendungscode auf `main` ist unverändert.
+- Testwebsite: Quellcode-`main`, Dataset `staging`, `noindex`. Produktion: Dataset `production`. Keine automatische Inhaltskopie.
+- Veröffentlichungs-Actions auf Node24-kompatiblen Versionen; Website-Bau weiterhin Node22. Vorhandene Zeitpläne unverändert. Kein direkter GitHub-Build-Aufruf oder Build-PAT mehr.
 
-Google-Organisationslogo und 192-Pixel-Favicon sind live als dunkle RGB-Datei ohne Transparenz geprüft. 15 Seiten/Aliasse und 33 eingebundene Dateien erneut erfolgreich geprüft. 231/8 CMS-Tests und je 12 Website-Tests erfolgreich.
+## Laufende Worker
 
-Weiterhin offen und im Bericht prominent: Google Search Console einrichten und tatsächlichen Google-Indexstatus einschließlich Bilddarstellung prüfen. Echte iPhone-/Android-Abnahme der Gäste-App bleibt ein gesonderter offener Punkt.
-
-## Nachtrag am 5. November
-
-Der direkte GitHub-Bau-Aufruf wurde auf Wunsch entfernt. Die Redaktion speichert und veröffentlicht weiterhin in Sanity. Website-Neubauten erfolgen über den vorhandenen Zeitplan und reguläre Code-Veröffentlichungen; neue statische Adressen und Vorschauen können bis zum folgenden erfolgreichen Lauf warten. Die Zeitpläne wurden nicht geändert. Für diesen Ablauf ist kein zusätzlicher GitHub-PAT in der Redaktion erforderlich.
-
-Das Google-Organisationslogo und das 192-Pixel-Favicon referenzieren die vorhandene undurchsichtige dunkle Bilddatei. Automatische Prüfungen: 231 Backstage-, 8 Notfallredaktions- und je 12 Website-Tests erfolgreich. Die Ausgangsversionen wurden erneut mit den laufenden Diensten abgeglichen.
-
-Die folgenden Abschnitte dokumentieren den ursprünglichen Release einschließlich des inzwischen entfallenen Direkttriggers. Maßgeblich ist dieser Nachtrag.
-
----
-
-# Aktueller Website- und Backstage-Release: 5. November 2026
-
-Die Website-Audit-Korrekturen sind veröffentlicht und nachgeprüft. Vor der Veröffentlichung wurden die tatsächlich laufende Website, alle 86 Backstage-Oberflächendateien und der ausführbare Servercode direkt mit dem Ausgangsstand abgeglichen.
-
-- Öffentliche Website: freigegebene Quelle 48ef0309ce26495daaa040658f71329176872f13; Produktionsworkflow in rudelbar-pages, Release 8eae34365c70acf5065053b9ac8af9d25bd2fad1.
-- Backstage: Version 97fde78a-1c11-4180-8c81-97dab058260f aus derselben Quelle.
-- Unabhängige Notfallredaktion: Version 0f4ea295-546c-488b-bd5f-03f0fa3b1039 aus Zweig fix/legacy-cms-audit-2026-11-05, Quelle 501e68804feb79b96d7b7a8f4d6ac15e26e6a027.
-- Gäste-App unverändert. Keine Abendfreigabe, SQL-Migration, Passwort-, Mail- oder DNS-Änderung.
-- 233 Backstage-, 10 Notfallredaktions- und je 11 Website-Tests erfolgreich. 15 tatsächliche Seiten/Aliasse und 31 eingebundene Dateien erfolgreich geprüft.
-- Der tatsächliche CMS-Publish hat den Produktionsbau erfolgreich gestartet. Vier vorhandene Beitragsbilder haben individuelle Beschreibungen, alle sonstigen sichtbaren Beitragsdaten und die Bildreihenfolge sind erhalten.
-- Beide Web3Forms-Formulare erfolgreich getestet; E-Mail-Eingang vom Inhaber bestätigt.
-- Sitemap und technische Indexierbarkeit geprüft. Google Search Console ist nicht angemeldet; tatsächliche Google-Indexierung ist nicht nachgewiesen.
-- Der beschränkte Build-Schlüssel liegt in beiden Worker Secrets und läuft am 3. Februar 2027 ab. Rechtzeitig rotieren; zeitgesteuerte Builds bleiben als Rückfallebene.
-
-Einzelheiten: [Release und Rückkehr](website-audit-release-2026-11-05.md), [Prüfnachweis](website-audit-verification-2026-11-05.json).
-
----
-
-## Historischer Funktions- und Datenbanknachweis vom 4. November
-
-Die folgenden Versionen und Prüfungen beschreiben den Zustand vor dem gezielten Website-Audit-Release. Die Gäste-App und ihre noch offene echte Geräteabnahme bleiben davon unverändert.
-
-# Rudelbar-Stand am 4. November
-
-4. November 2026. Der genehmigte Funktionsumbau ist auf den bestehenden Rudelbar-
-Adressen veröffentlicht. Keine Pause, kein Verlust ungesicherter Entwicklung.
-Die abschließende Abnahme auf echten iPhones und Android-Geräten ist noch offen;
-der Gesamtplan wird deshalb nicht als vollständig abgenommen bezeichnet.
-
-## Online
-
-| Bereich | Version | Geprüfte Quelle |
+| Dienst | Aktive Version | Geprüfte Quelle / Aufgabe |
 | --- | --- | --- |
-| Backstage und Live | 79a72b90-2a07-41e0-940b-300f987affda | 1d20008fa3434e04e950bd07b99dd08eea05d51d |
-| Gäste-App | 96b8d7f7-e5d6-4675-b4f2-9e5c6b98a1d4 | c8f385a03deafed1521835020b516cde1c2a83d0 |
+| `rudelbar-cms-staging` | `987ea38f-c8ed-4d35-81dd-04f2c7c495ec` | `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9` · aktuelles Backstage/Backend |
+| `rudelbar-app-staging` | `96b8d7f7-e5d6-4675-b4f2-9e5c6b98a1d4` | `c8f385a03deafed1521835020b516cde1c2a83d0` · echte Gäste-App |
+| `rudelbar-cms` | `31c09e26-84ac-4e41-b1a7-e2ae86616fd3` | `a241031bfc0e9c975e6f45ea09550520fa994a40` auf `fix/legacy-cms-audit-2026-11-05` · ausdrücklich beibehaltener Notfallzugang |
+| `rudelbar-gtm-feedback` | `8c78a709-1f27-4618-962b-a2d2e5f8bfda` | eigenständige Feedback-Anwendung mit eigener D1-Datenbank; unverändert erhalten |
 
-Backstage: https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#templates
+Diese Versionen und Bindungen wurden am 7. November lesend gegen Cloudflare geprüft. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
 
-Gäste: https://rudelbar-app-staging.christopher-harms.workers.dev/
+## Daten und Zugänge
 
-Unabhängige Notfallredaktion: https://rudelbar-cms.christopher-harms.workers.dev/
+Backstage: Website-Dataset `production`, internes Dataset `staging`, Projekt `uywmld5e`. D1 `rudelbar-live-staging` (`5207ce12-4fc5-4923-a92b-d30a8699b0ff`), private EU-R2-Ablage `rudelbar-guest-media`, WallFeed und vorhandene Zugangswerte bleiben erhalten. Gäste-App-Servicebindung `CONTENT` zeigt auf `rudelbar-cms-staging`.
 
-Migrationen bis einschließlich 0015_encounter_reporting.sql sind auf der richtigen
-Rudelbar-Datenbank angewendet. Private Medienablage rudelbar-guest-media in EU,
-kein öffentlicher R2-Zugang oder aktivierter eigener Medien-Domainzugang.
-Der separate WallFeed-Dienst ist an den Rudelbar-Backend-Worker gebunden.
-
-Neue Module bleiben aus, bis sie bewusst mit vollständigen Angaben eingerichtet
-und für einen tatsächlichen Abend freigegeben werden. Keine künstlichen Personen,
-Abende, Teilnahmen, Gewinne oder Bilder im echten Arbeitsbestand. Die vorhandenen
-Beispielprodukte bleiben wie beauftragt erhalten. Gemeinsamer Zugang Redaktion,
-persönliche Konten, Mailkonfiguration und unabhängige Notfallredaktion bleiben.
-
-## Geprüft
-
-- 229 automatisierte Tests erfolgreich.
-- Native lokale Cloudflare-Laufzeiten für Wall, RPC, D1, R2, WebSockets,
-  Gewinnausgabe, Begegnungen, Kontakte und Berichte erfolgreich.
-- Ein vollständiger isolierter Abend von den zentralen Standbeziehungen über
-  Teilnahme, Betreuung und Schließen bis Bericht/CSV erfolgreich. Keine Namen
-  oder privaten Texte in der Auswertung; Bedienmessung ausgeschaltet.
-- 66 unabhängige Online-Prüfungen bestätigen tatsächliche Versionen, Dateien,
-  Zugriffsgrenzen, unveränderte Konten/Arbeitsdaten/Mail/Anbieterzugang und alle
-  Sanity-Revisionen. Geschützte SQL-Sicherungen wurden tatsächlich wiederhergestellt.
-- Neue Migrationen zweimal verlustfrei mit frischen tatsächlichen Sicherungen
-  geprüft. Vor 0012–0014 bleiben 54 Tabellen unverändert, vor 0015 bleiben 99.
-- Browserprüfung mit 390 px sowie Beteiligungsbericht bei 320 px ohne seitlichen
-  Seitenüberlauf. Dies ist kein tatsächlicher iPhone-/Android-Test.
-
-Die echte Browser-Anmeldesitzung war bei der Schlussprüfung abgelaufen. Keine
-Passwörter oder Konten dafür verändert. Die angemeldeten Bedienprüfungen erfolgten
-isoliert; Online-Prüfungen umfassten veröffentlichte Inhalte, Rechtegrenzen und
-unveränderte Bestände ohne Einspielen künstlicher Aktivitäten.
+Die vorhandenen Web3Forms-Formulare bleiben unverändert; beide E-Mail-Eingänge wurden vom Inhaber bestätigt. Kein Besucherzähler eingerichtet. Google kann frühere Bilder weiter im Cache haben; dunkles Organisationslogo und 192-Pixel-Favicon sind technisch veröffentlicht.
 
 ## Weiterarbeiten
 
-Zuerst diese Datei und [den Betriebsleitfaden](betrieb-gaeste-app.md) lesen.
-Einzelheiten und Belege: [QA am 4. November](qa-2026-11-04.md). Ältere Pausen-
-und Wiederaufnahmenotizen beschreiben historische Zwischenstände.
+Zuerst diese Datei und [den Veröffentlichungsablauf](production-release.md) lesen. [Backstage-Betrieb](../admin/README.md) und [Gäste-App betreuen](betrieb-gaeste-app.md) beschreiben die Nutzung. [Prüfungen vom 4. November](qa-2026-11-04.md) und die datierten Audit-/Wartungsberichte sind historische Nachweise, keine konkurrierenden aktuellen Betriebsanweisungen.
 
-Repository: christopherharmszd/rudelbar-2.0, Zweig
-codex/rudelbar-wall-wip-2026-11-03. Der Zweig hat keinen automatischen Worker-Deploy.
-Quellcode ist lokal und auf GitHub gesichert. Lokale Original-Commits bleiben
-zusätzlich unter ihren Sicherungszweigen erhalten. SQL, Geheimnisse und .qa bleiben
-außerhalb des öffentlichen Git. Dokumentations-Commits nach den obigen Quellen
-ändern keinen bereits veröffentlichten Anwendungscode.
-
-Für erneute isolierte Prüfung zuerst scripts/isolated-wall-preview.mjs mit
-RUDELBAR_QA_PORT=8836 starten, danach scripts/isolated-evening-integration-check.mjs.
-Das Prüfsystem enthält ausschließlich flüchtige fiktive Daten, sperrt externe
-Zugriffe und versendet keine echten E-Mails oder Push-Mitteilungen.
-
-Als nächster Abnahmeschritt: QR-Einstieg, Name, Angebote und Karte, Teilnahme,
-Postfach, Fotoauswahl, Tastatur/kleine Bildschirme sowie Hintergrundmitteilungen
-auf tatsächlichen iPhone-/Android-Geräten prüfen. Push auf iOS benötigt die
-installierte Web-App und eine eigene Gerätefreigabe. Reale Angebote und ihre
-Zweck-/Fristangaben bleiben eine bewusste Entscheidung in Backstage.
+Geschützte SQL-Sicherungen, Zugangswerte und lokale Wiederherstellungspakete gehören nicht ins öffentliche Git. Keine Testdaten, Resets, Passwortänderungen, DNS- oder Mailänderungen im Rahmen der Bereinigung.

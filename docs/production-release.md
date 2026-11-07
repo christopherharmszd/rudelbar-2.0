@@ -1,44 +1,43 @@
-# Rudelbar: Veröffentlichung in Produktion
+# Rudelbar veröffentlichen
 
-## Getrennte Bereiche
+## Eine bearbeitbare Quelle, getrennte Ziele
 
-| Bereich | Staging | Produktion |
-| --- | --- | --- |
-| Website | `christopherharmszd.github.io/rudelbar-2.0` | `rudelbar.de` über `christopherharmszd/rudelbar-pages` |
-| Redaktion (Haupteinstieg) | Neues Backstage, Website-Bereich | `rudelbar.de/redaktion` → `rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website` |
-| Notfall-Redaktion | Im Backstage unter Website erreichbar | `rudelbar-cms.christopher-harms.workers.dev` |
-| Sanity-Dataset | `staging` | `production` |
+`christopherharmszd/rudelbar-2.0` enthält den Quellcode. `main` baut die Testwebsite. Das Repository `christopherharmszd/rudelbar-pages` enthält die Steuerung für https://rudelbar.de/ und baut einen fest freigegebenen Quellcode-Commit. Alte fertige Website-Dateien werden dort nicht mehr von Hand gepflegt.
 
-Der Quellcode für Website und Redaktion liegt in `rudelbar-2.0`. `rudelbar-pages` enthält nur die fertigen statischen Dateien für die Live-Domain. Seit 2. November 2026 verwenden beide Website-Editoren im neuen Worker und die Notfall-Redaktion gemeinsam den Bestand `production`. Die übrigen App-Daten bleiben erhalten; Details stehen in [BACKSTAGE.md](../BACKSTAGE.md). Bei der Umstellung des Haupteinstiegs wurden ausschließlich `redaktion.html` und `redaktion/index.html` im veröffentlichten Repository geändert. Ein vollständiger Website-Neubau ist dafür nicht erforderlich.
+| Bereich | Aktuelles Ziel |
+| --- | --- |
+| Testwebsite | https://christopherharmszd.github.io/rudelbar-2.0/ · Sanity `staging` · `noindex` |
+| Öffentliche Website | https://rudelbar.de/ · Sanity `production` |
+| Backstage | https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website |
+| Unabhängiger Notfallzugang | https://rudelbar-cms.christopher-harms.workers.dev/ |
+| Gäste-App | https://rudelbar-app-staging.christopher-harms.workers.dev/ |
 
-## Release vorbereiten
+Der historisch benannte Backstage-Worker bearbeitet Website-Inhalte in `production`, interne App-Inhalte in `staging`. Ein Code-Release überträgt keine Inhalte zwischen Datasets. Die beiden CMS-Zugänge bleiben auf ausdrücklichen Wunsch erhalten.
 
-1. Im Quellcode-Repository `app/` und `admin/` testen. `npm run build` und `npm test` in `app/` prüfen Staging. `npm run build:production` und `npm run test:production` bauen und prüfen Produktion. `npm test` in `admin/` prüft die Redaktion.
-2. `app/dist/production` ist der vollständige statische Produktionsstand einschließlich `CNAME`, Impressum, Datenschutz und `/redaktion`-Weiterleitung. Die Dateien auf einen Release-Branch von `rudelbar-pages` kopieren und dort einen Pull Request gegen `main` prüfen. Alte, im neuen Build nicht mehr vorhandene Dateien dürfen auf dem Release-Branch entfernt werden.
-3. Das neue Backstage unter `https://rudelbar-cms-staging.christopher-harms.workers.dev/backstage#website`, seine Anmeldung und den Notfall-Link zur bisherigen Produktionsredaktion prüfen. Beide müssen dieselben Website-Produktionsinhalte zeigen. Entwicklungstests verwenden isolierte Fixtures; die historisch staging benannte Arbeitsumgebung enthält echte Daten.
-4. Den Pull Request erst nach Freigabe nach `rudelbar-pages/main` übernehmen. Das ist der Schritt, der die Website auf `rudelbar.de` ersetzt. Es sind dafür keine Änderungen an Nameservern oder Mail-DNS nötig.
+## Vor jedem Release
 
-## Direkt nach der Veröffentlichung prüfen
+1. Aktuelle entfernte Branch-Spitzen und tatsächlich laufende Quellen prüfen. Lokaler Ordnername und ein alter `origin/main`-Verweis sind kein Aktualitätsnachweis.
+2. Für die Website `app/` aus dem vorgesehenen Commit bauen und beide Ziele prüfen: `npm ci`, `npm run build`, `npm test`, `npm run build:production`, `npm run test:production`.
+3. Testwebsite, mobile Darstellung, Navigation und betroffene Funktionen prüfen. Formulare senden echte E-Mails. Inhalte nicht durch Testbeiträge überschreiben.
+4. Für die öffentliche Website ausschließlich den freigegebenen vollständigen SHA in `rudelbar-pages/.github/workflows/production.yml` ändern: sowohl `with.ref` als auch `RUDELBAR_SOURCE_SHA`. Keine fertigen Dateien in den Repository-Stamm kopieren.
+5. Nach ausdrücklichem Produktionsauftrag diese Änderung übernehmen, erfolgreichen Bau und Deployment abwarten und `https://rudelbar.de/site-manifest.json` sowie echte Seiten und Dateien prüfen.
 
-- `https://rudelbar.de/` und `https://www.rudelbar.de/`: Startseite, nächster Termin, Team und Bilder.
-- `https://rudelbar.de/redaktion` (beziehungsweise `/redaktion.html`): Weiterleitung direkt zum Website-Bereich im neuen Backstage; nach Anmeldung muss dieser Bereich erhalten bleiben. Dort muss Bisherige Redaktion den unabhängigen Notfallzugang öffnen.
-- Datenschutz und Impressum über den Footer öffnen; die Seiten müssen im Website-Design erscheinen.
-- „Aktuelles“ darf erst mit einem im Produktions-CMS veröffentlichten Beitrag erscheinen.
-- Kontaktformular nur mit einer ausdrücklich als Test markierten Anfrage prüfen, weil es echte Nachrichten versendet.
-- Eine mobile Breite sowie Navigation und Dialoge in der Redaktion prüfen.
+Die momentan freigegebene Anwendungsquelle ist `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`. Spätere Wartungs- und Bereinigungscommits änderten weder Website- noch Worker-Laufzeitcode.
 
-## Suchmaschinen und interne Redaktion
+## Worker getrennt warten
 
-Die öffentliche Website soll auffindbar sein. Die Redaktion einschließlich Anmeldung, Backstage, bisherigen CMS-Seiten und internen Schnittstellen soll nicht in Suchergebnissen erscheinen. Das gilt für beide Worker `rudelbar-cms-staging` und `rudelbar-cms` sowie alle späteren eigenen Redaktionsdomains.
+`admin/wrangler.jsonc` veröffentlicht das aktuelle Backstage über `cloudflare-entry.mjs` mit D1, R2, WallFeed und Service-Schnittstellen. Im Ordner `admin/` heißen die Betreiberbefehle `npm test` und `npm run deploy:backstage`. Eine Veröffentlichung ist ein eigener Arbeitsschritt; ein Git-Push veröffentlicht den Worker nicht automatisch.
 
-`admin/public/_headers` liefert deshalb für statische Dateien unter allen Pfaden `X-Robots-Tag: noindex, nofollow`. `admin/worker.mjs` ergänzt denselben Header bei dynamischen Antworten und Weiterleitungen. Die bisherige CMS-Startseite enthält zusätzlich ein Robots-Meta-Tag; Anmeldung und Backstage besitzen bereits entsprechende Angaben. WebSocket-Upgrades werden unverändert weitergereicht.
+Die unabhängige Notfallredaktion wird ausschließlich aus `fix/legacy-cms-audit-2026-11-05` gepflegt. Dort liegt ihre eigene `admin/wrangler.production.jsonc`. Auf modernem `main` wurden die irreführende alte Produktionskonfiguration, ihr Deployment-Befehl und historische Erstinitialisierungs-/Migrationsskripte entfernt.
 
-Nach einem gezielten Worker-Release per HTTP-Abruf prüfen: `/`, `/anmelden`, `/backstage`, `/api/session` und eine nicht vorhandene Adresse müssen den Header tragen. Die Weiterleitungsseiten `/redaktion`, `/redaktion.html` und `/redaktion/` auf der öffentlichen Domain behalten ihr `noindex`-Meta-Tag. Die öffentliche Startseite und öffentliche Inhalte erhalten dagegen kein `noindex` aus der Redaktionskonfiguration.
+Bestehende Geheimnisse, Passwörter, persönliche Zugänge und Bindungen bei einer Wartung erhalten. Datenbankumstellungen benötigen aktuelle geschützte Sicherungen und eine isolierte Wiederherstellungsprüfung. Die Gäste-App verwendet einen eigenen Worker und eine Servicebindung auf das Backstage.
 
-Keine zusätzliche `robots.txt`-Sperre vor den `noindex`-Seiten setzen: Google muss den Ausschlusshinweis abrufen können. Bereits vorhandene Suchtreffer verschwinden erst nach erneuter Verarbeitung; bei Bedarf die Search Console zur erneuten Prüfung oder Entfernung verwenden. Der Passwort- und Berechtigungsschutz bleibt die eigentliche Zugriffskontrolle. `noindex` ist kein Zugangsschutz.
+## CMS und regelmäßiger Website-Bau
 
-Fachgrundlage: [Google Search Central zu noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
+Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennte Handlungen. Die Redaktion schreibt nach Sanity. Der vorhandene GitHub-Zeitplan baut statische Seiten regelmäßig neu; GitHub kann Läufe verzögern. Es gibt keinen direkten GitHub-Aufruf und keinen zu rotierenden Build-PAT mehr. Aktuelle Inhalte werden auf der Website zusätzlich beim Laden abgefragt.
 
-## Rückweg
+## Nach Veröffentlichung und Rückweg
 
-Bei einem Website-Problem den Produktions-Pull-Request auf `rudelbar-pages/main` zurücknehmen beziehungsweise den vorherigen Website-Commit erneut veröffentlichen. Das Produktions-Dataset und der Produktions-Worker bleiben dabei erhalten. Inhalte in Sanity nur gezielt ändern; ein Website-Rollback setzt Sanity nicht zurück.
+Öffentliche Startseite, betroffene Detailseiten, Bilder, Impressum/Datenschutz und `/redaktion` prüfen. Die Redaktion einschließlich Anmeldung und interner Schnittstellen behält `noindex, nofollow`; öffentliche Seiten bleiben indexierbar. `noindex` ersetzt keinen Anmeldeschutz.
+
+Bei Website-Problemen den vorherigen freigegebenen Quellcode-SHA im Produktionsworkflow wiederherstellen und erneut bauen. Das setzt keine CMS-Inhalte zurück. Worker nur gezielt mit einer kompatiblen Fassung zurücknehmen; Datenbanken und inzwischen geänderte Rechte nicht zurücksetzen. Nameserver und Mail-DNS bleiben von Code-Releases unberührt.

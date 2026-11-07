@@ -28,25 +28,17 @@ Der Worker liefert die Oberfläche und `/api/*` unter derselben Webadresse aus. 
 
 ### Bauen und veröffentlichen
 
-Im Ordner `admin/`:
+Im Ordner `admin/`: `npm ci`, `npm test`, bei einem beauftragten Worker-Release `npm run deploy:backstage`.
 
-```sh
-npm ci
-npm test
-npm run deploy:staging
-```
+`admin/wrangler.jsonc` gehört zum aktuellen Backstage einschließlich D1, R2 und WallFeed. Der historische Name `rudelbar-cms-staging` bezeichnet den tatsächlich genutzten Dienst. Bestehende Secrets und Bindungen erhalten. Kein automatischer Worker-Deploy durch einen Git-Push.
 
-Für die erste Einrichtung beziehungsweise einen Passwortwechsel anschließend im Repository:
+Der unabhängige Notfallzugang bleibt ausdrücklich erhalten. Sein eigener Quellcode einschließlich Produktionskonfiguration liegt ausschließlich auf `fix/legacy-cms-audit-2026-11-05`. Modernen Backstage-Code nicht auf diesen Worker übertragen. Die irreführende alte Produktionskonfiguration und Erstinitialisierungsskripte wurden aus modernem `main` entfernt.
 
-```sh
-node --env-file=admin/.env.local admin/configure-worker.mjs
-```
+Ein Passwortwechsel ist ein eigener Betreiberauftrag. Bestehende Passwörter, Sitzungs- und Sanity-Schlüssel werden bei einem Code-Release nicht erneuert. Keine historischen Migrations- oder Befüllungsskripte über echte Inhalte laufen lassen.
 
-Das Skript erzeugt ein neues starkes Passwort und zeigt es **einmalig** nach erfolgreicher Übertragung an. Mit `--prompt` kann stattdessen ein selbst gewähltes Passwort im Terminal verborgen eingegeben werden; es muss mindestens 16 Zeichen lang sein. Bei jedem Lauf werden der Sitzungsschlüssel und der Passwortprüfwert gemeinsam ersetzt und alle bisherigen Sitzungen abgemeldet. `admin/.env.local` enthält den bereits eingerichteten Sanity Editor Token und ist von Git ausgeschlossen. Die Datei ist Voraussetzung für diesen Betreiberbefehl, nicht für Redakteure.
+`/api/upload` speichert Website-Bilder in `production`; `/api/upload/app` speichert interne Bilder in `staging`. Es gibt keinen direkten GitHub-Build-Aufruf und keinen zusätzlichen GitHub-Build-Schlüssel mehr. Statische Seiten werden nach dem vorhandenen Zeitplan gebaut.
 
-Die Worker-Konfigurationen stehen in `admin/wrangler.jsonc` und `admin/wrangler.production.jsonc`. Der Produktions-Worker wird mit `npm run deploy:production` veröffentlicht. Seine eigenen Secrets setzt `SANITY_DATASET=production node --env-file=admin/.env.local admin/configure-worker.mjs --production`. Dieser Befehl erzeugt ein neues Passwort und meldet bestehende Produktionssitzungen ab; nur für eine bewusste Passwortänderung erneut ausführen. Die Cloudflare-Adresse unter `workers.dev` funktioniert ohne DNS-Änderung. Für `redaktion.rudelbar.de` muss die Domainanbindung separat eingerichtet und geprüft werden; die bestehende Website- und Mail-DNS-Konfiguration darf dabei nicht verändert werden.
-
-Die historische erste Übernahme erfolgte mit `admin/migrate-staging-to-production.mjs`. Dieses Skript darf nicht zur Zusammenführung erneut ausgeführt werden. Seit 2. November 2026 lesen und schreiben alle Website-Oberflächen direkt denselben Produktionsbestand. `/api/upload` speichert Website-Bilder in `production`; `/api/upload/app` speichert Angebots-, Personen- und Partnerbilder in `staging` und erfordert Verwaltungsrechte.
+Aktueller [Veröffentlichungsablauf](../docs/production-release.md).
 
 ### Lokal testen
 
