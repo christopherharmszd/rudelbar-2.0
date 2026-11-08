@@ -2,9 +2,9 @@
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).
 
-## Separate Freigabevorschau · korrigierter Entwurf 07
+## Separate Freigabevorschau · Entwurf 08 mit Start im Menü
 
-https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet Entwurf 07 sowie Vergleichsstände 02–06. Auf ausdrückliche Rückmeldung kehren der Einstieg und der große eigenständige Terminblock aus Version 04 zurück. Kürzungen und kompakte Buttons aus 06 bleiben. Die festgelegten Karten-/Termintexte werden verwendet. Gastformular wieder du, Ortsanfrage ihr. [Prüfkriterien](review-07-2026-11-08.md).
+https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet Entwurf 08 sowie Vergleichsstände 02–07. „Start“ ist als erster Menüpunkt auf Desktop und mobil ergänzt; Bezeichnung aus der freigegebenen Textvorlage. Auf ausdrückliche Rückmeldung kehren der Einstieg und der große eigenständige Terminblock aus Version 04 zurück. Kürzungen und kompakte Buttons aus 06 bleiben. Die festgelegten Karten-/Termintexte werden verwendet. Gastformular wieder du, Ortsanfrage ihr. [Prüfkriterien](review-07-2026-11-08.md).
 
 Die positive Bewertung der Startseitengewichtung in Entwurf 06 ist zurückgezogen. Guides und Textvorlage sowie spätere ausdrückliche Benutzerentscheidungen sind verbindlich; keine Freigabe aus technischen Messwerten ableiten. Der Prototyp ist noch nicht nach app/ integriert. Produktion, Worker und CMS bleiben unverändert.
 

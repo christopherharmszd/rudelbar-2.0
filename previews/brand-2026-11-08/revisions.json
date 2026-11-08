@@ -1,5 +1,5 @@
 {
-  "current": "07",
+  "current": "08",
   "date": "2026-11-08",
   "versions": [
     {
@@ -61,6 +61,16 @@
         "Vorlagenwortlaut und Anrede korrigiert; keine gestalterische Freigabe durch eine technische Prüfung."
       ],
       "path": "revisionen/07/"
+    },
+    {
+      "id": "08",
+      "label": "Start im Menü",
+      "origin": "Wie Entwurf 07, zusätzlich Start als erster Punkt der Hauptnavigation.",
+      "changes": [
+        "Start führt von jeder Unterseite zur Startseite; auf Desktop und mobil.",
+        "Bezeichnung aus der freigegebenen Website-Textvorlage."
+      ],
+      "path": "revisionen/08/"
     }
   ],
   "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",

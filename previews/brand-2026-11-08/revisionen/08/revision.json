@@ -1,0 +1,24 @@
+{
+  "id": "08",
+  "date": "2026-11-08",
+  "baseCommit": "10343baf42c0ea7b7c44b6f28a5001753a39e1af",
+  "scope": [
+    "Start als erster Hauptmenüpunkt auf Desktop und mobil"
+  ],
+  "copyReference": "Website-Textvorlage V1.0: Navigation Start",
+  "rawSourceHashes": {
+    "index.html": "d5971037485b75862405a307effc60f7a86f928e6b0eab01c54173b75e7c8b87",
+    "app.js": "beffafc0f63a7638a5e8ce4eabd7415c39651897621a899aa5a2fb3812820137",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "review-06.css": "7c8cb5a0445c800420882573aa6a70be544b03e8f7a8c2dcfad951e4ebc22590",
+    "review-07.css": "d12af0a61ed06abe4098a5f23b3b61ec9a52909fc3e55ec8bd893b203b251a50",
+    "public-content.json": "b4628f25694d9a01fc7f0190891eab2bfbf6aa879d53d16e0aee2a0654053c42"
+  },
+  "deliveryChanges": [
+    "Gemeinsame Asset-Pfade relativ zum Archivordner.",
+    "Versionssteuerung und eigener Browser-Speicher."
+  ]
+}
