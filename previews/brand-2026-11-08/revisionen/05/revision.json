@@ -1,0 +1,28 @@
+{
+  "id": "05",
+  "date": "2026-11-08",
+  "origin": "Aktueller Freigabestand. Weitere UX- und Textänderungen sind noch Vorschläge.",
+  "originalSourceHashes": {
+    "index.html": "f3da8766ea95147303a4cde54417dde7a6945a69b055e8f70ffc831cf6479027",
+    "app.js": "ea59d712bdbbbd678f38c2641d5fed2c418ebc33226986a0507653b0671b19ba",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "public-content.json": "b4628f25694d9a01fc7f0190891eab2bfbf6aa879d53d16e0aee2a0654053c42"
+  },
+  "deliveryChanges": [
+    "Vergleichsbedienung ergänzt und lokaler Vorher-Link entfernt.",
+    "Ungeklärtes drittes Galeriebild in allen öffentlich bereitgestellten Ständen ausgeschlossen.",
+    "Eigenes Browser-Speicherkürzel je Revision."
+  ],
+  "files": {
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "index.html": "85d21c37ab195c931bb92334795edca4d7e27669c2bbac5c1517afb2f4d6c964",
+    "public-content.json": "81225a13d2169ae0ede5a1a2202f08a2cf4f2652f7fc828a62e40166f13782da",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "fonts.css": "ee18645d632bdcd489f527dc6a4b47e0c3ee31ce998274c9abe98c0bf4f69526",
+    "app.js": "63addfc64aa84e1241fb6c7ad76aa9a4cdb9640baae8b7d5f380fcb7576eb230"
+  }
+}

@@ -6,6 +6,7 @@ on:
     paths:
       - app/**
       - previews/brand-2026-11-08/**
+      - scripts/verify-review-revisions.mjs
       - .github/workflows/pages.yml
   workflow_dispatch:
   schedule:
@@ -46,6 +47,7 @@ jobs:
           npm test
       - name: Separate Freigabevorschau hinzufügen
         run: |
+          node scripts/verify-review-revisions.mjs
           test ! -e app/dist/client/freigabe
           cp -R previews/brand-2026-11-08 app/dist/client/freigabe
       - name: GitHub Pages vorbereiten

@@ -1,0 +1,18 @@
+/* Review controls are shared tooling, outside the archived website content. */
+body .review-banner{display:none}
+#review-versions{position:relative;z-index:30;background:#1B1B1A;color:#F5F1E9;border-bottom:1px solid #6A6865;font:400 14px/20px Arial,sans-serif}
+#review-versions>summary{display:flex;align-items:center;justify-content:center;gap:18px;min-height:44px;padding:8px 18px;cursor:pointer;list-style:none}
+#review-versions>summary::-webkit-details-marker{display:none}
+#review-versions>summary strong{font:700 14px/20px Arial,sans-serif;color:#FDC300}
+#review-versions>summary span{text-decoration:underline;text-underline-offset:3px}
+#review-versions[open]>summary{border-bottom:1px solid #6A6865}
+#review-versions .review-version-panel{max-width:760px;margin:auto;padding:22px}
+#review-versions label{display:block;font:700 14px/20px Arial,sans-serif;margin-bottom:8px}
+#review-versions select{display:block;width:100%;min-height:48px;padding:10px 12px;background:#0D0D0D;color:#F5F1E9;border:1px solid #6A6865;border-radius:3px;font:400 16px/22px Arial,sans-serif}
+#review-versions p,#review-versions li{font:400 14px/21px Arial,sans-serif;color:#BBB8B2;margin:12px 0}
+#review-versions ul{padding-left:20px;list-style:disc}
+#review-versions .review-version-links{display:flex;align-items:center;gap:12px 24px;flex-wrap:wrap}
+#review-versions a{display:inline-flex;min-height:44px;align-items:center;font:700 14px/20px Arial,sans-serif;color:#F5F1E9;text-decoration:underline;text-underline-offset:4px}
+#review-versions :is(select,a,summary):focus-visible{outline:3px solid #FDC300;outline-offset:3px}
+#review-versions .review-version-small{font-size:12px;line-height:18px;margin-top:18px}
+@media(max-width:600px){#review-versions>summary{justify-content:space-between;gap:12px}#review-versions .review-version-panel{padding:18px}#review-versions .review-version-links{display:grid;gap:0}}

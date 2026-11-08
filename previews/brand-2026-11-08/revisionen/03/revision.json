@@ -1,0 +1,28 @@
+{
+  "id": "03",
+  "date": "2026-11-08",
+  "origin": "Historischer lokaler Prototyp; zuvor nicht öffentlich.",
+  "originalSourceHashes": {
+    "index.html": "86f69f2a609b947785abc22e8fed48a69af13745521e4bb84e1f70407daa64e4",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "public-content.json": "f764af5e76678fc2139df44263ec79d079a2108931058dc89e33a81bdcd64cf2",
+    "app.js": "26498fc49484938c2bc920496d90df584fadcc2ce1c2108067a476bace5129d8",
+    "brand.css": "0eb2b6a0fbff2ecfe3acb5406a53adf54ab7f23a5377829509fb106cb978e4c7"
+  },
+  "deliveryChanges": [
+    "Vergleichsbedienung ergänzt und lokaler Vorher-Link entfernt.",
+    "Ungeklärtes drittes Galeriebild in allen öffentlich bereitgestellten Ständen ausgeschlossen.",
+    "Eigenes Browser-Speicherkürzel je Revision."
+  ],
+  "files": {
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "index.html": "e8e85f09ff8c1c516bf852461d861c3c2dc4a283da5e18588fccf362a706be1e",
+    "public-content.json": "81225a13d2169ae0ede5a1a2202f08a2cf4f2652f7fc828a62e40166f13782da",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "brand.css": "0eb2b6a0fbff2ecfe3acb5406a53adf54ab7f23a5377829509fb106cb978e4c7",
+    "fonts.css": "ee18645d632bdcd489f527dc6a4b47e0c3ee31ce998274c9abe98c0bf4f69526",
+    "app.js": "ed32cd0d0b32825fbb7239bfa79814c331a8557b790682191db481a0e6710cb4"
+  }
+}

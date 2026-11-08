@@ -1,0 +1,52 @@
+{
+  "current": "05",
+  "date": "2026-11-08",
+  "versions": [
+    {
+      "id": "02",
+      "label": "GTM-Entwurf",
+      "origin": "Historischer lokaler Prototyp; zuvor nicht öffentlich.",
+      "changes": [
+        "Partner und Orte standen im Vordergrund.",
+        "Gestaltung vor dem Brand Guide; Gründerporträts auf der Startseite."
+      ],
+      "path": "revisionen/02/"
+    },
+    {
+      "id": "03",
+      "label": "Brand Guide und Textvorlage",
+      "origin": "Historischer lokaler Prototyp; zuvor nicht öffentlich.",
+      "changes": [
+        "Neue Markenschriften und Farben sowie überarbeitete Texte.",
+        "Gäste und Orte gleich gewichtet; Gemeinschaftsblock auf der Startseite."
+      ],
+      "path": "revisionen/03/"
+    },
+    {
+      "id": "04",
+      "label": "Erste öffentliche Freigabe",
+      "origin": "Öffentlich seit 8. November 2026; Quelle 9bf6b387e72a2a7eb61c9edaaa6b62e35b686170.",
+      "changes": [
+        "Kompaktere Teamdarstellung und Name Rudelgeschichten.",
+        "Vergangene Termine mit Rückblick unter kommenden Abenden."
+      ],
+      "path": "revisionen/04/"
+    },
+    {
+      "id": "05",
+      "label": "Versionsvergleich und Early Access",
+      "origin": "Aktueller Freigabestand. Weitere UX- und Textänderungen sind noch Vorschläge.",
+      "changes": [
+        "Entwürfe 02 bis 05 direkt auswählbar, mit festen Links und Änderungshinweisen.",
+        "App-Status kurz als Early Access. Navigation, Inhalte und Layout sonst wie Entwurf 04."
+      ],
+      "path": "revisionen/05/"
+    }
+  ],
+  "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",
+  "historicalDeliveryChanges": [
+    "Vergleichsbedienung ergänzt und lokaler Vorher-Link entfernt.",
+    "Ungeklärtes drittes Galeriebild in allen öffentlich bereitgestellten Ständen ausgeschlossen.",
+    "Eigenes Browser-Speicherkürzel je Revision."
+  ]
+}

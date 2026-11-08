@@ -1,0 +1,98 @@
+{
+  "events": [
+    {
+      "_id": "b91062c4-d8b3-4465-af9e-2ea00baf1cf5",
+      "address": "Hauptstraße 10, 23845 Wakendorf I",
+      "date": "2026-12-05",
+      "description": "Mitten in der Adventszeit nehmen wir uns Zeit füreinander: zum Anstoßen, Wiedersehen und für Gespräche, die sonst auf „demnächst mal“ verschoben werden. \n\nAm 5. Dezember ab 18 Uhr kommt das Rudel auf dem Schönmoorer Hof in Wakendorf I zusammen.\n\n Bringt eure Lieblingsmenschen mit oder kommt einfach dazu – wir freuen uns auf einen schönen vorweihnachtlichen Abend mit euch!",
+      "mapUrl": "https://www.google.com/maps/search/?api=1&query=Sch%C3%B6mmoorer+Hof%2C+Hauptstra%C3%9Fe+10%2C+23845+Wakendorf+I",
+      "time": "18:00",
+      "title": "Rudelabend am 5.12. in Wakendorf I",
+      "venue": "Schömmoorer Hof"
+    },
+    {
+      "_id": "rudel-event-scharnebeck-2026-10-02",
+      "address": "Bardowicker Straße 2, 21379 Scharnebeck",
+      "date": "2026-10-02",
+      "description": "Rudelbar startet am Rathaus der Gemeinde Scharnebeck. Komm vorbei, triff Menschen aus dem Ort und bleib so lange, wie es für dich passt.",
+      "mapUrl": "https://www.google.com/maps/place/Bardowicker+Str.+2,+21379+Scharnebeck/@53.2935625,10.5041127,17z/data=!3m1!4b1!4m6!3m5!1s0x47b1e060266d87bf:0xcf8e2bf556fe16b3!8m2!3d53.2935625!4d10.5066876!16s%2Fg%2F11c156vvlz?hl=en&entry=ttu&g_ep=EgoyMDI2MDkxNi4wIKXMDSoASAFQAw%3D%3D",
+      "time": "ab 18 Uhr",
+      "title": "Premiere in Scharnebeck",
+      "venue": "Rathaus Gemeinde Scharnebeck"
+    }
+  ],
+  "posts": [
+    {
+      "_id": "722bbab2-f024-4696-a83b-3ce7e85d2185",
+      "body": "SCHARNEBECK, IHR WART DER WAHNSINN! \n\nWas für ein Abend! Am 02. Oktober durften wir mit unserer RUDELBAR Teil eines unvergesslichen Abends in Scharnebeck sein!\n\nEin voller Platz, ausgelassene Stimmung, jede Menge gute Gespräche und Menschen, die gemeinsam gefeiert und gelacht haben. Genau dafür steht unsere Rudelbar: Gemeinschaft, Zusammenhalt und unvergessliche Momente! \n\n❤️ Ein ganz besonderer Dank geht an:\n\nDie Gemeinde Scharnebeck, für die Nutzung ihrer Flächen.\n\nLuisa Fandrey, für die Unterstützung und die Möglichkeit, Teil dieses tollen Abends zu sein.\n\nAlexander Hering und dem Team EDEKA Greinert, für die Versorgung rund um unsere Veranstaltung.\n\nUnser IT-Experte Christopher Harms, der ebenso mit seiner Musik und Karaoke-Lounge für Stimmung und beste Unterhaltung gesorgt hat!\n\nUnsere Grafikdesignerin Daniela Naebert, die unserem Rudelbar-Auftritt mit ihrer kreativen Arbeit ein unverwechselbares Gesicht gegeben hat.\n\nUnsere Modedesignerin Anne Skerat, die dafür gesorgt hat, dass unser Rudel auch optisch als echtes Team auftritt.\n\nUnd natürlich unserem gesamten Rudel, allen fleißigen Helfern und jedem einzelnen Gast! Ohne euch wäre dieser Abend nicht das geworden, was er war.\n\nScharnebeck, DANKE für diesen großartigen Abend! ❤️\n\nGemeinsam. Überall. Rudelbar. \n\n#Rudelbar #Scharnebeck #GemeinsamÜberallRudelbar #Dorfgemeinschaft #Danke #MobileKneipe #TeamRudelbar",
+      "date": "2026-10-08",
+      "images": [
+        {
+          "_key": "cff75326-6892-45d0-846f-3ffcde6f58d5",
+          "_type": "image",
+          "alt": "Dankesgrafik an die Helfer und das Dorf Scharnebeck vor dem beleuchteten Rudelbar-Wagen.",
+          "caption": "",
+          "localUrl": "../../assets/gallery-0.jpg"
+        },
+        {
+          "_key": "cdab377e-3df5-4fc7-b745-02e1147a39c8",
+          "_type": "image",
+          "alt": "Viele Gäste zwischen der beleuchteten Rudelbar und Pavillons beim Abend in Scharnebeck.",
+          "caption": "",
+          "localUrl": "../../assets/gallery-1.jpg"
+        },
+        {
+          "_key": "df944227-3f59-4200-9f3a-6a361fe68555",
+          "_type": "image",
+          "alt": "Kreidetafel neben dem Wagen: „Moin. Setz dich dazu. Aus Fremden werden Bekannte. Eure Rudelbar.“",
+          "caption": "",
+          "localUrl": "../../assets/gallery-3.jpg"
+        }
+      ],
+      "teaser": "Was für ein Abend! Am 2. Oktober 2026 verwandelte sich Scharnebeck in einen Treffpunkt voller Gemeinschaft, Musik und guter Laune. Mit unserer mobilen Rudelbar, großartigen Gästen und jeder Menge Unterstützung wurde dieser Abend zu einem unvergesslichen Erlebnis.",
+      "title": "Scharnebeck 2026 – Ein Abend, der verbindet!"
+    }
+  ],
+  "team": [
+    {
+      "_id": "rudel-team-jan",
+      "bio": "Der Zahlenkopf im Rudel: mit verdammt gutem Blick fürs Geld und trotzdem für jeden Spaß zu haben.",
+      "name": "Jan",
+      "order": 1,
+      "role": "Teammitglied · Stellvertreter",
+      "localPhoto": "../../assets/team-1.jpg"
+    },
+    {
+      "_id": "rudel-team-jannik",
+      "bio": "Unser Mann für Hardware und Social Media. Er bringt die Technik zum Laufen, das Rudel ins Netz und packt an, bevor andere überhaupt merken, dass Arbeit da ist.",
+      "name": "Jannik",
+      "order": 2,
+      "role": "Teammitglied · Medienbeauftragter",
+      "localPhoto": "../../assets/team-2.jpg"
+    },
+    {
+      "_id": "rudel-team-martin",
+      "bio": "Der Kopf hinter der Rudelbar!",
+      "name": "Martin",
+      "order": 0,
+      "role": "Inhaber · Kopf hinter der Rudelbar",
+      "localPhoto": "../../assets/team-0.jpg"
+    },
+    {
+      "_id": "rudel-team-paddy",
+      "bio": "Der Gourmet im Spielbetrieb. Er kümmert sich um Genuss und liefert Ideen für Spiele und Aktionen, bei denen Fremde miteinander lachen – und am Ende vielleicht als Freunde nach Hause gehen.",
+      "name": "Paddy",
+      "order": 3,
+      "role": "Teammitglied · Event-Beauftragter",
+      "localPhoto": "../../assets/team-3.jpg"
+    },
+    {
+      "_id": "rudel-team-patryk",
+      "bio": "Unser Mann für den Einsatz. Er packt an, wo Hilfe gebraucht wird, behält auch dann die Ruhe, wenn es hektisch wird, und macht aus Ideen echte Rudelbar-Momente.",
+      "name": "Patryk",
+      "order": 4,
+      "role": "Teammitglied · Einsatzbeauftragter",
+      "localPhoto": "../../assets/team-4.jpg"
+    }
+  ]
+}

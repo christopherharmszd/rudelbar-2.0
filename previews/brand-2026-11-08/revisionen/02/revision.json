@@ -1,0 +1,24 @@
+{
+  "id": "02",
+  "date": "2026-11-08",
+  "origin": "Historischer lokaler Prototyp; zuvor nicht öffentlich.",
+  "originalSourceHashes": {
+    "index.html": "80d82bf472afba6c31b39cf78a7354891ada312dc736701f41668ce970071f20",
+    "app.js": "e076bf8045692aaa0fb4e9b21dc178b167b602bb85549b650a72a7ec61ee8399",
+    "style.css": "5f5dfef541616cd0eaa5206180366741f7c10083acfae77efef0e10b783d923b",
+    "gtm.css": "4a1f5c3e26d3578309bd254eb073021a6412311a67a7969cb3d93cbf4d0e9391",
+    "public-content.json": "f764af5e76678fc2139df44263ec79d079a2108931058dc89e33a81bdcd64cf2"
+  },
+  "deliveryChanges": [
+    "Vergleichsbedienung ergänzt und lokaler Vorher-Link entfernt.",
+    "Ungeklärtes drittes Galeriebild in allen öffentlich bereitgestellten Ständen ausgeschlossen.",
+    "Eigenes Browser-Speicherkürzel je Revision."
+  ],
+  "files": {
+    "gtm.css": "4a1f5c3e26d3578309bd254eb073021a6412311a67a7969cb3d93cbf4d0e9391",
+    "index.html": "7de479a0a17f02add61db065c544d21199249b159acc4e4c2011ccb367445e21",
+    "public-content.json": "81225a13d2169ae0ede5a1a2202f08a2cf4f2652f7fc828a62e40166f13782da",
+    "style.css": "5f5dfef541616cd0eaa5206180366741f7c10083acfae77efef0e10b783d923b",
+    "app.js": "9c4f9e6ffb8cf8610f39def9d2ec65bfe14345cb819b63fc5f30bd677ecdeb44"
+  }
+}
