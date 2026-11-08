@@ -14,6 +14,10 @@
 
 Der historisch benannte Backstage-Worker bearbeitet Website-Inhalte in `production`, interne App-Inhalte in `staging`. Ein Code-Release überträgt keine Inhalte zwischen Datasets. Die beiden CMS-Zugänge bleiben auf ausdrücklichen Wunsch erhalten.
 
+## Separate öffentliche Freigabevorschau
+
+Der Entwurf 04 vom 8. November 2026 liegt unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/. Quelle und Hinweise: [previews/brand-2026-11-08](../previews/brand-2026-11-08/README.md). Der Staging-Workflow kopiert den eingefrorenen Prototyp nach app/dist/client/freigabe. Er wird vom Produktions-Build nicht übernommen und ändert weder das Produktionsrepository noch die Domain. Die fachliche Designfreigabe führt noch nicht automatisch zu einer Produktionsveröffentlichung; die echte Integration nach app/ und die ausstehenden Backend-Aufgaben bleiben separate Schritte.
+
 ## Vor jedem Release
 
 1. Aktuelle entfernte Branch-Spitzen und tatsächlich laufende Quellen prüfen. Lokaler Ordnername und ein alter `origin/main`-Verweis sind kein Aktualitätsnachweis.

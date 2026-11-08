@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - app/**
+      - previews/brand-2026-11-08/**
       - .github/workflows/pages.yml
   workflow_dispatch:
   schedule:
@@ -43,6 +44,10 @@ jobs:
           npm ci
           npm run build
           npm test
+      - name: Separate Freigabevorschau hinzufügen
+        run: |
+          test ! -e app/dist/client/freigabe
+          cp -R previews/brand-2026-11-08 app/dist/client/freigabe
       - name: GitHub Pages vorbereiten
         uses: actions/configure-pages@v6.0.0
       - name: Website hochladen

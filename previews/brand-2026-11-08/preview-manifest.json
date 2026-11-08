@@ -1,0 +1,39 @@
+{
+  "version": "Entwurf 04",
+  "date": "2026-11-08",
+  "purpose": "Freigabevorschau, keine Produktionsfreigabe",
+  "cms": "frozen-public-snapshot",
+  "deliveryChanges": [
+    "Vorschauhinweise für öffentlichen Link angepasst",
+    "Lokalen Vorher-Vergleich entfernt",
+    "Ungeklärtes drittes Galeriebild vollständig ausgeschlossen"
+  ],
+  "localAppSha256": "6ef1acdd5ac4dc30f2cc616cc2bbd13eb005a1e60defde6850a3cafdd428b2bd",
+  "files": {
+    "README.md": "b2fbe798ca11de2bbf7ed706df13dc26fc0cb4f0dcf3e931ca5f944fb1b30741",
+    "app.js": "ea59d712bdbbbd678f38c2641d5fed2c418ebc33226986a0507653b0671b19ba",
+    "assets/dorfkarte.png": "cb8fa1aa070eebf2a823a03d59e311031d0559834a380302ee00c912318769b3",
+    "assets/fonts/OFL-Bitter.txt": "152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1",
+    "assets/fonts/OFL-Source-Sans-3.txt": "09746787287a289323b0ec3cff4d1a4a801331b82b7207c1e186f5d26619a392",
+    "assets/fonts/bitter-latin-ext-variable.woff2": "8c1f1559771de47e1f30a87c2bf501d46f42fabc4d93361f4401de05d8e6efa6",
+    "assets/fonts/bitter-latin-variable.woff2": "0efe0fbe6068354f3fad5a88bf31384051206652468eaa22232119354e7ea423",
+    "assets/fonts/source-sans-3-latin-ext-variable.woff2": "a85a7459bdb3cdc1136751e151a506bae653fc29ada3ca86237477df6f1b59e6",
+    "assets/fonts/source-sans-3-latin-variable.woff2": "19143dca075972bc84e3fd9eab7416dd40cc565dccb2435a044bdfabe060c7d5",
+    "assets/gallery-0.jpg": "ef7bbc53a58ad3f2f95779e9e94e0fefaf18e7e2f7c6902e057aa8ed3412036c",
+    "assets/gallery-1.jpg": "186144fe639aad4a9936dd85b45d07477945b5356b4074cc64cf09d748314b98",
+    "assets/gallery-3.jpg": "5e6ba09e1cc3595401aef3c40fae1f3ed0075b0bd9e8b5bf21aec3342dd22c7a",
+    "assets/logo.webp": "5025e97f3b8681ee26644bdbddb85a3b25405bb7f805044b018f285c3bba7d17",
+    "assets/team-0.jpg": "847f8059f157002422b1fc9e34e33b3de6307c813dc341b71953715138db3934",
+    "assets/team-1.jpg": "536c5f72609b9dc6b16b4cfb9231a1c81b061b536d0d5b5c3d8e4105ebe74f86",
+    "assets/team-2.jpg": "7070ce276aa7e6d7ea4aed6b53f126ffee52279a19cd56bfb8945c793b1d870e",
+    "assets/team-3.jpg": "7e882584fb10c3c0cb8184082b7d5b63d8715a3dd633600fc2ddd1debcb19ca7",
+    "assets/team-4.jpg": "6c7e6bc13687d7832943c9bd0f1f7861477b2af37ac4196265702e256c78946d",
+    "assets/wagen.jpg": "99c4bb938db5a3802c8dda0d9fad0f167e0c297447c4bb156e2314d11e0a92b8",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "index.html": "f3da8766ea95147303a4cde54417dde7a6945a69b055e8f70ffc831cf6479027",
+    "public-content.json": "b4628f25694d9a01fc7f0190891eab2bfbf6aa879d53d16e0aee2a0654053c42",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7"
+  }
+}

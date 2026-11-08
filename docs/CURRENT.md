@@ -2,6 +2,10 @@
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).
 
+## Separate Freigabevorschau · Entwurf 04
+
+Öffentliche Prüfung unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ vorbereitet. Quelle: [previews/brand-2026-11-08](../previews/brand-2026-11-08/README.md). Die normale Staging-Website bleibt daneben erhalten. Dieser eingefrorene Gestaltungsprototyp ist keine neue Produktionsquelle und noch nicht nach app/ integriert. Die Kopie erfolgt ausschließlich im Staging-Workflow; Produktions-Pin, Live-Website, Domains, Worker und CMS bleiben unverändert. Die Formulare versenden nichts; Studio-Änderungen gelten nur im eigenen Browser.
+
 # Noch offen: Google Search Console
 
 Ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestätigen, https://rudelbar.de/sitemap.xml einreichen und tatsächliche Indexierung/Bilddarstellung prüfen. Erreichbarkeit allein ist kein Indexierungsnachweis.
