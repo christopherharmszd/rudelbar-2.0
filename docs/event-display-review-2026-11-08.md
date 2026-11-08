@@ -10,9 +10,9 @@ Status: lokale Prüfvorschau vom Inhaber freigegeben und am 8. November 2026 als
 - Aktuelles: ein oder zwei Beiträge nutzen die verfügbare Breite; ohne veröffentlichte Beiträge bleibt der Bereich ausgeblendet.
 - Startseite: Abstand zwischen Abschlussfoto und Footer sowie lesbare Bildbeschriftung.
 
-## Vorgeschlagene CMS-Erweiterung: optionaler Kurztext
+## Unbedingt noch umzusetzen: Kurztextpflege im Backend
 
-Diese Backend-Erweiterung ist **geplant, noch nicht implementiert**. Kein Worker-Deployment und keine Sanity-Migration gehören zur Prüfvorschau.
+Diese Backend-Erweiterung ist **verbindlich noch umzusetzen und noch nicht implementiert**. Der Inhaber hat sie am 8. November 2026 ausdrücklich als unbedingt offen markiert. Das Kurztextfeld selbst bleibt optional; die Erweiterung ist keine bloße Option mehr. Kein Worker-Deployment und keine Sanity-Migration gehörten zum veröffentlichten Darstellungsfix.
 
 | Feld | Pflege | Öffentliche Verwendung |
 | --- | --- | --- |
