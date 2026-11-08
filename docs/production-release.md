@@ -22,7 +22,7 @@ Der historisch benannte Backstage-Worker bearbeitet Website-Inhalte in `producti
 4. Für die öffentliche Website ausschließlich den freigegebenen vollständigen SHA in `rudelbar-pages/.github/workflows/production.yml` ändern: sowohl `with.ref` als auch `RUDELBAR_SOURCE_SHA`. Keine fertigen Dateien in den Repository-Stamm kopieren.
 5. Nach ausdrücklichem Produktionsauftrag diese Änderung übernehmen, erfolgreichen Bau und Deployment abwarten und `https://rudelbar.de/site-manifest.json` sowie echte Seiten und Dateien prüfen.
 
-Die momentan freigegebene Anwendungsquelle ist `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`. Spätere Wartungs- und Bereinigungscommits änderten weder Website- noch Worker-Laufzeitcode.
+Die momentan freigegebene Website-Quelle ist `c5178a1b099fad1d7baee4013921d891925b1038` (Darstellungsfix vom 8. November 2026). Produktionssteuerung: `705ec03d775eee53444d4b251a6a3ed3f95a72ac`. Bau, Tests, Deployment und tatsächliche Ausgabe sind bestätigt. Vorherige Website-Quelle für den Rückweg: `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`. Worker wurden für diesen Website-Fix nicht veröffentlicht; die optionale Termin-Kurztextpflege im Backend bleibt geplant.
 
 ## Worker getrennt warten
 

@@ -8,16 +8,16 @@ QR-Einstieg, Anmeldung, Angebote, Teilnahme, Postfach, Fotos und Benachrichtigun
 
 ## Freigegebener Darstellungsfix · 8. November 2026
 
-Die lokal geprüften Darstellungsänderungen an Terminen, Aktuelles und Abschlussfoto wurden zur Veröffentlichung freigegeben. Der Produktionsablauf wird auf den geprüften Quellcode gesetzt; bis zur bestätigten Auslieferung bleibt der unten dokumentierte Live-Stand maßgeblich. Navigation, Seitenstruktur und Karte bleiben erhalten. Eine optionale Kurztext-Erweiterung für Termine ist separat geplant, im Backend noch nicht umgesetzt. Umfang und Rückfall für vorhandene Inhalte: [Termindarstellung und CMS-Plan](event-display-review-2026-11-08.md).
+Die freigegebenen Darstellungsänderungen an Terminen, Aktuelles und Abschlussfoto sind live. Staging und Produktion wurden erfolgreich gebaut und veröffentlicht; Produktionsmanifest, sieben öffentliche Seiten bzw. Einstiege sowie Desktop-/Mobilansichten wurden geprüft. Navigation, Seitenstruktur und Karte bleiben erhalten. Eine optionale Kurztext-Erweiterung für Termine ist separat geplant, im Backend noch nicht umgesetzt. Umfang, Nachweise und Rückfall für vorhandene Inhalte: [Termindarstellung und CMS-Plan](event-display-review-2026-11-08.md).
 
-# Verbindlicher Betriebsstand · 7. November 2026
+# Verbindlicher Betriebsstand · 8. November 2026
 
 ## Quelle und Veröffentlichung
 
 - Bearbeitbare Quelle: `christopherharmszd/rudelbar-2.0`, `main`.
 - Lokale Arbeitskopie: `/Users/christopher.harms/Documents/GitHub/rudelbar-2.0`.
 - Produktionssteuerung: `christopherharmszd/rudelbar-pages`, lokal `/Users/christopher.harms/Documents/GitHub/rudelbar-pages`.
-- Website-Produktionsquelle: `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`. Direkt mit dem Live-Manifest abgeglichen; der aktuelle Anwendungscode auf `main` ist unverändert.
+- Website-Produktionsquelle: `c5178a1b099fad1d7baee4013921d891925b1038`. Direkt mit dem Live-Manifest und den ausgelieferten Seiten/Dateien abgeglichen. Produktionssteuerung: `705ec03d775eee53444d4b251a6a3ed3f95a72ac`; erfolgreicher [Produktionslauf](https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42507896701). Spätere reine Dokumentationscommits auf `main` ändern diese freigegebene Anwendungsquelle nicht. Vorherige Website-Quelle für einen gezielten Rückweg: `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9`.
 - Testwebsite: Quellcode-`main`, Dataset `staging`, `noindex`. Produktion: Dataset `production`. Keine automatische Inhaltskopie.
 - Veröffentlichungs-Actions auf Node24-kompatiblen Versionen; Website-Bau weiterhin Node22. Vorhandene Zeitpläne unverändert. Kein direkter GitHub-Build-Aufruf oder Build-PAT mehr.
 

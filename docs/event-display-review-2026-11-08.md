@@ -1,6 +1,6 @@
 # Prüfvorschau: Termindarstellung · 8. November 2026
 
-Status: lokale Prüfvorschau vom Inhaber freigegeben; Website-Veröffentlichung wird vorbereitet. Navigation, Seitenreihenfolge, Karte und vorhandene redaktionelle Texte bleiben bestehen. Kein GTM-Umbau.
+Status: lokale Prüfvorschau vom Inhaber freigegeben und am 8. November 2026 als Website-Fix veröffentlicht. Navigation, Seitenreihenfolge, Karte und vorhandene redaktionelle Texte bleiben bestehen. Kein GTM-Umbau. Die unten vorgeschlagene Backend-Erweiterung bleibt geplant.
 
 ## Darstellung
 
@@ -46,3 +46,12 @@ Browserprüfungen bei schmaler und breiter Fenstergröße ersetzen keine Abnahme
 - Lokale Schutzmaßnahmen: HTTP-`noindex`, Snapshot statt erneuter Sanity-Abfrage, keine nicht-lesenden Serveranfragen. Formular mit lokalen Testwerten bedient: bestätigt „Es wird keine Nachricht verschickt“. Keine echten E-Mails gesendet.
 - Vorschau: `http://127.0.0.1:4398/`; Erläuterungen unter `/__review/`. Screenshots und lokaler Vorschauserver liegen im Arbeitsordner `work/rudelbar-display-review-2026-11-08` der zugehörigen Codex-Session. Website-Code verbleibt ausschließlich in der kanonischen Arbeitskopie.
 - Zum Abschluss der Prüfvorschau war kein Commit, Push, Worker-Deployment oder Produktionsrelease vorgenommen. Die spätere Freigabe umfasst den Website-Fix; die Backend-Erweiterung bleibt geplant.
+
+## Produktionsveröffentlichung · 8. November 2026
+
+- Freigegebene Website-Quelle: `c5178a1b099fad1d7baee4013921d891925b1038` in `christopherharmszd/rudelbar-2.0/main`. Produktionssteuerung: `705ec03d775eee53444d4b251a6a3ed3f95a72ac` in `rudelbar-pages/main`.
+- [Staging-Bau und Deployment](https://github.com/christopherharmszd/rudelbar-2.0/actions/runs/42507797714) erfolgreich; [Produktionsbau und Deployment](https://github.com/christopherharmszd/rudelbar-pages/actions/runs/42507896701) erfolgreich. Beide Abläufe bauen und testen den jeweiligen Zielstand.
+- `https://rudelbar.de/site-manifest.json` bestätigt diese Quelle und Dataset `production`. Startseite, Terminübersicht, Termin-Detail, Aktuelles, Datenschutz, Impressum und Redaktionseinstieg liefern HTTP 200. Öffentliche Seiten bleiben indexierbar; Redaktionseinstieg bleibt `noindex, nofollow` und verweist auf das aktuelle Backstage.
+- Die ausgelieferte Terminseite hat eine H1, einen Datumsblock und drei getrennte Beschreibungsabsätze. Neue CSS-/JavaScript-Dateien sind erreichbar. Kein lokaler Vorschauhinweis oder gesperrter Vorschauversand wurde mitveröffentlicht; Web3Forms bleibt unverändert.
+- Live-Browserkontrolle: Termindetail auf Desktop und bei 390 Pixeln ohne horizontalen Überlauf; Startseite mit einer kompakten Ankündigung, einem News-Beitrag in voller mobiler Breite, geladenem Abschlussfoto, heller Beschriftung und Abstand zum Footer. Keine Browserfehler bei dieser Prüfung. Das ist weiterhin keine echte iPhone-/Android-Abnahme.
+- Keine Worker-, Datenbank-, CMS-Inhalts-, Zugangs-, DNS- oder Mailänderungen. Rückweg: vorherige Website-Quelle `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9` gezielt wieder im Produktionsworkflow setzen.
