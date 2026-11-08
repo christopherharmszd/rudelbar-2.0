@@ -2,11 +2,11 @@
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).
 
-## Separate Freigabevorschau · überarbeiteter Entwurf 06
+## Separate Freigabevorschau · korrigierter Entwurf 07
 
-https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet den neuen Entwurf 06 und Vergleichsstände 02–05. Die beschlossenen UX-/Inhaltsänderungen sind im Prototyp umgesetzt: kürzere Startseite, Karte erhalten, eigene App-Seite, neue Navigation, einheitliche Termine, Presse, klare Kontaktwahl, Versorgungsvoraussetzungen und kompakter Footer. [Quelle und Grenzen](../previews/brand-2026-11-08/README.md).
+https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet Entwurf 07 sowie Vergleichsstände 02–06. Auf ausdrückliche Rückmeldung kehren der Einstieg und der große eigenständige Terminblock aus Version 04 zurück. Kürzungen und kompakte Buttons aus 06 bleiben. Die festgelegten Karten-/Termintexte werden verwendet. Gastformular wieder du, Ortsanfrage ihr. [Prüfkriterien](review-07-2026-11-08.md).
 
-Der Prototyp ist keine neue Produktionsquelle und noch nicht nach app/ integriert. Produktions-Pin, Domains, Worker und CMS bleiben unverändert. Formulare versenden nichts; Studio-Eingaben bleiben im eigenen Browser. Echte Backend-Kurztextpflege und CMS-Medienbeiträge bleiben vor Integration erforderlich. Die neue UX-Prüfung erfolgt nach Veröffentlichung dieses Entwurfs.
+Die positive Bewertung der Startseitengewichtung in Entwurf 06 ist zurückgezogen. Guides und Textvorlage sowie spätere ausdrückliche Benutzerentscheidungen sind verbindlich; keine Freigabe aus technischen Messwerten ableiten. Der Prototyp ist noch nicht nach app/ integriert. Produktion, Worker und CMS bleiben unverändert.
 
 # Noch offen: Google Search Console
 

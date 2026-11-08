@@ -1,0 +1,16 @@
+/* Entwurf 07: Version-04-Einstieg und die freigegebenen Kommunikationsregeln. */
+.gtm-map>p { text-align:left; }
+.gtm-map figcaption.eyebrow { font:600 12px/18px var(--body-font); letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:18px 0 0; text-align:center; }
+.next-stop { margin-bottom:0; }
+.next-stop h2 { font:800 28px/32px var(--heading-font); }
+.next-stop .stop-info .stop-date { font:400 17px/26px var(--body-font); color:var(--text); }
+.next-stop .stop-date strong { font:600 17px/26px var(--body-font); color:var(--text); }
+.community-intro { border-top:0; }
+.footer-brand { display:block; }
+.footer-brand p { margin:14px 0 0; }
+@media(max-width:760px) {
+ .next-stop { grid-template-columns:1fr; gap:20px; padding:30px 0; }
+ .next-stop h2 { max-width:none; }
+ .next-stop>.button { grid-column:auto; justify-self:start; }
+ .gtm-map>p { margin:0 0 16px; max-width:none; }
+}

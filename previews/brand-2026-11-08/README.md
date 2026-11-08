@@ -1,21 +1,18 @@
-# Rudelbar Freigabevorschau · Entwurf 06
+# Rudelbar Freigabevorschau · Entwurf 07
 
-Stand: 8. November 2026. Öffentliche Designprüfung, keine freigegebene Produktionswebsite.
-URL: https://christopherharmszd.github.io/rudelbar-2.0/freigabe/
+Stand: 8. November 2026. Öffentliche Gestaltungsprüfung, keine Produktionsfreigabe.
+https://christopherharmszd.github.io/rudelbar-2.0/freigabe/
 
-Die beschlossenen Änderungen sind in Entwurf 06 umgesetzt: kürzere Startseite mit erhaltener Dorfkarte und frühen Termindaten, eigene Rudelbar-App-Seite mit Early Access, Navigation in der Reihenfolge Für euren Ort → Rudelbar-App → Termine → Rudelgeschichten → Über uns, einheitliche Terminkarten, Presseberichte, Kontaktwahl vor dem Formular, Strom und Frischwasser über Schlauchleitung sowie ein schlanker Footer. Gäste und Orte bleiben gleich wichtig.
+Entwurf 07 korrigiert die Rückmeldung zu 06: Der Einstieg mit dem Vorlagenwortlaut und der eigenständige große Terminblock stammen aus 04. Die Kartenüberschrift „Gemeinsam für lebendige Dörfer.“ ist linksbündig. Die Dachzeile lautet „Das Rudel zieht von Ort zu Ort“, der Termin „Nächster Rudelabend“. Die kompakten Einstiegsbuttons und die ausdrücklich gewünschten Kürzungen aus 06 bleiben erhalten.
+
+GTM-/Brand-Guide und Website-Textvorlage sind zusammen mit den späteren ausdrücklichen Entscheidungen der verbindliche Maßstab. Die positive Startseitenbewertung im Audit zu 06 wurde zurückgezogen. Technische Funktion und weniger Scrollen ersetzen keine Prüfung der Gewichtung oder eine gestalterische Freigabe.
 
 ## Betrieb und Grenzen
 
-Der Staging-Workflow kopiert diesen Ordner nach dem normalen Website-Bau ausschließlich nach app/dist/client/freigabe. Der Produktions-Build übernimmt ihn nicht. Keine Änderungen an Produktion, DNS, Domains, Workern, Zugangswerten oder Sanity.
+Nur der Staging-Workflow kopiert diese Dateien nach app/dist/client/freigabe. Der Produktions-Build übernimmt sie nicht. Produktion, Domains, Worker, Zugangswerte und CMS bleiben unverändert. Daten sind eingefroren; Formulare versenden nichts. Studio und Zustandsauswahl speichern ausschließlich im jeweiligen Browser. Presseverweise sind fest hinterlegt; echte CMS-Kurztextpflege und Medien-Beitragstyp bleiben vor Integration erforderlich.
 
-Es gibt keine Sanity-Verbindung. Inhalte sind eingefroren, Presseverweise redaktionell für diese Vorschau hinterlegt. Studio und Zustandsauswahl speichern nur im jeweiligen Browser; Formulare versenden nichts. Alle Seiten tragen noindex, nofollow, noarchive. Schriften und Bilder kommen von GitHub Pages; Pressebeiträge werden nur verlinkt, nicht eingebettet.
+Die App hat nach ausdrücklicher Entscheidung eine eigene Seite und das Label Early Access. Navigation: Für euren Ort → Rudelbar-App → Termine → Rudelgeschichten → Über uns. Allgemeines Gastformular in du-Form; Ortsanfrage in ihr-Form. Versorgung mit Strom und Frischwasser über Schlauchleitung bleibt enthalten. Der veröffentlichte Rückblick bleibt erhalten; das ungeklärte dritte Motiv ist ausgeschlossen.
 
-Die echte CMS-Kurztextpflege und ein Medien-Beitragstyp bleiben vor einer Integration in app/ erforderlich. Stromanschlusstyp, Leistung und Bereitstellung von Kabeln und Schlauch bleiben zu klären. Ein Veranstaltungsfoto für Wakendorf und einheitliche Teamporträts folgen. Das ungeklärte dritte Galeriebild ist ausgeschlossen. Vorhandene Aufnahmen sind als Scharnebeck-Fotos benannt.
+## Vergleich
 
-## Vergleichsstände
-
-Die obere Leiste bietet feste Links: 02 (historischer lokaler GTM-Prototyp), 03 (historischer lokaler Brand-Guide-Prototyp), 04 (erste öffentliche Freigabe, 9bf6b38), 05 (Versionsvergleich und Early Access, 2093c99), 06 (beschlossene Überarbeitung).
-Die Seitenansicht bleibt beim Wechsel erhalten; neue App-Seiten fallen bei älteren Ständen auf die Startseite zurück. Änderungen der gemeinsamen Vergleichssteuerung betreffen nur diese Prüffunktion, keine historischen Inhalte.
-
-Archivordner und gemeinsame Assets werden gegen revision-locks.json geprüft. Frühere Inhaltsstände nicht überschreiben. Neue Motive erhalten neue Dateinamen. Öffentliches Deployment und anschließende neue UX-Prüfung sind vor einer Erfolgsmeldung zu verifizieren.
+Versionen 02–07 bleiben über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsam verwendete Assets sind durch revision-locks.json geschützt. Neue Revisionen überschreiben keine alten Inhaltsstände. Die tatsächliche öffentliche Ausgabe ist nach dem Deployment zu prüfen. Die Designentscheidung liegt beim Inhaber.

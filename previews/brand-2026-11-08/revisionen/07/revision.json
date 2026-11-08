@@ -1,0 +1,33 @@
+{
+  "id": "07",
+  "date": "2026-11-08",
+  "baseCommit": "7dc94f587a9ac7c0b83b788870402e7e8daff10e",
+  "layoutReference": "revisionen/04/",
+  "copyReferences": [
+    "Rudelbar Brand Guide V1.4",
+    "Rudelbar Website Textvorlage V1.0",
+    "Ausdrückliche anschließende Benutzerentscheidungen"
+  ],
+  "rawSourceHashes": {
+    "index.html": "5c4dbdc44042650739227379c4cfbd51efda446dfd795a385a014bd82e22ac31",
+    "app.js": "4f3dcabb552f6891a0d635495be86c6f15d5b70de4df6c44534131e12a9cd56e",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "review-06.css": "7c8cb5a0445c800420882573aa6a70be544b03e8f7a8c2dcfad951e4ebc22590",
+    "review-07.css": "d12af0a61ed06abe4098a5f23b3b61ec9a52909fc3e55ec8bd893b203b251a50",
+    "public-content.json": "b4628f25694d9a01fc7f0190891eab2bfbf6aa879d53d16e0aee2a0654053c42"
+  },
+  "deliveryChanges": [
+    "Gemeinsame Assets relativ zum Archivordner.",
+    "Vergleichssteuerung und eigener Browser-Speicher."
+  ],
+  "scope": [
+    "Version-04-Einstieg und eigenständiger Terminblock",
+    "Kompakte Buttons und gekürzte Folgebereiche erhalten",
+    "Festgelegte Kartenzeile und Überschriften",
+    "Gastformular du, Ortsanfrage ihr",
+    "Guide-Abgleich als verbindliche Repository-Regel"
+  ]
+}

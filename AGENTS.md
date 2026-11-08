@@ -8,6 +8,14 @@ Bearbeitbare Quelle ist `christopherharmszd/rudelbar-2.0/main`. Der aktuelle lok
 
 Vor einem Commit oder Release entfernten aktuellen Branch-Stand prüfen. Ein alter lokaler `origin/main`-Verweis reicht nicht. Produktionsquelle aus dem tatsächlichen `https://rudelbar.de/site-manifest.json` lesen und mit der vorgesehenen Quelle abgleichen. Bei Worker-Arbeit aktive Cloudflare-Version und Bindungen prüfen; keine alte lokale Arbeitskopie ungeprüft veröffentlichen.
 
+## Verbindlicher Maßstab für Gestaltung und Kommunikation
+
+GTM-Guide, Brand Guide und freigegebene Website-Textvorlage sind vor jeder gestalterischen oder sprachlichen Überarbeitung abzugleichen. Maßgeblich sind die Originaldokumente sowie spätere ausdrückliche Entscheidungen des Inhabers. Aktuelle Vorlagen: Rudelbar Brand Guide V1.4 und Website-Textvorlage V1.0 vom 8. November 2026. Fehlt eine Vorlage im Arbeitskontext, zuerst beschaffen.
+
+Bestehenden freigegebenen Wortlaut für denselben Zweck übernehmen. Neue Überschriften, Claims und erklärende Zusätze nicht nebenbei aus allgemeinen UX-Annahmen ableiten. Eine Kürzung berechtigt nicht zur Änderung der inhaltlichen Gewichtung. Abweichungen vom Guide ausdrücklich benennen und vor ihrer Umsetzung abstimmen; bereits ausdrücklich beschlossene Ausnahmen erhalten.
+
+Prüfungen müssen Wortlaut, Markenwirkung und visuelle Gewichtung gegen die Vorgaben kontrollieren. Funktionierende Technik, weniger Scrollen und fehlende Überbreite allein rechtfertigen keine positive gestalterische Freigabe.
+
 ## Aktive Bereiche
 
 - `app/`: öffentliche Website.

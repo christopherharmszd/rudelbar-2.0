@@ -1,5 +1,5 @@
 {
-  "current": "06",
+  "current": "07",
   "date": "2026-11-08",
   "versions": [
     {
@@ -45,12 +45,22 @@
     {
       "id": "06",
       "label": "Überarbeitete Website – eure Rückmeldungen",
-      "origin": "Neue Freigabefassung: beschlossene Änderungen umgesetzt. rudelbar.de bleibt unverändert.",
+      "origin": "Überarbeitung 06; die positive Bewertung der Startseitengewichtung wurde nach Rückmeldung zurückgezogen.",
       "changes": [
         "Kürzere Startseite mit erhaltener Karte, eigener App-Seite und neuer Navigation.",
         "Einheitliche Termine, Pressebeiträge, klare Kontaktwege und Versorgungsvoraussetzungen."
       ],
       "path": "revisionen/06/"
+    },
+    {
+      "id": "07",
+      "label": "Einstieg aus 04 · Kürzungen und neue Buttons",
+      "origin": "Korrektur nach Rückmeldung: Einstieg und großer Terminblock aus 04, gekürzte Folgebereiche und kompakte Buttons beibehalten.",
+      "changes": [
+        "Gemeinsam für lebendige Dörfer. · Das Rudel zieht von Ort zu Ort · Nächster Rudelabend.",
+        "Vorlagenwortlaut und Anrede korrigiert; keine gestalterische Freigabe durch eine technische Prüfung."
+      ],
+      "path": "revisionen/07/"
     }
   ],
   "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",
