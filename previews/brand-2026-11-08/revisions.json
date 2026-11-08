@@ -1,5 +1,5 @@
 {
-  "current": "05",
+  "current": "06",
   "date": "2026-11-08",
   "versions": [
     {
@@ -35,12 +35,22 @@
     {
       "id": "05",
       "label": "Versionsvergleich und Early Access",
-      "origin": "Aktueller Freigabestand. Weitere UX- und Textänderungen sind noch Vorschläge.",
+      "origin": "Vorgänger der überarbeiteten Freigabefassung 06.",
       "changes": [
         "Entwürfe 02 bis 05 direkt auswählbar, mit festen Links und Änderungshinweisen.",
         "App-Status kurz als Early Access. Navigation, Inhalte und Layout sonst wie Entwurf 04."
       ],
       "path": "revisionen/05/"
+    },
+    {
+      "id": "06",
+      "label": "Überarbeitete Website – eure Rückmeldungen",
+      "origin": "Neue Freigabefassung: beschlossene Änderungen umgesetzt. rudelbar.de bleibt unverändert.",
+      "changes": [
+        "Kürzere Startseite mit erhaltener Karte, eigener App-Seite und neuer Navigation.",
+        "Einheitliche Termine, Pressebeiträge, klare Kontaktwege und Versorgungsvoraussetzungen."
+      ],
+      "path": "revisionen/06/"
     }
   ],
   "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",

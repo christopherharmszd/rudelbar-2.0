@@ -47,6 +47,15 @@
     "assets/fonts/OFL-Source-Sans-3.txt": "09746787287a289323b0ec3cff4d1a4a801331b82b7207c1e186f5d26619a392",
     "assets/fonts/bitter-latin-ext-variable.woff2": "8c1f1559771de47e1f30a87c2bf501d46f42fabc4d93361f4401de05d8e6efa6",
     "assets/fonts/source-sans-3-latin-variable.woff2": "19143dca075972bc84e3fd9eab7416dd40cc565dccb2435a044bdfabe060c7d5",
-    "assets/fonts/OFL-Bitter.txt": "152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1"
+    "assets/fonts/OFL-Bitter.txt": "152a1e283e23b42c4940da4c72f2f5bebaa17969cb77c76d7af05903846006f1",
+    "revisionen/06/app.js": "4bf8701c5ed5fa7eb505e43e41e4dea23b0da4cb2964463eec43015174d6aa19",
+    "revisionen/06/brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "revisionen/06/fonts.css": "ee18645d632bdcd489f527dc6a4b47e0c3ee31ce998274c9abe98c0bf4f69526",
+    "revisionen/06/gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "revisionen/06/index.html": "be344bac2dcbea22e559d0020bf6db721ad5a18676450cb909717e6a8b5f440a",
+    "revisionen/06/public-content.json": "81225a13d2169ae0ede5a1a2202f08a2cf4f2652f7fc828a62e40166f13782da",
+    "revisionen/06/review-06.css": "7c8cb5a0445c800420882573aa6a70be544b03e8f7a8c2dcfad951e4ebc22590",
+    "revisionen/06/revision.json": "063d6e6ee0ecc82d1c196a1c8d2629e448178cbd77456484da77e69507850a5c",
+    "revisionen/06/style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7"
   }
 }

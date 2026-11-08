@@ -16,9 +16,9 @@ Der historisch benannte Backstage-Worker bearbeitet Website-Inhalte in `producti
 
 ## Separate öffentliche Freigabevorschau
 
-Versionen 02 bis 05 sind über die obere Vergleichsleiste und feste Links unter freigabe/revisionen/ erreichbar. Historische lokale Prototypen sind als solche markiert; gemeinsame Assets und Archivdateien werden vor dem Staging-Upload gegen SHA-256-Sperren geprüft. Umfangreiche UX-/Messaging-Änderungen sind noch nicht Teil dieses Releases.
+Entwurf 06 unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ enthält die beschlossene Überarbeitung. Versionen 02–06 sind über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsame Assets sind per SHA-256 gesperrt. [Quelle und Grenzen](../previews/brand-2026-11-08/README.md).
 
-Der Entwurf 04 vom 8. November 2026 liegt unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/. Quelle und Hinweise: [previews/brand-2026-11-08](../previews/brand-2026-11-08/README.md). Der Staging-Workflow kopiert den eingefrorenen Prototyp nach app/dist/client/freigabe. Er wird vom Produktions-Build nicht übernommen und ändert weder das Produktionsrepository noch die Domain. Die fachliche Designfreigabe führt noch nicht automatisch zu einer Produktionsveröffentlichung; die echte Integration nach app/ und die ausstehenden Backend-Aufgaben bleiben separate Schritte.
+Die Kopie nach app/dist/client/freigabe erfolgt ausschließlich im Staging-Workflow. Der Produktions-Build übernimmt diese Dateien nicht. Eine Designfreigabe ist keine Produktionsfreigabe; die Integration nach app/ und die offenen Backend-/CMS-Aufgaben bleiben separate Schritte. Nach der Vorschauveröffentlichung folgt eine neue UX-Prüfung des tatsächlichen Stands.
 
 ## Vor jedem Release
 

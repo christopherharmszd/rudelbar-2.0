@@ -2,9 +2,11 @@
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).
 
-## Separate Freigabevorschau · Versionsvergleich 02–05
+## Separate Freigabevorschau · überarbeiteter Entwurf 06
 
-Öffentliche Freigabevorschau unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/. Erste Fassung 04 wurde als Quelle 9bf6b38 erfolgreich veröffentlicht und mit 26 Dateihashes geprüft. Die Versionsauswahl ergänzt nun feste Vergleichsstände 02 bis 05; aktuelle Inhalte bleiben im Wesentlichen Stand 04, App-Label jetzt Early Access. Quelle: [previews/brand-2026-11-08](../previews/brand-2026-11-08/README.md). Die normale Staging-Website bleibt daneben erhalten. Dieser eingefrorene Gestaltungsprototyp ist keine neue Produktionsquelle und noch nicht nach app/ integriert. Die Kopie erfolgt ausschließlich im Staging-Workflow; Produktions-Pin, Live-Website, Domains, Worker und CMS bleiben unverändert. Die Formulare versenden nichts; Studio-Änderungen gelten nur im eigenen Browser.
+https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet den neuen Entwurf 06 und Vergleichsstände 02–05. Die beschlossenen UX-/Inhaltsänderungen sind im Prototyp umgesetzt: kürzere Startseite, Karte erhalten, eigene App-Seite, neue Navigation, einheitliche Termine, Presse, klare Kontaktwahl, Versorgungsvoraussetzungen und kompakter Footer. [Quelle und Grenzen](../previews/brand-2026-11-08/README.md).
+
+Der Prototyp ist keine neue Produktionsquelle und noch nicht nach app/ integriert. Produktions-Pin, Domains, Worker und CMS bleiben unverändert. Formulare versenden nichts; Studio-Eingaben bleiben im eigenen Browser. Echte Backend-Kurztextpflege und CMS-Medienbeiträge bleiben vor Integration erforderlich. Die neue UX-Prüfung erfolgt nach Veröffentlichung dieses Entwurfs.
 
 # Noch offen: Google Search Console
 

@@ -1,23 +1,21 @@
-# Rudelbar Freigabevorschau · Entwurf 05
+# Rudelbar Freigabevorschau · Entwurf 06
 
 Stand: 8. November 2026. Öffentliche Designprüfung, keine freigegebene Produktionswebsite.
-
 URL: https://christopherharmszd.github.io/rudelbar-2.0/freigabe/
 
-Dieser eingefrorene Prototyp folgt Brand Guide V1.4, Website-Textvorlage V1.0 und den Entscheidungen des Inhabers. Gäste und Orte sind gleich wichtig. Der Gemeinschaftsblock ersetzt die Gründerporträts auf der Startseite; die Teamseite bleibt erhalten. Aktuelles heißt Rudelgeschichten. Vergangene Termine erscheinen kompakt unter den kommenden Abenden. Die App ist in Entwicklung und Erprobung, Early Access geplant.
+Die beschlossenen Änderungen sind in Entwurf 06 umgesetzt: kürzere Startseite mit erhaltener Dorfkarte und frühen Termindaten, eigene Rudelbar-App-Seite mit Early Access, Navigation in der Reihenfolge Für euren Ort → Rudelbar-App → Termine → Rudelgeschichten → Über uns, einheitliche Terminkarten, Presseberichte, Kontaktwahl vor dem Formular, Strom und Frischwasser über Schlauchleitung sowie ein schlanker Footer. Gäste und Orte bleiben gleich wichtig.
 
-Die Darstellung entspricht dem geprüften lokalen Entwurf 04. Für die Veröffentlichung wurden nur die Vorschauhinweise angepasst, der ausschließlich lokal verfügbare Vorher-Vergleich entfernt und der Bildbestand auf die sichtbaren Dateien begrenzt. Das im Guide zur Elternfreigabe offene dritte Galeriebild ist weder im Datenpaket noch in den Assets enthalten. Schriftdateien und Bilder werden vollständig von GitHub Pages geladen.
+## Betrieb und Grenzen
 
-## Betrieb
+Der Staging-Workflow kopiert diesen Ordner nach dem normalen Website-Bau ausschließlich nach app/dist/client/freigabe. Der Produktions-Build übernimmt ihn nicht. Keine Änderungen an Produktion, DNS, Domains, Workern, Zugangswerten oder Sanity.
 
-Der Staging-Workflow kopiert diesen Ordner nach dem normalen Website-Bau ausschließlich nach app/dist/client/freigabe. Die normale Testwebsite bleibt am bisherigen Ort. Der Produktions-Build übernimmt diesen Ordner nicht. Kein CNAME, keine Änderung an DNS, Domains, Workern, Zugangswerten oder Sanity-Datasets.
+Es gibt keine Sanity-Verbindung. Inhalte sind eingefroren, Presseverweise redaktionell für diese Vorschau hinterlegt. Studio und Zustandsauswahl speichern nur im jeweiligen Browser; Formulare versenden nichts. Alle Seiten tragen noindex, nofollow, noarchive. Schriften und Bilder kommen von GitHub Pages; Pressebeiträge werden nur verlinkt, nicht eingebettet.
 
-Alle Inhalte sind ein eingefrorener öffentlicher Stand. Es gibt keine Sanity-Verbindung. Das Studio und die Zustandsauswahl speichern nur im Browser des jeweiligen Betrachters; die Formulare versenden keine Nachrichten. Alle Routen sind unter diesem Ordner erreichbar und tragen noindex, nofollow, noarchive. Der Vorher-Vergleich und interne Prüfdokumente bleiben lokal.
-
-Geprüfte Hauptseiten: Start, Für euren Ort, Termine, Über uns, Rudelgeschichten, Rückblick und Kontakt. Für die spätere Umsetzung bleiben die Backend-Kurztextpflege und die weiteren im lokalen Prüfprotokoll dokumentierten offenen Punkte separat erforderlich.
+Die echte CMS-Kurztextpflege und ein Medien-Beitragstyp bleiben vor einer Integration in app/ erforderlich. Stromanschlusstyp, Leistung und Bereitstellung von Kabeln und Schlauch bleiben zu klären. Ein Veranstaltungsfoto für Wakendorf und einheitliche Teamporträts folgen. Das ungeklärte dritte Galeriebild ist ausgeschlossen. Vorhandene Aufnahmen sind als Scharnebeck-Fotos benannt.
 
 ## Vergleichsstände
 
-Die obere Leiste „Versionen vergleichen“ bietet feste Links zu Entwurf 02 (lokaler GTM-Prototyp), 03 (lokaler Brand-Guide-Prototyp), 04 (erste öffentliche Freigabe, Commit 9bf6b38) und 05 (Versionsnavigation, kurzer App-Status Early Access). Frühere lokale Stände werden ausdrücklich als solche gekennzeichnet. Die umfangreichere UX-Überarbeitung ist hier noch nicht umgesetzt. Die Originaldateien jedes Ausgangsstands sind über SHA-256 dokumentiert; Darstellungsergänzungen für den öffentlichen Vergleich sind in revision.json genannt. Das ungeklärte Galeriebild ist in allen öffentlichen Ständen ausgeschlossen.
+Die obere Leiste bietet feste Links: 02 (historischer lokaler GTM-Prototyp), 03 (historischer lokaler Brand-Guide-Prototyp), 04 (erste öffentliche Freigabe, 9bf6b38), 05 (Versionsvergleich und Early Access, 2093c99), 06 (beschlossene Überarbeitung).
+Die Seitenansicht bleibt beim Wechsel erhalten; neue App-Seiten fallen bei älteren Ständen auf die Startseite zurück. Änderungen der gemeinsamen Vergleichssteuerung betreffen nur diese Prüffunktion, keine historischen Inhalte.
 
-Historische Ordner unter revisionen/ und ihre gemeinsam verwendeten Assets werden durch scripts/verify-review-revisions.mjs gegen revision-locks.json geprüft. Frühere Stände nicht überschreiben. Neue Änderungen erhalten einen weiteren Ordner und neue Asset-Dateinamen. Die Auswahl behält die betrachtete Seite bei, auch bei den früheren Namen „Das Rudel“ und „Aktuelles“. Studio-Speicher ist je Revision getrennt. Versionen anzeigen ändert keine echten CMS-Inhalte.
+Archivordner und gemeinsame Assets werden gegen revision-locks.json geprüft. Frühere Inhaltsstände nicht überschreiben. Neue Motive erhalten neue Dateinamen. Öffentliches Deployment und anschließende neue UX-Prüfung sind vor einer Erfolgsmeldung zu verifizieren.
