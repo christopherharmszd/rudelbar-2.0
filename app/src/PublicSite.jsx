@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, CalendarDays, ChevronDown, MapPin, Menu, Sparkles, UsersRound, X } from "lucide-react";
-import { formattedDate, loadPublishedContent, newestPosts, nextEvent, orderedContent, publicConfig, upcomingEvents, todayLocal } from "./content.js";
+import { eventSummary, formattedDate, loadPublishedContent, newestPosts, nextEvent, orderedContent, publicConfig, upcomingEvents, todayLocal } from "./content.js";
 import { BASE_PATH, SITE_URL, INSTAGRAM, sitePath, postPath, eventPath, routeFor, legacyPath, matchContent } from "./site.js";
 import { imageUrl, imageSources, imageDimensions, imageDescription, isSanityImage, localImage, localSources } from "./images.js";
 import { pageMetadata } from "./seo.js";
@@ -33,13 +33,32 @@ function PostCard({ post }) {
 }
 function LatestPosts({ posts }) {
   if (!posts.length) return null;
-  return <section className="latest-posts" aria-labelledby="latest-posts-title"><div className="latest-posts-head"><div><p className="eyebrow gold">NEUES AUS DEM RUDEL</p><h2 id="latest-posts-title">Aktuelles.</h2></div><a className="text-link" href={sitePath("aktuelles/")}>Alle Beiträge <ArrowRight size={17} aria-hidden="true" /></a></div><div className="post-grid">{newestPosts(posts).slice(0, 3).map(post => <PostCard key={post._id} post={post} />)}</div></section>;
+  return <section className="latest-posts" aria-labelledby="latest-posts-title"><div className="latest-posts-head"><div><p className="eyebrow gold">NEUES AUS DEM RUDEL</p><h2 id="latest-posts-title">Aktuelles.</h2></div><a className="text-link" href={sitePath("aktuelles/")}>Alle Beiträge <ArrowRight size={17} aria-hidden="true" /></a></div><div className="post-grid" data-count={Math.min(posts.length, 3)}>{newestPosts(posts).slice(0, 3).map(post => <PostCard key={post._id} post={post} />)}</div></section>;
 }
 function EventDetails({ event }) {
   return <div className="event-details" aria-label={`Informationen zu ${event.title}`}><div><CalendarDays aria-hidden="true" /><p><strong><time dateTime={event.date}>{formattedDate(event.date)}</time></strong><br />{event.time}</p></div><div><MapPin aria-hidden="true" /><p><strong>{event.venue}</strong>{event.address && <><br />{event.address}</>}</p></div></div>;
 }
-function EventCard({ event, home = false, detail = false }) {
-  return <section className={home ? "next-event" : "next-event compact-event"} aria-label={event.title}><div><p className="eyebrow gold">{home ? "NÄCHSTER RUDEL ABEND" : "RUDEL ABEND"}</p><h2>{detail ? event.title : <a href={eventPath(event)}>{event.title}</a>}</h2><p><strong>{formattedDate(event.date)} · {event.time}</strong><br />{event.description}</p><div className="button-row">{!detail && <a className="text-link" href={eventPath(event)}>Alle Informationen <ArrowRight size={17} aria-hidden="true" /></a>}{event.mapUrl?.startsWith("https://") && <a className="button" href={event.mapUrl} target="_blank" rel="noopener noreferrer">Route öffnen</a>}</div></div><EventDetails event={event} /></section>;
+function EventRoute({ event }) {
+  return event.mapUrl?.startsWith("https://") ? <a className="button button-outline" href={event.mapUrl} target="_blank" rel="noopener noreferrer">Route öffnen <ArrowRight size={17} aria-hidden="true" /></a> : null;
+}
+function EventCard({ event, home = false }) {
+  const summary = eventSummary(event);
+  return <section className={`next-event event-preview${home ? "" : " compact-event"}`} aria-label={event.title}>
+    <header className="event-preview-heading"><h2><a href={eventPath(event)}>{event.title}</a></h2></header>
+    <EventDetails event={event} />
+    {summary && <p className="event-preview-copy">{summary}</p>}
+    <div className="button-row event-preview-actions"><a className="text-link" href={eventPath(event)}>Alle Informationen <ArrowRight size={17} aria-hidden="true" /></a><EventRoute event={event} /></div>
+  </section>;
+}
+function EventPage({ event }) {
+  const paragraphs = String(event.description || "").trim().split(/\r?\n\s*\r?\n/).filter(Boolean);
+  return <article className="event-detail">
+    <a className="text-link event-back" href={sitePath("termine/")}>← Alle kommenden Abende</a>
+    <header className="event-detail-heading"><p className="eyebrow gold">RUDEL ABEND</p><h1>{event.title}</h1></header>
+    <div className="event-detail-facts"><EventDetails event={event} /><EventRoute event={event} /></div>
+    {event.date < todayLocal() && <p className="notice event-past">Dieser Rudel Abend hat bereits stattgefunden.</p>}
+    <div className="event-description">{paragraphs.map((text, index) => <p key={index}>{text}</p>)}</div>
+  </article>;
 }
 function EventPlaceholder({ error = false, home = false }) {
   return <section className={`next-event event-placeholder${home ? "" : " compact-event"}`} aria-label="Termine"><div><p className="eyebrow gold">RUDEL ABENDE</p><h2>{error ? "Termine gerade nicht verfügbar." : "Der nächste Ort kommt bald."}</h2><p>{error ? "Die Termine konnten nicht aktualisiert werden. Versuch es bitte später noch einmal." : "Sobald ein neuer Rudel Abend feststeht, findest du hier alle Informationen. Ankündigungen teilen wir auch auf Instagram."}</p><div className="button-row"><a href={INSTAGRAM} className="text-link" target="_blank" rel="noopener noreferrer">Rudelbar auf Instagram <ArrowRight size={17} aria-hidden="true" /></a><a href={sitePath("dein-event/")} className="text-link">Einen Abend für deinen Ort planen</a></div></div><div className="placeholder-art" aria-hidden="true"><CalendarDays size={72} strokeWidth={1} /><span>Wir sehen uns bald.</span></div></section>;
@@ -118,9 +137,9 @@ export function App({ initialContent, initialPath, initialTheme = "black" } = {}
   if (route.page === "start") page = <Home theme={theme} event={nextEvent(content.events || [])} contentError={contentError} posts={posts} />;
   else if (route.page === "termine") { const events = orderedContent(upcomingEvents(content.events || [])); page = <><PageIntro eyebrow="TERMINE" title="Wo sich das Rudel trifft.">Hier findest du die kommenden Rudel Abende mit Datum und Veranstaltungsort.</PageIntro>{events.length ? <div className="event-list">{events.map(item => <EventCard key={item._id} event={item} />)}</div> : <EventPlaceholder error={contentError} />}</>; }
   else if (route.page === "das-rudel") page = <TeamPage team={content.team || []} contentError={contentError} />;
-  else if (route.page === "aktuelles" && posts.length) page = <><PageIntro eyebrow="AKTUELLES" title="Neues aus dem Rudel.">Geschichten, Einblicke und Bilder von unterwegs.</PageIntro><section className="post-grid post-list" aria-label="Alle Beiträge">{newestPosts(posts).map(item => <PostCard key={item._id} post={item} />)}</section></>;
+  else if (route.page === "aktuelles" && posts.length) page = <><PageIntro eyebrow="AKTUELLES" title="Neues aus dem Rudel.">Geschichten, Einblicke und Bilder von unterwegs.</PageIntro><section className="post-grid post-list" data-count={Math.min(posts.length, 3)} aria-label="Alle Beiträge">{newestPosts(posts).map(item => <PostCard key={item._id} post={item} />)}</section></>;
   else if (route.page === "beitrag" && post) page = <PostPage post={post} />;
-  else if (route.page === "termin" && event) page = <><PageIntro eyebrow="RUDEL ABEND" title={event.title}>{event.date < todayLocal() ? "Dieser Rudel Abend hat bereits stattgefunden." : "Alle Informationen zu diesem Rudel Abend."}</PageIntro><EventCard event={event} detail /><section className="not-found-links"><a className="text-link" href={sitePath("termine/")}>Alle kommenden Abende</a></section></>;
+  else if (route.page === "termin" && event) page = <EventPage event={event} />;
   else if (route.page === "dein-event") page = <BookingPage theme={theme} />;
   else if (route.page === "kontakt") page = <><PageIntro eyebrow="KONTAKT" title="Damit wir gut ins Gespräch kommen.">Du möchtest einen Rudel Abend planen oder hast eine Frage? Schreib uns – wir melden uns bei dir zurück.</PageIntro><section className="contact-layout"><BookingForm /><DirectContact /></section></>;
   else if (["datenschutz", "impressum"].includes(route.page)) page = <article className="legal-main" dangerouslySetInnerHTML={{ __html: route.page === "datenschutz" ? privacy : imprint }} />;

@@ -6,6 +6,10 @@ Ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestäti
 
 QR-Einstieg, Anmeldung, Angebote, Teilnahme, Postfach, Fotos und Benachrichtigungen auf tatsächlichen iPhones und Android-Geräten prüfen. Browsergrößenprüfungen ersetzen diese Abnahme nicht. Es wurde kein echter Abend dafür aktiviert.
 
+## Freigegebener Darstellungsfix · 8. November 2026
+
+Die lokal geprüften Darstellungsänderungen an Terminen, Aktuelles und Abschlussfoto wurden zur Veröffentlichung freigegeben. Der Produktionsablauf wird auf den geprüften Quellcode gesetzt; bis zur bestätigten Auslieferung bleibt der unten dokumentierte Live-Stand maßgeblich. Navigation, Seitenstruktur und Karte bleiben erhalten. Eine optionale Kurztext-Erweiterung für Termine ist separat geplant, im Backend noch nicht umgesetzt. Umfang und Rückfall für vorhandene Inhalte: [Termindarstellung und CMS-Plan](event-display-review-2026-11-08.md).
+
 # Verbindlicher Betriebsstand · 7. November 2026
 
 ## Quelle und Veröffentlichung

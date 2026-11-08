@@ -95,3 +95,23 @@ test('Google logo and favicon use the same opaque square artwork', async () => {
   const {data:pixels} = await image.raw().toBuffer({resolveWithObject:true});
   assert.deepEqual([...pixels.slice(0,3)], [13,13,13]);
 });
+
+test('event detail keeps editorial paragraphs, one heading and one set of facts', async () => {
+  const { render } = await import('../dist/server/entry-server.js');
+  const event = { _id: 'display-review', slug: 'display-review', title: 'Gemeinsam im Dorf', date: '2026-12-05', time: 'ab 18 Uhr', venue: 'Dorfplatz', address: 'Dorfstraße 1', description: 'Erster Absatz.\nEine neue Zeile.\n\nZweiter Absatz.', mapUrl: 'https://www.google.com/maps/search/?api=1&query=Dorfplatz' };
+  const content = { events: [event], team: [], posts: [] };
+  const html = render(new URL('termine/display-review/', origin).pathname, content).html;
+  assert.equal((html.match(/<h1(?:\s|>)/g) || []).length, 1);
+  assert.match(html, /<h1>Gemeinsam im Dorf<\/h1>/);
+  assert.doesNotMatch(html, /<h2>Gemeinsam im Dorf/);
+  assert.match(html, /<div class="event-description"><p>Erster Absatz\.\nEine neue Zeile\.<\/p><p>Zweiter Absatz\.<\/p>/);
+  assert.equal((html.match(/<time /g) || []).length, 1);
+  assert.match(html, /Route öffnen/);
+  const home = render(new URL('', origin).pathname, content).html;
+  assert.ok(home.includes('Erster Absatz. Eine neue Zeile.'));
+  assert.ok(!home.includes('Zweiter Absatz.'));
+  assert.equal((home.match(/<time /g) || []).length, 1);
+  const withTeaser = render(new URL('', origin).pathname, { ...content, events: [{ ...event, teaser: 'Ein eigener Vorschautext.' }] }).html;
+  assert.ok(withTeaser.includes('Ein eigener Vorschautext.'));
+  assert.ok(!withTeaser.includes('Erster Absatz.'));
+});

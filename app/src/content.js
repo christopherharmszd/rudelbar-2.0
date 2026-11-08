@@ -21,6 +21,17 @@ export const orderedContent = items => [...items].sort((a, b) => (a.order ?? 0) 
 export const newestPosts = posts => [...posts].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(a.title || "").localeCompare(String(b.title || "")));
 export const formattedDate = date => /^\d{4}-\d{2}-\d{2}$/.test(date || "") ? new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date(`${date}T12:00:00`)) : date;
 
+// Older events have only a description. Keep their previews useful until an
+// optional editorial teaser is available, without repeating the full detail.
+export function eventSummary(event) {
+  const teaser = String(event.teaser || "").trim();
+  if (teaser) return teaser;
+  const firstParagraph = String(event.description || "").trim().split(/\r?\n\s*\r?\n/)[0].replace(/\s+/g, " ");
+  if (firstParagraph.length <= 240) return firstParagraph;
+  const excerpt = firstParagraph.slice(0, 240).replace(/\s+\S*$/, "").trimEnd();
+  return `${excerpt || firstParagraph.slice(0, 240)}…`;
+}
+
 export function publicConfig(env) {
   const projectId = env.VITE_SANITY_PROJECT_ID;
   const dataset = env.VITE_SANITY_DATASET;

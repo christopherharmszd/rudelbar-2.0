@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { loadPublishedContent, newestPosts, nextEvent, orderedContent, upcomingEvents } from "../src/content.js";
+import { eventSummary, loadPublishedContent, newestPosts, nextEvent, orderedContent, upcomingEvents } from "../src/content.js";
 
 test("homepage chooses the next date, independent of editorial list order", () => {
   const events = [
@@ -34,4 +34,22 @@ test("public content requests published posts alongside events and team", async 
     assert.deepEqual(types.sort(), ["rudelEvent", "rudelPost", "rudelTeamMember"].sort());
     assert.equal(content.posts[0].title, "Rudelabend");
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("existing events get a compact preview without changing their full description", () => {
+  const description = "Ein Abend für alle.\r\nKommt vorbei!\r\n\r\nHier stehen die ausführlichen Informationen.";
+  const event = { description };
+  assert.equal(eventSummary(event), "Ein Abend für alle. Kommt vorbei!");
+  assert.equal(event.description, description);
+  assert.equal(eventSummary({ ...event, teaser: "  Ein eigener Kurztext.  " }), "Ein eigener Kurztext.");
+  assert.equal(eventSummary({ ...event, teaser: "  " }), eventSummary(event));
+  assert.equal(eventSummary({}), "");
+});
+
+test("an unbroken long description cannot flood the event preview", () => {
+  const event = { description: "Ein gemeinsamer Abend mit Gesprächen und Spielen. ".repeat(20) };
+  const summary = eventSummary(event);
+  assert.ok(summary.length <= 241);
+  assert.ok(summary.endsWith("…"));
+  assert.ok(event.description.startsWith(summary.slice(0, -1)));
 });
