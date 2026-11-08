@@ -1,7 +1,9 @@
-# Rudelbar Freigabevorschau · Entwurf 08
+# Rudelbar Freigabevorschau · Entwurf 09
 
 Stand: 8. November 2026. Öffentliche Gestaltungsprüfung, keine Produktionsfreigabe.
 https://christopherharmszd.github.io/rudelbar-2.0/freigabe/
+
+Entwurf 09 entfernt die zusätzlich eingefügten Pfeilsymbole aus externen Presseverweisen auf Startseite und Rudelgeschichten.
 
 Entwurf 08 ergänzt den Menüpunkt „Start“ als ersten Eintrag auf Desktop und mobil. Er führt von jeder Unterseite nach Hause und ist auf der Startseite als aktiv markiert. Die übrige Gestaltung entspricht 07.
 
@@ -17,4 +19,4 @@ Die App hat nach ausdrücklicher Entscheidung eine eigene Seite und das Label Ea
 
 ## Vergleich
 
-Versionen 02–08 bleiben über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsam verwendete Assets sind durch revision-locks.json geschützt. Neue Revisionen überschreiben keine alten Inhaltsstände. Die tatsächliche öffentliche Ausgabe ist nach dem Deployment zu prüfen. Die Designentscheidung liegt beim Inhaber.
+Versionen 02–09 bleiben über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsam verwendete Assets sind durch revision-locks.json geschützt. Neue Revisionen überschreiben keine alten Inhaltsstände. Die tatsächliche öffentliche Ausgabe ist nach dem Deployment zu prüfen. Die Designentscheidung liegt beim Inhaber.

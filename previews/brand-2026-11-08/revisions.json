@@ -1,5 +1,5 @@
 {
-  "current": "08",
+  "current": "09",
   "date": "2026-11-08",
   "versions": [
     {
@@ -71,6 +71,15 @@
         "Bezeichnung aus der freigegebenen Website-Textvorlage."
       ],
       "path": "revisionen/08/"
+    },
+    {
+      "id": "09",
+      "label": "Externe Links ohne Pfeile",
+      "origin": "Wie Entwurf 08, die zusätzlich eingefügten Pfeile an externen Links sind entfernt.",
+      "changes": [
+        "Presseverweise auf der Startseite und in Rudelgeschichten ohne zusätzliche Pfeilsymbole."
+      ],
+      "path": "revisionen/09/"
     }
   ],
   "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",
