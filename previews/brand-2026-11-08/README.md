@@ -1,7 +1,9 @@
-# Rudelbar Freigabevorschau · Entwurf 09
+# Rudelbar Freigabevorschau · Entwurf 10
 
-Stand: 8. November 2026. Öffentliche Gestaltungsprüfung, keine Produktionsfreigabe.
+Stand: 9. November 2026. Öffentliche Gestaltungsprüfung, keine Produktionsfreigabe.
 https://christopherharmszd.github.io/rudelbar-2.0/freigabe/
+
+Entwurf 10 setzt den Website-Nachtrag 2 V1.1 um: die neue Seite Fragen, bereinigte eigene Texte, Seitentitel und Teilenvorschau, Formularzustände nach Vorgabe sowie entfallene Orts-/Datums-Bildunterschriften. Desktop bleiben sechs Menüpunkte; mobil kommt Fragen zuletzt hinzu. Die restliche Gestaltung bleibt wie in 09. Die Fragen liegen als strukturierte Einträge mit Bereich, Reihenfolge und Ausblendung vor. [Abnahme und offene Integration](../../docs/review-10-2026-11-09.md).
 
 Entwurf 09 entfernt die zusätzlich eingefügten Pfeilsymbole aus externen Presseverweisen auf Startseite und Rudelgeschichten.
 
@@ -13,10 +15,10 @@ GTM-/Brand-Guide und Website-Textvorlage sind zusammen mit den späteren ausdrü
 
 ## Betrieb und Grenzen
 
-Nur der Staging-Workflow kopiert diese Dateien nach app/dist/client/freigabe. Der Produktions-Build übernimmt sie nicht. Produktion, Domains, Worker, Zugangswerte und CMS bleiben unverändert. Daten sind eingefroren; Formulare versenden nichts. Studio und Zustandsauswahl speichern ausschließlich im jeweiligen Browser. Presseverweise sind fest hinterlegt; echte CMS-Kurztextpflege und Medien-Beitragstyp bleiben vor Integration erforderlich.
+Nur der Staging-Workflow kopiert diese Dateien nach app/dist/client/freigabe. Der Produktions-Build übernimmt sie nicht. Produktion, Domains, Worker, Zugangswerte und CMS bleiben unverändert. Daten sind eingefroren; Formulare versenden nichts. Studio und Zustandsauswahl speichern ausschließlich im jeweiligen Browser. Presseverweise sind fest hinterlegt; echte CMS-Kurztextpflege, Fragenpflege und Medien-Beitragstyp bleiben vor Integration erforderlich. Erfolg und Sendefehler lassen sich unter „Entwurf & Zustände“ gezielt simulieren. Der Datenschutzhinweis kommt vom Team; sein Textplatzhalter wird nicht veröffentlicht. Die Vorschau bleibt noindex. Seitentitel werden je Hash-Ansicht aktualisiert, Teilenvorschauen ohne JavaScript verwenden den Startseitentitel. Statische Metadaten je echter URL sind bei der späteren Integration zu übernehmen.
 
 Die App hat nach ausdrücklicher Entscheidung eine eigene Seite und das Label Early Access. Navigation: Start → Für euren Ort → Rudelbar-App → Termine → Rudelgeschichten → Über uns. Allgemeines Gastformular in du-Form; Ortsanfrage in ihr-Form. Versorgung mit Strom und Frischwasser über Schlauchleitung bleibt enthalten. Der veröffentlichte Rückblick bleibt erhalten; das ungeklärte dritte Motiv ist ausgeschlossen.
 
 ## Vergleich
 
-Versionen 02–09 bleiben über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsam verwendete Assets sind durch revision-locks.json geschützt. Neue Revisionen überschreiben keine alten Inhaltsstände. Die tatsächliche öffentliche Ausgabe ist nach dem Deployment zu prüfen. Die Designentscheidung liegt beim Inhaber.
+Versionen 02–10 bleiben über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsam verwendete Assets sind durch revision-locks.json geschützt. Neue Revisionen überschreiben keine alten Inhaltsstände. Die tatsächliche öffentliche Ausgabe ist nach dem Deployment zu prüfen. Die Designentscheidung liegt beim Inhaber.

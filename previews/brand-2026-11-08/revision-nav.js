@@ -1,7 +1,7 @@
 (async () => {
   const script=document.currentScript,base=new URL('.',script.src),selector=document.querySelector('#review-version-select');
   if(!selector)return;
-  let versions;try{const response=await fetch(new URL('revisions.json',base));if(!response.ok)throw Error();versions=(await response.json()).versions;}catch{versions=null;}
+  let versions;try{const response=await fetch(new URL('revisions.json',base),{cache:'reload'});if(!response.ok)throw Error();versions=(await response.json()).versions;}catch{versions=null;}
   const id=document.documentElement.dataset.reviewRevision,current=versions?.find(v=>v.id===id);
   if(versions&&current){
     selector.replaceChildren(...versions.map(v=>{const o=document.createElement('option');o.value=new URL(v.path,base).href;o.dataset.id=v.id;o.textContent=v.id+' · '+v.label;o.selected=v.id===id;return o;}));
@@ -13,6 +13,8 @@
   }
   const toHash=(id,hash)=>{
     let next=hash||'#/';
+    if(Number(id)<10&&/^#\/fragen(?:#.*)?$/.test(next))next='#/kontakt';
+    if(Number(id)>=10)next=next.replace(/^#\/kontakt(?=#|$)/,'#/fragen');
     if(Number(id)<6&&/^#\/app(?:\/|$)/.test(next))next='#/';
     if(id==='02')return next.replace(/^#\/ueber-uns/,'#/das-rudel').replace(/^#\/rudelgeschichten/,'#/aktuelles');
     next=next.replace(/^#\/das-rudel/,'#/ueber-uns');

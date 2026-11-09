@@ -2,11 +2,11 @@
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).
 
-## Separate Freigabevorschau · Entwurf 09 ohne Linkpfeile
+## Separate Freigabevorschau · Entwurf 10 / Nachtrag 2
 
-https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet Entwurf 09 sowie Vergleichsstände 02–08. Die zusätzlich eingefügten Pfeilsymbole an externen Presseverweisen sind entfernt. „Start“ ist als erster Menüpunkt auf Desktop und mobil ergänzt; Bezeichnung aus der freigegebenen Textvorlage. Auf ausdrückliche Rückmeldung kehren der Einstieg und der große eigenständige Terminblock aus Version 04 zurück. Kürzungen und kompakte Buttons aus 06 bleiben. Die festgelegten Karten-/Termintexte werden verwendet. Gastformular wieder du, Ortsanfrage ihr. [Prüfkriterien](review-07-2026-11-08.md).
+https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ bietet Entwurf 10 sowie Vergleichsstände 02–09. Grundlage ist der Website-Nachtrag 2 V1.1 vom 9. November 2026. Fragen ersetzt Kontakt, mobil als letzter Menüpunkt. Die vorgegebenen Texte, Formularzustände, Seitentitel, Teilenvorschau und kleineren Darstellungskorrekturen sind umgesetzt; die übrige Gestaltung bleibt 09. Der große Terminblock und der festgelegte Kartenclaim bleiben erhalten. [Abnahme und offene Integration](review-10-2026-11-09.md).
 
-Die positive Bewertung der Startseitengewichtung in Entwurf 06 ist zurückgezogen. Guides und Textvorlage sowie spätere ausdrückliche Benutzerentscheidungen sind verbindlich; keine Freigabe aus technischen Messwerten ableiten. Der Prototyp ist noch nicht nach app/ integriert. Produktion, Worker und CMS bleiben unverändert.
+Die positive Bewertung der Startseitengewichtung in Entwurf 06 bleibt zurückgezogen. Guides und freigegebene Wortlaute sowie spätere ausdrückliche Benutzerentscheidungen sind verbindlich. Der Prototyp ist noch nicht nach app/ integriert. Produktion, Worker und CMS bleiben unverändert. Fragen liegen strukturiert vor; ihre tatsächliche Backendpflege und der Datenschutzhinweis vom Team sind noch offen.
 
 # Noch offen: Google Search Console
 

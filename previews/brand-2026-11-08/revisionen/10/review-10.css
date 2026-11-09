@@ -1,0 +1,33 @@
+/* Ausschließlich Nachtrag 2 V1.1. */
+.nav a.nav-mobile-only{display:none}
+.gtm-hero-copy>.equal-paths>.button{font-size:15px}
+.direct-contact a,.contact-cards a{border-color:var(--control)}
+.studio-note{background:#2A230B;color:var(--text)}
+:is(.form,.studio) :is(input,textarea,select,button):focus,
+:is(.form,.studio) :is(input,textarea,select,button):focus-visible{outline:2px solid var(--text);outline-offset:3px}
+.form :is(input,textarea,select),.studio :is(input:not([type=file]),textarea,select){border-width:2px}
+:is(.form,.studio) [aria-invalid=true]{border:2px solid var(--gold)!important}
+.validated-field{display:grid;gap:6px;min-width:0}
+.form .field-error,.studio .field-error{display:flex;align-items:flex-start;gap:8px;border:0;padding:0;margin:0;color:var(--text)!important;font:400 14px/20px var(--body-font)}
+.field-error svg{flex:none;width:16px;height:16px;margin-top:2px;color:var(--gold);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.field-error .icon-dot{fill:currentColor;stroke:none}
+:is(.form,.studio) .form-feedback.form-result:not(:empty){display:flex;align-items:flex-start;gap:12px;background:#2A230B;color:var(--text);border:0;padding:16px;margin:0;font:400 17px/26px var(--body-font)}
+.form-result svg{flex:none;width:20px;height:20px;margin-top:3px;fill:none;stroke:var(--gold);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.form-result .icon-dot{fill:var(--gold);stroke:none}
+.questions-page .faq-section{max-width:900px;padding:24px 0 42px}
+.faq-section,.questions-contact,#anfrage{scroll-margin-top:130px}
+.questions-inquiry{margin-top:26px}
+.questions-contact{max-width:760px;padding:40px 0}
+.questions-contact>h2{margin-bottom:18px}
+.press-contact{max-width:900px;margin:6px 0 18px}
+.press-contact h2{margin:0 0 18px}
+.press-contact p:last-child{margin-bottom:0}
+.questions-link{padding:0 0 48px}
+.questions-link a,.faq-section a:not(.button),.press-contact a,.topic-notice a{text-decoration:underline;text-underline-offset:4px}
+.form .topic-notice{font:400 14px/20px var(--body-font);color:var(--text);margin:0}
+@media(max-width:760px){
+ .nav a.nav-mobile-only{display:flex}
+ .questions-page .faq-section{padding:18px 0 30px}
+ .faq-section,.questions-contact,#anfrage{scroll-margin-top:108px}
+ .questions-contact{padding:28px 0}
+}

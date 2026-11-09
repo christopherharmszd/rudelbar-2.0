@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "source": "Website Nachtrag 2 V1.1, 9. November 2026",
+  "entries": [
+    {
+      "id": "abend-eintritt",
+      "section": "abend",
+      "order": 10,
+      "hidden": false,
+      "question": "Kostet ein Rudelabend Eintritt?",
+      "answer": "Nein. Bei unseren Rudelabenden ist der Eintritt frei."
+    },
+    {
+      "id": "abend-kaufen",
+      "section": "abend",
+      "order": 20,
+      "hidden": false,
+      "question": "Muss man etwas kaufen?",
+      "answer": "Nein. Ihr müsst nichts kaufen, um dabei zu sein. Setzt euch einfach dazu."
+    },
+    {
+      "id": "abend-allein",
+      "section": "abend",
+      "order": 30,
+      "hidden": false,
+      "question": "Kann man auch allein kommen?",
+      "answer": "Unbedingt. Bei uns bleibt niemand lange allein. Sprecht uns an, wir sind für euch da."
+    },
+    {
+      "id": "abend-alkoholfrei",
+      "section": "abend",
+      "order": 40,
+      "hidden": false,
+      "question": "Gibt es auch alkoholfreie Getränke?",
+      "answer": "Ja, natürlich. Wer nichts trinken möchte, gehört genauso dazu."
+    },
+    {
+      "id": "abend-erwartung",
+      "section": "abend",
+      "order": 50,
+      "hidden": false,
+      "question": "Was erwartet uns an einem Rudelabend?",
+      "answer": "Der Rudelbar-Wagen, Platz zum Zusammensitzen, Musik und Spiele. Was genau an einem Abend dabei ist, steht immer beim jeweiligen Termin."
+    },
+    {
+      "id": "abend-handy",
+      "section": "abend",
+      "order": 60,
+      "hidden": false,
+      "question": "Braucht man ein Handy oder eine App?",
+      "answer": "Nein. Spielen, Musik und Zusammensitzen gehen ganz ohne Handy. An einer Rudelbar-App arbeiten wir gerade – sie wird freiwillig sein."
+    },
+    {
+      "id": "abend-termine",
+      "section": "abend",
+      "order": 70,
+      "hidden": false,
+      "question": "Wo erfährt man, wann ihr wo seid?",
+      "answer": "Alle Rudelabende stehen unter „Termine“. Neuigkeiten gibt es auch auf Instagram.",
+      "links": [
+        {
+          "text": "Termine",
+          "href": "#/termine"
+        },
+        {
+          "text": "Instagram",
+          "href": "https://www.instagram.com/rudelbar/"
+        }
+      ]
+    },
+    {
+      "id": "orte-anfrage",
+      "section": "orte",
+      "order": 10,
+      "hidden": false,
+      "question": "Wie kommt die Rudelbar zu uns?",
+      "answer": "Erzählt uns in der Anfrage von eurem Ort und eurer Idee. Wir melden uns und planen den Rest gemeinsam mit euch."
+    },
+    {
+      "id": "orte-verein",
+      "section": "orte",
+      "order": 20,
+      "hidden": false,
+      "question": "Brauchen wir einen Verein vor Ort?",
+      "answer": "Hilfreich ist es, wenn jemand aus dem Ort mit anpackt und die Leute erreicht. Ein Muss ist es nicht – sprecht uns einfach an."
+    },
+    {
+      "id": "orte-versorgung",
+      "section": "orte",
+      "order": 30,
+      "hidden": false,
+      "question": "Was brauchen wir vor Ort?",
+      "answer": "Einen gut erreichbaren Platz für den Rudelbar-Wagen, Strom und Frischwasser. Alles Weitere schauen wir uns gemeinsam mit euch an."
+    },
+    {
+      "id": "orte-fest",
+      "section": "orte",
+      "order": 40,
+      "hidden": false,
+      "question": "Ihr feiert schon ein eigenes Fest?",
+      "answer": "Dann kommen wir gern dazu, wenn wir dort einen eigenen Platz bekommen, auf dem wir Musik, Spiele und Sitzecken aufbauen können. Nur Getränke ausschenken machen wir nicht."
+    },
+    {
+      "id": "orte-kosten",
+      "section": "orte",
+      "order": 50,
+      "hidden": false,
+      "question": "Wer übernimmt was – und was kostet es?",
+      "answer": "Das besprechen wir gemeinsam, je nachdem, was bei euch geplant ist. Für eure Gäste ist der Eintritt bei einem Rudelabend frei, und niemand muss etwas kaufen."
+    },
+    {
+      "id": "orte-entfernung",
+      "section": "orte",
+      "order": 60,
+      "hidden": false,
+      "question": "Wie weit kommt die Rudelbar?",
+      "answer": "Zu Hause sind wir rund um Scharnebeck. Für einen guten Abend fahren wir auch weiter – fragt einfach."
+    }
+  ]
+}

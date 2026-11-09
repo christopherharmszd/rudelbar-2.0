@@ -16,7 +16,7 @@ Der historisch benannte Backstage-Worker bearbeitet Website-Inhalte in `producti
 
 ## Separate öffentliche Freigabevorschau
 
-Entwurf 09 unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ entfernt die zusätzlich eingefügten Linkpfeile, ergänzt „Start“ als ersten Hauptmenüpunkt und enthält die Korrektur mit Einstieg und großem Terminblock aus 04 sowie den gewünschten Kürzungen und kompakten Buttons. Die pauschale positive Startseitenbewertung von 06 ist zurückgezogen. Versionen 02–09 sind über die Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsame Assets sind per SHA-256 gesperrt. [Quelle und Grenzen](../previews/brand-2026-11-08/README.md).
+Entwurf 10 unter https://christopherharmszd.github.io/rudelbar-2.0/freigabe/ setzt den Website-Nachtrag 2 V1.1 um: Fragen statt Kontakt, vorgegebenen Wortlaut und Formularzustände, Seitentitel und Teilenvorschau sowie die benannten Detailkorrekturen. Die übrige Gestaltung bleibt 09, der große Terminblock aus 04 bleibt erhalten. Versionen 02–10 sind über Vergleichsleiste und feste Links erreichbar. Historische Inhalte und gemeinsame Assets sind per SHA-256 gesperrt. [Abnahme und offene Integration](review-10-2026-11-09.md), [Quelle und Grenzen](../previews/brand-2026-11-08/README.md).
 
 Die Kopie nach app/dist/client/freigabe erfolgt ausschließlich im Staging-Workflow. Der Produktions-Build übernimmt diese Dateien nicht. Eine Designfreigabe ist keine Produktionsfreigabe; die Integration nach app/ und die offenen Backend-/CMS-Aufgaben bleiben separate Schritte. Nach der Vorschauveröffentlichung folgt eine neue UX-Prüfung des tatsächlichen Stands.
 

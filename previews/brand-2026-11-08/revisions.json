@@ -1,6 +1,6 @@
 {
-  "current": "09",
-  "date": "2026-11-08",
+  "current": "10",
+  "date": "2026-11-09",
   "versions": [
     {
       "id": "02",
@@ -80,6 +80,17 @@
         "Presseverweise auf der Startseite und in Rudelgeschichten ohne zusätzliche Pfeilsymbole."
       ],
       "path": "revisionen/09/"
+    },
+    {
+      "id": "10",
+      "label": "Nachtrag 2 · Fragen und Formularzustände",
+      "origin": "Nachtrag 2 V1.1 vom 9. November 2026; übrige Gestaltung wie Entwurf 09.",
+      "changes": [
+        "Fragen ersetzt Kontakt; Antworten nach Rudelabend und Ort geordnet, mobil als letzter Menüpunkt.",
+        "Vorlagenwortlaut, Seitentitel, Bildunterschriften und Kontaktumrandungen korrigiert.",
+        "Weiße Fokusränder, goldene Fehler und prüfbare Erfolg-/Fehlermeldungen in Gold-Tönung."
+      ],
+      "path": "revisionen/10/"
     }
   ],
   "sharedAssets": "Vorhandene Dateien unter assets/ sind für archivierte Stände gesperrt. Neue Motive erhalten neue Dateinamen.",
