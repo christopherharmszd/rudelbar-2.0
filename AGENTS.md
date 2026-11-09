@@ -12,6 +12,8 @@ Vor einem Commit oder Release entfernten aktuellen Branch-Stand prüfen. Ein alt
 
 GTM-Guide, Brand Guide und freigegebene Website-Textvorlage sind vor jeder gestalterischen oder sprachlichen Überarbeitung abzugleichen. Maßgeblich sind die Originaldokumente sowie spätere ausdrückliche Entscheidungen des Inhabers. Aktuelle Vorlagen: Rudelbar Brand Guide V1.4 und Website-Textvorlage V1.0 vom 8. November 2026 sowie Website-Nachtrag 2 V1.1 vom 9. November 2026. Der Nachtrag definiert die benannten Änderungen gegenüber Freigabeentwurf 09; alles Übrige bleibt erhalten. Fehlt eine Vorlage im Arbeitskontext, zuerst beschaffen.
 
+Nachentscheidung vom 9. November 2026 für Freigabeentwurf 11: Fragen auf Desktop und mobil im Hauptmenü, FAQ-Suche und neu geordneter Footer mit bestehenden Inhalten. Diese ausdrückliche Entscheidung ersetzt die Desktop-Sechs-Punkte-Regel des Nachtrags 2. Sie ändert keine weiteren Seiten oder freigegebenen Texte.
+
 Bestehenden freigegebenen Wortlaut für denselben Zweck übernehmen. Neue Überschriften, Claims und erklärende Zusätze nicht nebenbei aus allgemeinen UX-Annahmen ableiten. Eine Kürzung berechtigt nicht zur Änderung der inhaltlichen Gewichtung. Abweichungen vom Guide ausdrücklich benennen und vor ihrer Umsetzung abstimmen; bereits ausdrücklich beschlossene Ausnahmen erhalten.
 
 Prüfungen müssen Wortlaut, Markenwirkung und visuelle Gewichtung gegen die Vorgaben kontrollieren. Funktionierende Technik, weniger Scrollen und fehlende Überbreite allein rechtfertigen keine positive gestalterische Freigabe.

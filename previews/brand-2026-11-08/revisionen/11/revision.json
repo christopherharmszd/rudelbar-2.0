@@ -1,0 +1,30 @@
+{
+  "id": "11",
+  "date": "2026-11-09",
+  "baseCommit": "ce6690318d0f77a02382e7e4261538b7af514d9c",
+  "scope": [
+    "Ausdrückliche Nachentscheidung: Fragen in beiden Hauptmenüs",
+    "Suche in Fragen und Antworten mit Leeren, Trefferstatus und Kontaktweg",
+    "Footer mit bestehenden Inhalten neu geordnet; übrige Gestaltung wie 10"
+  ],
+  "rawSourceHashes": {
+    "index.html": "0918bab6223692f8b81b8c918290810e1a71db9ecff3ee1f947712012a1ed7ee",
+    "app.js": "12ba6c006401c58e7e61886308c03600ee31dbaef7bf4796353ba3d54b775107",
+    "fonts.css": "3408891223aa1766eda7ebd4cf3b698b27c9641fc0ae8ad0511f6383ed576ac5",
+    "style.css": "52b5bd7ddf2878208a2cc6bc9c3639bf9bbfb6160a4cd307db2757bfe83bb9e7",
+    "gtm.css": "416fd8b1b6fb7892da2441ddf132c8189779f9fa04729f39fc44b32aceaaa1fc",
+    "brand.css": "12c12d7ecd1ff6a089a15f5c58953905dd7aa92c886c609a729d6e9664de9a8e",
+    "review-06.css": "7c8cb5a0445c800420882573aa6a70be544b03e8f7a8c2dcfad951e4ebc22590",
+    "review-07.css": "d12af0a61ed06abe4098a5f23b3b61ec9a52909fc3e55ec8bd893b203b251a50",
+    "public-content.json": "b4628f25694d9a01fc7f0190891eab2bfbf6aa879d53d16e0aee2a0654053c42",
+    "questions.json": "ef6437f27ccb56275b3ed92d62fc43531d66355c6dcd1154ad1de4a27c91de5c",
+    "questions-page.js": "89838dc1d59d7fa2c7dbe9ee0edcdfac46b1a2b44010130376a47b213cc533a8",
+    "form-ui.js": "91daee1c095804d9b310067d00209514282afcdfd26fc121399ec4666f243958",
+    "review-10.css": "6ac3856047c324572ecdcf1e83d0d564da6777ef4f576402e2b118ac197d7386",
+    "review-11.css": "36afbce43a6cca6456a1ba1bd875e84d0d9fdc9c2b242b3800a90f4baa6558b8"
+  },
+  "deliveryChanges": [
+    "Gemeinsame Assets und Vergleichssteuerung relativ zum Archivordner.",
+    "Eigener Browser-Speicher je Revision; Versionskennung für aktuelle Ressourcen."
+  ]
+}
