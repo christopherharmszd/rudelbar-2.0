@@ -1,3 +1,9 @@
+# App-Brand-Umstellung und interner Testabend · 10. November 2026
+
+Gäste-App, Backstage, Live und ihre Vorschau verwenden gemeinsam Brand Guide V1.9: Night, Gold, Altweiß, Bitter und lokal ausgelieferte Source Sans 3. Fehler und Warnungen erhalten die ausdrücklich erlaubten Rot-/Orangetöne. [Umfang, Entscheidungen und App-Ausnahmen V1.1](app-brand-2026-11-10.md). Der Quellcode und die Prüfungen sind fertig; die nachfolgenden Veröffentlichungsnachweise werden erst nach dem tatsächlichen Worker-Deployment ergänzt. Die ältere Website-Freigabe und ihre noch offenen Aufgaben bleiben unabhängig davon bestehen.
+
+Auf ausdrücklichen Auftrag wurde ein eigener privater Testabend für den 5. Dezember geöffnet: Wagen/Bar, Grill, DJ, Karaoke, Cornhole, Schnackbank und drei Pavillons mit Sitzbänken rund um die Bar. Sieben zentrale Stände, 14 Angebotszuordnungen und eine wiederverwendbare Vorlage; keine Verknüpfung mit einem öffentlichen Website-Termin. Der private Gäste-Link wird nur dem Inhaber übergeben. Testangaben sind kein bestätigter Aufbau-/Betriebsplan; echte Geräteabnahme bleibt offen.
+
 # Unbedingt noch umzusetzen: getrennte Termintexte im Backstage
 
 **Verbindliche offene Aufgabe, vom Inhaber am 8. November 2026 ausdrücklich priorisiert. Noch nicht umgesetzt.** Die Redaktion muss einen eigenen Kurztext für Startseite und Terminübersicht sowie die ausführliche Beschreibung für die Terminseite pflegen können. Das Kurztextfeld bleibt optional; seine Umsetzung ist verbindlich. Ohne Kurztext bleibt der erste Absatz der Beschreibung der Rückfall. Speichern und Veröffentlichen bleiben getrennt; vorhandene Termine benötigen keine Nachpflege. Backend-Validierung, erneutes Öffnen, Veröffentlichen und Leeren des Feldes sind vor dem Release zu prüfen. Umsetzungsschritte: [Termintexte im Backend](event-display-review-2026-11-08.md#unbedingt-noch-umzusetzen-kurztextpflege-im-backend).

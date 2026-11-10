@@ -1,5 +1,5 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function styles(){if(!document.querySelector('link[data-image-picker]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/image-picker.css?v=1';link.dataset.imagePicker='';document.head.append(link);}}
+function styles(){if(!document.querySelector('link[data-image-picker]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/image-picker.css?v=190-app1';link.dataset.imagePicker='';document.head.append(link);}}
 export async function preparePhoto(file){
  if(!file||!file.size)throw new Error('Bitte ein Bild auswählen.');if(file.size>30_000_000)throw new Error('Bitte ein Bild unter 30 MB wählen.');if(!/^image\//.test(file.type)||file.type==='image/svg+xml')throw new Error('Bitte ein Foto als JPG, PNG oder WebP wählen.');
  const url=URL.createObjectURL(file),img=new Image();try{img.src=url;await img.decode();if(file.size<=8_000_000&&Math.max(img.naturalWidth,img.naturalHeight)<=2200&&['image/jpeg','image/png','image/webp'].includes(file.type))return file;
