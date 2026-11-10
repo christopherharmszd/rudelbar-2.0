@@ -1,6 +1,6 @@
 /* Shared app sheets for setup, Live controls and focused tasks. */
 .vm-stand-sheet [hidden]{display:none!important}
-dialog.vm-stand-sheet{width:min(720px,calc(100% - 24px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--rb-line);border-radius:22px;background:var(--rb-surface);color:var(--rb-gold);box-shadow:0 24px 100px #0009;overflow:hidden}
+dialog.vm-stand-sheet{width:min(720px,calc(100% - 24px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--rb-line);border-radius:22px;background:var(--rb-surface);color:var(--rb-text);box-shadow:0 24px 100px #0009;overflow:hidden}
 dialog.vm-stand-sheet[open]{display:flex;flex-direction:column;min-height:0}
 dialog.vm-stand-sheet::backdrop{background:#000b;backdrop-filter:blur(5px)}
 .vm-stand-sheet>.vm-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-shrink:0;padding:22px 24px;border-bottom:1px solid var(--rb-line)}

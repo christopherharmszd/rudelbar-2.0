@@ -31,3 +31,16 @@
 .gr-dialog>.rw-paging{justify-content:space-between;font-size:13px}
 .gr-dialog>.rw-paging button{min-height:44px;padding:8px 14px;border:1px solid var(--rb-line);border-radius:9px;background:var(--rb-surface);color:var(--rb-gold);font:inherit;cursor:pointer}
 .gr-dialog>.rw-paging button:disabled{opacity:.45;cursor:default}
+
+/* Photo controls stay distinct on touch screens; previews keep their own space. */
+.rw-photo-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 0}
+.rw-photo-choices .re-btn{margin:0;min-width:0;font-size:16px;cursor:pointer}
+.rw-live-dialog .re-form{gap:18px}
+.rw-live-dialog .rb-n-sound{align-items:flex-start;margin:0;font-size:14px;line-height:1.55;color:var(--rb-text)}
+.rw-live-dialog .rb-n-sound input{width:21px;height:21px;min-width:21px;min-height:21px;flex:none;margin:2px 0 0}
+.rw-live-dialog .rw-composer-preview{display:block;width:100%;max-height:280px;object-fit:contain;border:1px solid var(--rb-line);border-radius:10px}
+.rw-live-dialog a,.rw-live-dialog a:visited{color:var(--rb-gold);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.rw-live-dialog .row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin-bottom:18px}
+.rw-live-dialog .rw-action{min-width:0;flex:1;padding:10px 8px;font-size:14px}
+.rw-live-dialog .vm-sheet-body{scroll-padding-top:18px}
+@media(max-width:380px){.rw-photo-choices{grid-template-columns:1fr}}

@@ -21,3 +21,5 @@ event-app/public/raffle-model.js
 
 # Isolated QA receipts and local fixture credentials
 .qa/
+
+admin/public/notification-setup.js

@@ -1,3 +1,4 @@
+import {APP_ICONS} from '../../shared/app-icons.mjs';
 import {createLiveService,liveCsrf} from './live-service.mjs';
 import {validId} from '../../shared/experience.mjs';
 import {createAccounts,accountCookie} from './accounts.mjs';
@@ -17,7 +18,7 @@ export async function liveApi(request,env,{client,json,session,data,service:prov
   else {const token=cookie(request);actor=await service.operator(token);csrf=await liveCsrf(token);if(eventId&&eventId!==actor.eventId)return json(403,{error:'Dieser Zugang gehört zu einem anderen Abend.'});}
   if(request.method!=='GET'&&(!sameOrigin(request)||request.headers.get('x-csrf-token')!==csrf))return json(403,{error:'Bitte die Ansicht neu öffnen und erneut versuchen.'});
   if(path==='/api/live/session'&&request.method==='GET')return json(200,{...await service.staffContext(actor),csrf});
-  if(path==='/api/live/manifest'&&request.method==='GET')return json(200,{id:'/team',name:'Rudelbar Team',short_name:'Rudelbar Team',start_url:actor.accountId||actor.publisher?'/team?abend='+actor.eventId:'/team?s='+actor.grantId,scope:'/',display:'standalone',background_color:'#10100f',theme_color:'#10100f',icons:[{src:'/abend-preview/assets/rudelbar-logo.png',sizes:'2400x2400',type:'image/png',purpose:'any'}]},{'Content-Type':'application/manifest+json'});
+  if(path==='/api/live/manifest'&&request.method==='GET')return json(200,{id:'/team',name:'Rudelbar Team',short_name:'Rudelbar Team',start_url:actor.accountId||actor.publisher?'/team?abend='+actor.eventId:'/team?s='+actor.grantId,scope:'/',display:'standalone',background_color:'#0D0D0D',theme_color:'#0D0D0D',icons:APP_ICONS},{'Content-Type':'application/manifest+json'});
   if(path==='/api/live/notifications'&&request.method==='GET')return json(200,{...await service.notices.list(service.recipient(actor)),...await service.notices.settings(service.recipient(actor))});
   const notice=path.match(/^\/api\/live\/notifications\/(read|settings|subscribe|unsubscribe|test)$/);
   if(notice&&request.method==='POST')return json(200,await service.notices[notice[1]==='read'?'mark':notice[1]](service.recipient(actor),await data(request)));

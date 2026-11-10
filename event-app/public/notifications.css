@@ -2,3 +2,35 @@
 @media(max-width:480px){.rb-n-welcome{padding:15px;gap:10px;font-size:13px}.rb-n-welcome .rb-n-actions{gap:7px}.rb-n-btn{font-size:11px;padding:9px 12px}.rb-n-dialog-head{padding:18px}.rb-n-dialog-body{padding:18px}.rb-n-bell{width:36px;height:36px}.re-header-inner>[data-notice-slot]{margin-left:9px}.re-header-place{font-size:10px}.re-header-place strong{font-size:12px}.rb-n-toast{bottom:calc(80px + env(safe-area-inset-bottom))}}
 
 .rb-n-setup-first{border-top:0;padding-top:0;margin-top:0}.rb-n-step-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--rb-gold);display:block;margin-bottom:9px}.rb-n-guide h3{font-size:17px;line-height:1.4;margin-bottom:18px}.rb-n-guide ol.rb-n-install-steps{list-style:none;padding:0;display:grid;gap:10px;margin:0 0 18px}.rb-n-guide .rb-n-install-steps li{margin:0;padding:13px;display:flex;gap:12px;align-items:flex-start;background:var(--rb-surface);border:1px solid var(--rb-line);border-radius:10px;font-size:12px}.rb-n-step-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border:1px solid var(--rb-line);border-radius:8px;color:var(--rb-gold);font-size:20px;line-height:1}.rb-n-next{padding:13px;border-left:2px solid var(--rb-line);background:var(--rb-surface);font-size:12px}.rb-n-next p{font-size:12px;margin:7px 0 0}.rb-n-pending{color:var(--rb-gold)}.rb-n-setup>.rb-n-btn{margin-top:12px}.rb-n-dialog .rb-n-actions{gap:10px}.rb-n-dialog .rb-n-actions .rb-n-btn{min-width:0;max-width:100%}
+/* Guided setup keeps sound, background permission and inbox separate. */
+.rb-n-dialog{color:var(--rb-text);max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);overflow:hidden}
+.rb-n-dialog[open]{display:flex;flex-direction:column}
+.rb-n-dialog-head{position:static;flex:none}
+.rb-n-dialog h2{font-family:var(--rb-font-heading)}
+.rb-n-dialog-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;flex:1}
+.rb-n-dialog p{font-size:15px;line-height:1.55}
+.rb-n-dialog .rb-n-step-title{font:700 22px/1.25 var(--rb-font-heading);margin:20px 0 14px}
+.rb-n-progress{display:flex;gap:8px;padding:0;margin:0 0 20px;list-style:none}
+.rb-n-progress li{display:flex;align-items:center;gap:6px;flex:1;min-width:0;font-size:12px;color:var(--rb-muted)}
+.rb-n-progress li>span{display:grid;place-items:center;width:24px;height:24px;flex:none;border:1px solid var(--rb-control-border);border-radius:50%}
+.rb-n-progress [aria-current]{color:var(--rb-gold);font-weight:600}
+.rb-n-progress [aria-current]>span{border-color:var(--rb-gold);background:var(--rb-gold-tint)}
+.rb-n-sound-choice{display:flex;align-items:flex-start;gap:12px;padding:16px;border:1px solid var(--rb-control-border);border-radius:12px;margin:20px 0;cursor:pointer}
+.rb-n-sound-choice:has(input:checked){border-color:var(--rb-gold);background:var(--rb-gold-tint)}
+.rb-n-sound-choice input{width:22px;height:22px;flex:none;accent-color:var(--rb-gold);margin:2px 0}
+.rb-n-sound-choice strong{display:block;font-size:16px}
+.rb-n-sound-choice small{display:block;font-size:14px;line-height:1.5;color:var(--rb-muted);margin-top:5px}
+.rb-n-dialog-foot{display:flex;gap:10px;padding:16px 24px;border-top:1px solid var(--rb-line);flex:none;background:var(--rb-surface)}
+.rb-n-dialog .rb-n-btn{min-height:46px;font-size:15px;padding:11px 15px}
+.rb-n-dialog-foot .rb-n-btn{flex:1;min-width:0}
+.rb-n-secondary{border-color:var(--rb-control-border);color:var(--rb-text)}
+.rb-n-summary{display:grid;gap:14px;margin:20px 0}
+.rb-n-summary>div{display:grid;gap:3px}
+.rb-n-summary dt{font-weight:600;font-size:15px}
+.rb-n-summary dd{margin:0;color:var(--rb-muted);font-size:14px}
+.rb-n-guide h4{font:600 17px/1.4 var(--rb-font-ui);margin:22px 0 14px}
+.rb-n-guide ol.rb-n-install-steps{list-style:decimal;padding-left:22px}
+.rb-n-guide .rb-n-install-steps li{display:list-item;padding:0 0 0 3px;margin-bottom:14px;border:0;background:transparent;font-size:15px}
+.rb-n-guide .rb-n-next{font-size:14px;border-color:var(--rb-gold)}
+@media(max-width:480px){.rb-n-dialog-foot{padding:14px 18px}.rb-n-progress{gap:6px}.rb-n-progress li{font-size:11px;gap:4px}.rb-n-progress li>span{width:21px;height:21px}.rb-n-dialog .rb-n-step-title{font-size:21px}.rb-n-dialog-foot .rb-n-btn{font-size:14px;padding:10px}}
+@media(hover:hover){.rb-n-dialog .rb-n-btn:hover{filter:brightness(1.08)}}

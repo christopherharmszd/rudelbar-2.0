@@ -44,9 +44,9 @@ h3{font-size:23px;font-weight:700;line-height:1.17;letter-spacing:-.5px}
 .re-photo{width:100%;aspect-ratio:1.8;object-fit:cover;border-radius:6px;background:var(--rb-surface)}
 .re-hand{font:26px/1.15 var(--rb-font-heading);color:var(--re-softgold);margin-top:14px}
 .re-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:52px;padding:13px 16px;border:1px solid var(--re-gold);border-radius:7px;background:var(--re-gold);color:var(--rb-night);text-align:center;font-family:var(--rb-font-ui);font-size:17px;font-weight:600;line-height:1.3;transition:background .15s,border-color .15s}
-.re-btn:hover{background:var(--rb-gold);border-color:var(--rb-line)}
+@media(hover:hover){.re-btn:hover{background:var(--rb-gold);border-color:var(--rb-line)}}
 .re-btn-secondary{background:transparent;color:var(--re-ink);border-color:var(--rb-control-border)}
-.re-btn-secondary:hover{background:var(--rb-gold-tint);border-color:var(--re-gold)}
+@media(hover:hover){.re-btn-secondary:hover{background:var(--rb-gold-tint);border-color:var(--re-gold)}}
 .re-btn-muted{background:var(--rb-surface);color:var(--re-ink);border-color:var(--re-line)}
 .re-btn svg{width:19px;height:19px}
 .re-back{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0 5px 0 0;margin:-10px 0 14px;background:none;border:0;color:var(--re-muted);font-size:13px}

@@ -1,3 +1,7 @@
+# Gesicherter Zwischenstand · mobile Korrekturen · 10. November 2026
+
+Auf ausdrücklichen Wunsch des Inhabers pausiert. Arbeitsbranch: `work/mobile-fixes-2026-11-10`. Die folgenden Korrekturen sind im Code vorbereitet und automatisiert geprüft, **noch nicht veröffentlicht**. Der laufende Stand von Backstage und Gäste-App bleibt die unten dokumentierte Brand-Veröffentlichung. Wiederaufnahme: [Checkpoint mobile Korrekturen](checkpoint-mobile-2026-11-10.md).
+
 # App-Brand-Umstellung und interner Testabend · 10. November 2026
 
 Gäste-App, Backstage, Live und ihre Vorschau verwenden gemeinsam Brand Guide V1.9: Night, Gold, Altweiß, Bitter und lokal ausgelieferte Source Sans 3. Fehler und Warnungen erhalten die ausdrücklich erlaubten Rot-/Orangetöne. [Umfang, Entscheidungen und App-Ausnahmen V1.1](app-brand-2026-11-10.md). Quelle `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` ist gesichert und auf beiden Workern veröffentlicht. 234 Tests, isolierter Gesamtabend und Online-Abgleich von 11 Assets erfolgreich. Anmeldung, Backstage, Gäste-Einstieg und Live wurden in der tatsächlichen Ausgabe geprüft. Die ältere Website-Freigabe und ihre noch offenen Aufgaben bleiben unabhängig davon bestehen.
