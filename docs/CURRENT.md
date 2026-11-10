@@ -1,6 +1,6 @@
 # App-Brand-Umstellung und interner Testabend · 10. November 2026
 
-Gäste-App, Backstage, Live und ihre Vorschau verwenden gemeinsam Brand Guide V1.9: Night, Gold, Altweiß, Bitter und lokal ausgelieferte Source Sans 3. Fehler und Warnungen erhalten die ausdrücklich erlaubten Rot-/Orangetöne. [Umfang, Entscheidungen und App-Ausnahmen V1.1](app-brand-2026-11-10.md). Der Quellcode und die Prüfungen sind fertig; die nachfolgenden Veröffentlichungsnachweise werden erst nach dem tatsächlichen Worker-Deployment ergänzt. Die ältere Website-Freigabe und ihre noch offenen Aufgaben bleiben unabhängig davon bestehen.
+Gäste-App, Backstage, Live und ihre Vorschau verwenden gemeinsam Brand Guide V1.9: Night, Gold, Altweiß, Bitter und lokal ausgelieferte Source Sans 3. Fehler und Warnungen erhalten die ausdrücklich erlaubten Rot-/Orangetöne. [Umfang, Entscheidungen und App-Ausnahmen V1.1](app-brand-2026-11-10.md). Quelle `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` ist gesichert und auf beiden Workern veröffentlicht. 234 Tests, isolierter Gesamtabend und Online-Abgleich von 11 Assets erfolgreich. Anmeldung, Backstage, Gäste-Einstieg und Live wurden in der tatsächlichen Ausgabe geprüft. Die ältere Website-Freigabe und ihre noch offenen Aufgaben bleiben unabhängig davon bestehen.
 
 Auf ausdrücklichen Auftrag wurde ein eigener privater Testabend für den 5. Dezember geöffnet: Wagen/Bar, Grill, DJ, Karaoke, Cornhole, Schnackbank und drei Pavillons mit Sitzbänken rund um die Bar. Sieben zentrale Stände, 14 Angebotszuordnungen und eine wiederverwendbare Vorlage; keine Verknüpfung mit einem öffentlichen Website-Termin. Der private Gäste-Link wird nur dem Inhaber übergeben. Testangaben sind kein bestätigter Aufbau-/Betriebsplan; echte Geräteabnahme bleibt offen.
 
@@ -20,7 +20,7 @@ Ein dauerhaft verwaltetes Google-Konto einrichten, https://rudelbar.de/ bestäti
 
 # Noch offen: echte Geräteabnahme der Gäste-App
 
-QR-Einstieg, Anmeldung, Angebote, Teilnahme, Postfach, Fotos und Benachrichtigungen auf tatsächlichen iPhones und Android-Geräten prüfen. Browsergrößenprüfungen ersetzen diese Abnahme nicht. Es wurde kein echter Abend dafür aktiviert.
+QR-Einstieg, Anmeldung, Angebote, Teilnahme, Postfach, Fotos und Benachrichtigungen auf tatsächlichen iPhones und Android-Geräten prüfen. Browsergrößenprüfungen ersetzen diese Abnahme nicht. Ein eigener privater Testabend für den 5. Dezember ist inzwischen geöffnet. Das ersetzt keine echte Geräteabnahme und öffnet nicht den öffentlichen Veranstaltungsabend.
 
 ## Freigegebener Darstellungsfix · 8. November 2026
 
@@ -41,12 +41,12 @@ Die freigegebenen Darstellungsänderungen an Terminen, Aktuelles und Abschlussfo
 
 | Dienst | Aktive Version | Geprüfte Quelle / Aufgabe |
 | --- | --- | --- |
-| `rudelbar-cms-staging` | `987ea38f-c8ed-4d35-81dd-04f2c7c495ec` | `ab5395d1e0a1bd0190564f6e32a9ee7066c221a9` · aktuelles Backstage/Backend |
-| `rudelbar-app-staging` | `96b8d7f7-e5d6-4675-b4f2-9e5c6b98a1d4` | `c8f385a03deafed1521835020b516cde1c2a83d0` · echte Gäste-App |
+| `rudelbar-cms-staging` | `24bab839-2457-41cb-ac9f-58e75e8c8651` | `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` · aktuelles Backstage/Backend |
+| `rudelbar-app-staging` | `b207c53b-e54c-4851-9734-212d48d191ae` | `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` · echte Gäste-App |
 | `rudelbar-cms` | `31c09e26-84ac-4e41-b1a7-e2ae86616fd3` | `a241031bfc0e9c975e6f45ea09550520fa994a40` auf `fix/legacy-cms-audit-2026-11-05` · ausdrücklich beibehaltener Notfallzugang |
 | `rudelbar-gtm-feedback` | `8c78a709-1f27-4618-962b-a2d2e5f8bfda` | eigenständige Feedback-Anwendung mit eigener D1-Datenbank; unverändert erhalten |
 
-Diese Versionen und Bindungen wurden am 7. November lesend gegen Cloudflare geprüft. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
+Die beiden App-Worker wurden am 10. November veröffentlicht; Versionen, Bindungen, ausgelieferte Dateien und Ansichten wurden geprüft. Die unabhängigen Dienste behalten den am 7. November geprüften Stand. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
 
 ## Daten und Zugänge
 

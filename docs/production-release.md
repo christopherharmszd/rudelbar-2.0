@@ -38,6 +38,14 @@ Die unabhängige Notfallredaktion wird ausschließlich aus `fix/legacy-cms-audit
 
 Bestehende Geheimnisse, Passwörter, persönliche Zugänge und Bindungen bei einer Wartung erhalten. Datenbankumstellungen benötigen aktuelle geschützte Sicherungen und eine isolierte Wiederherstellungsprüfung. Die Gäste-App verwendet einen eigenen Worker und eine Servicebindung auf das Backstage.
 
+## App-Brand-Release vom 10. November 2026
+
+Quelle `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` ist auf den beiden bestehenden Workern veröffentlicht: Backstage `24bab839-2457-41cb-ac9f-58e75e8c8651`, Gäste-App `b207c53b-e54c-4851-9734-212d48d191ae`. D1, private EU-R2-Ablage, WallFeed, Rate-Limiter, Zeitplan, Zugangswerte und Servicebindung bleiben erhalten. Kein Datenbankschema wurde geändert.
+
+`shared/brand/` ist die einzige Quelle für Palette, Schriften und Lizenzen. Beide Worker-Builds bereiten ihre Kopien einschließlich authentifizierter Gästevorschau über `event-app/prepare.mjs` vor. Generierte Ordner sind keine zweite bearbeitbare Quelle. Beim Rückweg beide zusammengehörigen Worker-Stände berücksichtigen; keine Inhaltsdaten oder Konten zurücksetzen.
+
+234 Tests, isolierte Gesamtprüfung und Dateihashes der tatsächlichen Online-Ausgabe erfolgreich. Die öffentliche Website bleibt auf ihrem separat freigegebenen Quellcode-Stand. [Entscheidungen und Nachweise](app-brand-2026-11-10.md).
+
 ## CMS und regelmäßiger Website-Bau
 
 Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennte Handlungen. Die Redaktion schreibt nach Sanity. Der vorhandene GitHub-Zeitplan baut statische Seiten regelmäßig neu; GitHub kann Läufe verzögern. Es gibt keinen direkten GitHub-Aufruf und keinen zu rotierenden Build-PAT mehr. Aktuelle Inhalte werden auf der Website zusätzlich beim Laden abgefragt.
