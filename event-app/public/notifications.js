@@ -5,7 +5,8 @@ const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 const read=(key,fallback='')=>{try{return localStorage.getItem(key)||fallback;}catch{return fallback;}};
 const store=(key,value)=>{try{localStorage.setItem(key,String(value));}catch{}};
 export function createNotificationCenter({api,initialize=async()=>{},openRequest,role='guest',storageKey,disabled=false,scope='evening'}){
- const state={started:false,starting:false,ready:false,count:0,items:[],configured:false,enabled:false,lastStatus:0,endpoint:'',publicKey:'',busy:false,error:'',info:'',mode:'inbox',step:0,sound:read(storageKey+':sound')==='1'};
+ const key=suffix=>(typeof storageKey==='function'?storageKey():storageKey)+suffix;
+ const state={started:false,starting:false,ready:false,count:0,items:[],configured:false,enabled:false,lastStatus:0,endpoint:'',publicKey:'',busy:false,error:'',info:'',mode:'inbox',step:0,sound:read(key(':sound'))==='1'};
  let registration,dialog,toast,toastTimer,polling=false,baseline=null,stopped=false,audio,opening=false,badgeCount=-1;
  const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
  const installNeeded=()=>platform().installNeeded;
@@ -18,7 +19,7 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  function mount(){
   if(disabled||!state.started||stopped)return;
   for(const slot of document.querySelectorAll('[data-notice-slot]'))slot.innerHTML=`<button type="button" class="rb-n-bell" data-notice="open" aria-label="Mitteilungen${state.count?', '+state.count+(state.count===1?' ungelesene Neuigkeit':' ungelesene Neuigkeiten'):''}">${bell}${state.count?`<span class="rb-n-count">${state.count>99?'99+':state.count}</span>`:''}</button>`;
-  for(const slot of document.querySelectorAll('[data-notice-banner]'))slot.innerHTML=!read(storageKey+':prompt')&&!state.enabled?`<section class="rb-n-welcome"><span class="rb-n-welcome-icon">${bell}</span><div><strong>Bleib mit deinem Rudel verbunden.</strong><p>${role==='team'?'Erfahre, wenn Gäste an deiner Station etwas brauchen.':'Erfahre, wenn es eine neue Rückmeldung für dich gibt.'}</p><div class="rb-n-actions">${button('Mitteilungen einrichten','setup')}${button('Später','later',true)}</div></div></section>`:'';
+  for(const slot of document.querySelectorAll('[data-notice-banner]'))slot.innerHTML=!read(key(':prompt'))&&!state.enabled?`<section class="rb-n-welcome"><span class="rb-n-welcome-icon">${bell}</span><div><strong>Bleib mit deinem Rudel verbunden.</strong><p>${role==='team'?'Erfahre, wenn Gäste an deiner Station etwas brauchen.':'Erfahre, wenn es eine neue Rückmeldung für dich gibt.'}</p><div class="rb-n-actions">${button('Mitteilungen einrichten','setup')}${button('Später','later',true)}</div></div></section>`:'';
   const ids=new Set(state.items.map(item=>item.id));
   for(const element of document.querySelectorAll('[data-request],[data-live-action="conversation"]')){const unread=ids.has(element.dataset.request||element.dataset.id);element.classList.toggle('rb-n-unread',unread);element.querySelector('.rb-n-new')?.remove();if(unread){const tag=document.createElement('span');tag.className='rb-n-new';tag.textContent='Ungelesen';element.append(tag);}}
   const mailbox=document.querySelector('nav button[data-action="messages"]');if(mailbox){mailbox.classList.toggle('rb-n-has-unread',state.count>0);mailbox.setAttribute('aria-label','Postfach'+(state.count?', '+state.count+(state.count===1?' ungelesene Neuigkeit':' ungelesene Neuigkeiten'):''));}
@@ -34,7 +35,7 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  function renderDialog(){if(!dialog?.open)return;const focus=document.activeElement,action=focus?.dataset?.notice,soundFocused=focus?.matches('[data-notice-sound]'),scroll=dialog.querySelector('.rb-n-dialog-body')?.scrollTop||0;dialog.innerHTML=content();dialog.querySelector('.rb-n-dialog-body').scrollTop=scroll;if(soundFocused)dialog.querySelector('[data-notice-sound]')?.focus({preventScroll:true});if(action)dialog.querySelector(`[data-notice="${action}"]`)?.focus({preventScroll:true});}
  async function open({setup=false}={}){
   if(opening)return;opening=true;
-  try{await start();state.error='';state.info='';state.mode=setup?'setup':'inbox';state.step=0;if(dialog?.open){renderDialog();dialog.querySelector('.rb-n-step-title')?.focus();return;}dialog=document.createElement('dialog');dialog.className='rb-n-dialog';dialog.setAttribute('aria-labelledby','rb-notice-title');dialog.innerHTML=content();dialog.addEventListener('close',()=>{dialog.remove();dialog=null;store(storageKey+':prompt','later');mount();});dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});dialog.addEventListener('rudelbar-access-restored',async()=>{state.error='';await poll();renderDialog();});document.body.append(dialog);dialog.showModal();if(setup)dialog.querySelector('.rb-n-step-title')?.focus({preventScroll:true});if(supported())settings().then(renderDialog).catch(()=>{});}finally{opening=false;}
+  try{await start();state.error='';state.info='';state.mode=setup?'setup':'inbox';state.step=0;if(dialog?.open){renderDialog();dialog.querySelector('.rb-n-step-title')?.focus();return;}dialog=document.createElement('dialog');dialog.className='rb-n-dialog';dialog.setAttribute('aria-labelledby','rb-notice-title');dialog.innerHTML=content();dialog.addEventListener('close',()=>{dialog.remove();dialog=null;store(key(':prompt'),'later');mount();});dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});dialog.addEventListener('rudelbar-access-restored',async()=>{state.error='';await poll();renderDialog();});document.body.append(dialog);dialog.showModal();if(setup)dialog.querySelector('.rb-n-step-title')?.focus({preventScroll:true});if(supported())settings().then(renderDialog).catch(()=>{});}finally{opening=false;}
  }
  function play(force=false){if(!state.sound&&!force)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();const oscillator=audio.createOscillator(),gain=audio.createGain();oscillator.type='sine';oscillator.frequency.value=660;gain.gain.setValueAtTime(.08,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.22);oscillator.connect(gain);gain.connect(audio.destination);oscillator.start();oscillator.stop(audio.currentTime+.22);}catch{}}
  function announce(item){
@@ -42,8 +43,8 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  }
  async function poll(){
   if(stopped||disabled||polling||document.visibilityState==='hidden')return;polling=true;
-  try{const result=await api('/notifications');if(stopped)return;state.count=result.count;state.items=result.items;state.configured=result.configured;state.publicKey=result.publicKey;const latest=state.items[0]?.alertSeq||state.items[0]?.seq||0,already=Number(read(storageKey+':last-alert-clock-v2','0'));
-   if(baseline!==null&&latest>baseline&&latest>already){store(storageKey+':last-alert-clock-v2',latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
+  try{const result=await api('/notifications');if(stopped)return;state.count=result.count;state.items=result.items;state.configured=result.configured;state.publicKey=result.publicKey;const latest=state.items[0]?.alertSeq||state.items[0]?.seq||0,already=Number(read(key(':last-alert-clock-v2'),'0'));
+   if(baseline!==null&&latest>baseline&&latest>already){store(key(':last-alert-clock-v2'),latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
   }catch{}finally{polling=false;}
  }
  async function start(){if(disabled||state.started||state.starting||stopped)return;state.starting=true;try{await initialize();state.started=true;await poll();if(supported())await settings();state.ready=true;mount();}catch{}finally{state.starting=false;}}
@@ -51,10 +52,10 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  async function action(name){
   if(name==='setup'){await open({setup:true});return;}
   if(name==='setup-next'||name==='setup-back'){if(state.busy)return;state.step=Math.max(0,Math.min(2,state.step+(name==='setup-next'?1:-1)));state.error='';state.info='';renderDialog();if(dialog){dialog.querySelector('.rb-n-dialog-body').scrollTop=0;dialog.querySelector('.rb-n-step-title')?.focus({preventScroll:true});}return;}
-  if(name==='setup-finish'){store(storageKey+':setup-complete','1');dialog?.close();return;}
+  if(name==='setup-finish'){store(key(':setup-complete'),'1');dialog?.close();return;}
   if(name==='sound-test'){play(true);state.info='Das war der Hinweiston. Deine Auswahl bleibt unverändert.';renderDialog();return;}
   if(name==='close'){dialog?.close();return;}
-  if(name==='later'){store(storageKey+':prompt','later');mount();return;}
+  if(name==='later'){store(key(':prompt'),'later');mount();return;}
   if(name==='open'){await open();return;}
   if(name==='dismiss'){toast?.remove();return;}
   if(state.busy)return;state.busy=true;state.error='';state.info='';renderDialog();
@@ -65,15 +66,15 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
     const result=await Notification.requestPermission();if(result!=='granted'){state.info=result==='denied'?'Mitteilungen wurden nicht erlaubt. Neue Nachrichten bleiben in deinem Postfach.':'Du kannst Mitteilungen später jederzeit aktivieren.';return;}
     const reg=await worker();let subscription=await reg.pushManager.getSubscription();
     if(!subscription){const key=Uint8Array.from(atob(state.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));subscription=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});}
-    await api('/notifications/subscribe','POST',{subscription:subscription.toJSON()});state.endpoint=subscription.endpoint;state.enabled=true;state.lastStatus=0;store(storageKey+':prompt','enabled');state.info='Mitteilungen sind aktiv. Du kannst sie mit einer Testmitteilung prüfen.';
+    await api('/notifications/subscribe','POST',{subscription:subscription.toJSON()});state.endpoint=subscription.endpoint;state.enabled=true;state.lastStatus=0;store(key(':prompt'),'enabled');state.info='Mitteilungen sind aktiv. Du kannst sie mit einer Testmitteilung prüfen.';
    }
-   if(name==='disable'){await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});state.enabled=false;store(storageKey+':prompt','off');state.info=(scope==='contacts'?'Für deinen Kontaktzugang':'Für diesen Abend')+' ausgeschaltet. Dein Postfach bleibt erreichbar.';}
+   if(name==='disable'){await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});state.enabled=false;store(key(':prompt'),'off');state.info=(scope==='contacts'?'Für deinen Kontaktzugang':'Für diesen Abend')+' ausgeschaltet. Dein Postfach bleibt erreichbar.';}
    if(name==='test'){const result=await api('/notifications/test','POST',{endpoint:state.endpoint});state.lastStatus=result.providerStatus||201;state.info='Die Testmitteilung wurde an den Mitteilungsdienst übergeben. Schau nach, ob sie auf deinem Gerät erscheint.';}
   }catch(error){if(name==='test')state.lastStatus=502;state.error=error.message||'Das hat gerade nicht geklappt. Bitte versuche es erneut.';}finally{state.busy=false;mount();renderDialog();}
  }
  document.addEventListener('click',event=>{const node=event.target.closest('[data-notice]');if(!node)return;event.preventDefault();const name=node.dataset.notice;if(name==='request'){dialog?.close();toast?.remove();openRequest(node.dataset.id);return;}action(name);});
- document.addEventListener('change',event=>{if(event.target.matches('[data-notice-sound]')){state.sound=event.target.checked;store(storageKey+':sound',state.sound?'1':'0');if(state.sound)play();renderDialog();}});
+ document.addEventListener('change',event=>{if(event.target.matches('[data-notice-sound]')){state.sound=event.target.checked;store(key(':sound'),state.sound?'1':'0');if(state.sound)play();renderDialog();}});
  navigator.serviceWorker?.addEventListener('message',event=>{if(event.data?.type==='rudelbar-push')poll();if(event.data?.type==='rudelbar-open-request'&&event.data.id)openRequest(event.data.id);});
  setInterval(()=>{if(state.started)poll();},role==='team'?5000:8000);document.addEventListener('visibilitychange',()=>{if(state.started)poll();});
- return {start,mount,mark,open,poll,async disconnect(){if(state.endpoint)try{await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});}catch{}this.stop();},stop(){stopped=true;state.started=false;state.items=[];state.count=0;dialog?.close();toast?.remove();document.querySelectorAll('[data-notice-slot],[data-notice-banner]').forEach(node=>node.replaceChildren());},resume(){stopped=false;},get items(){return state.items;}};
+ return {start,mount,mark,open,poll,async disconnect(){if(state.endpoint)try{await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});}catch{}this.stop();},stop(){stopped=true;state.started=false;state.items=[];state.count=0;dialog?.close();toast?.remove();document.querySelectorAll('[data-notice-slot],[data-notice-banner]').forEach(node=>node.replaceChildren());},resume(){stopped=false;state.sound=read(key(':sound'))==='1';},get items(){return state.items;}};
 }

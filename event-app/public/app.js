@@ -13,8 +13,9 @@
   let activeEventId=eventId||'',mapView=null;const mapCamera={zoom:1,panX:0,panY:0};
   const {mountGuestMap}=await import(preview?'/abend-preview/guest-map.js':'/guest-map.js');
   const {stationInteraction}=await import(preview?'/abend-preview/station-actions.js':'/station-actions.js');
+  const {resetGuestApp}=await import(preview?'/abend-preview/guest-reset.js':'/guest-reset.js');
   const {createGuestAccount}=await import(preview?'/abend-preview/guest-access.js':'/guest-access.js');
-  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-profile1':'/guest-live.js?v=190-profile1');
+  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-reset1':'/guest-live.js?v=190-reset1');
   const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e),onOpenChat:id=>social?.open({conversationId:id}),onOpenWall:()=>memoryWall?.open({mine:true}),onOpenRaffle:()=>raffle?.open(),onOpenPair:id=>encounters?.chat(id),getExtraInbox:()=>[social?.tiles(),encounters?.tiles()].filter(Boolean).join(''),loadExtraInbox:()=>Promise.all([social?.list(),encounters?.list()]),onAuthRequired:()=>account?.invalidate()});
   const {createGuestSocial}=await import(preview?'/abend-preview/guest-social.js':'/guest-social.js');
   social=createGuestSocial({api:live.api,ensureSession:options=>account.ensure(options),preview,mark:(id,seq)=>live.mark(id,seq),onName:name=>{state.name=name;save();render();account?.check();}});
@@ -22,7 +23,7 @@
   encounters=createGuestEncounters({api:live.api,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,getEventId:()=>activeEventId,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestRaffle}=await import(preview?'/abend-preview/guest-raffle.js':'/guest-raffle.js');
   raffle=createGuestRaffle({api:live.api,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
-  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-profile1':'/guest-wall.js?v=190-profile1');
+  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-reset1':'/guest-wall.js?v=190-reset1');
   memoryWall=createGuestWall({getEventId:()=>activeEventId,accessCode,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestAnalytics}=await import(preview?'/abend-preview/guest-analytics.js':'/guest-analytics.js');
   const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:options=>account.ensure(options),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
@@ -30,7 +31,7 @@
     const entry=root.querySelector('.re-profile-entry');entry.hidden=!appReady||!activeEventId;entry.dataset.status=account?.state.status||'unknown';
     entry.setAttribute('aria-label','Mein Profil'+(account?.state.status==='missing'?(experience?' · Erneut anmelden':' · Gastzugang nicht aktiv'):''));entry.querySelector('.re-profile-attention').hidden=account?.state.status!=='missing';
   }
-  async function restartGuest(){await live.logout();analytics.reset();state={name:'',saved:[]};save();if(experience)go('welcome');else account.invalidate();}
+  async function restartGuest(){await resetGuestApp({logout:()=>live.logout(),storage:localStorage,eventId:activeEventId});analytics.reset();state={name:'',saved:[]};location.reload();}
   account=createGuestAccount({readProfile:()=>live.checkSession(),signIn:name=>live.signIn(name),getName:()=>state.name,isOpen:()=>!!experience,preview,
     onName:name=>{const changed=state.name!==name;state.name=name;save();if(appReady&&experience&&['welcome','name'].includes(view))go('home');else if(appReady&&experience&&changed&&view==='home')render();if(appReady&&experience){live.startNotices();analytics.refresh();}},
     onChange:()=>updateProfileEntry(),

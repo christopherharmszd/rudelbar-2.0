@@ -1,14 +1,14 @@
 import {stationInteraction} from './station-actions.js';
 import {createGuestSession} from './guest-session.js';
 import {normalizeGuestError,guestError} from './guest-access.js';
-import {createNotificationCenter} from './notifications.js?v=190-profile1';
+import {createNotificationCenter} from './notifications.js?v=190-reset1';
 export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update,onAction,onOpenChat,onOpenWall,onOpenRaffle,onOpenPair,getExtraInbox,loadExtraInbox,onAuthRequired=()=>{}}){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
  const state={page:'',selected:'',requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
  const activeStatuses=['new','queued','in_progress'];
  let viewVersion=0,conversationLoad=0,refreshing=false;
- const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',storageKey:'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
+ const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',storageKey:()=> 'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
  const btn=(label,action,extra='',secondary=false)=>`<button type="button" class="re-btn ${secondary?'re-btn-secondary':''}" data-live-action="${action}" ${extra}>${label}</button>`;
  const back=()=>`<button type="button" class="re-back" data-live-action="home">${icon('chevron-left')}Dein Abend</button>`;
  const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
@@ -86,5 +86,5 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   }catch{}finally{refreshing=false;}
  }
  setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
- return {api,checkSession:guestSession.check,signIn:guestSession.signIn,openNoticeSettings:()=>notices.open({setup:true}),mark:(id,seq)=>notices.mark(id,seq),ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();await api('/logout','POST',{});guestSession.invalidate();state.requests=[];state.detail=null;state.replyDraft='';}};
+ return {api,checkSession:guestSession.check,signIn:guestSession.signIn,openNoticeSettings:()=>notices.open({setup:true}),mark:(id,seq)=>notices.mark(id,seq),ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await api('/logout','POST',{});notices.stop();guestSession.invalidate();state.requests=[];state.detail=null;state.replyDraft='';}};
 }
