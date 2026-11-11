@@ -137,6 +137,31 @@ noscript{display:block;padding:24px}
 .re-detail-photo{display:block;width:100%;max-height:420px;object-fit:cover;border-radius:14px;margin:24px 0}.re-content-thumb{width:60px;height:60px;object-fit:cover;border-radius:10px;flex-shrink:0}
 
 .social-message-actions{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.6rem}.social-message-actions button{border:0;background:none;color:var(--muted,var(--rb-muted));font:inherit;font-size:.8rem;text-decoration:underline;padding:.4rem 0;min-height:40px}.gr-dialog .re-conversation{max-width:100%;overflow-wrap:anywhere}.gr-dialog .re-field input,.gr-dialog .re-field textarea{max-width:100%;box-sizing:border-box}
+.re-header-inner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
+.re-header-actions{display:flex;align-items:center;gap:8px;grid-column:2;grid-row:1}
+.re-header-inner>.re-header-place{grid-column:1/-1;grid-row:2;max-width:100%;margin:0;text-align:left;min-width:0}
+.re-header-place strong{display:inline;margin-left:5px}
+.re-profile-entry{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:66px;min-height:44px;padding:5px 7px;background:transparent;border:1px solid var(--rb-line);border-radius:12px;color:var(--rb-text);font:600 12px/1.2 var(--rb-font-ui);cursor:pointer}
+.re-profile-entry svg{width:20px;height:20px}.re-profile-entry[hidden]{display:none}
+.re-profile-attention{position:absolute;right:4px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--rb-error)}
+.re-profile-dialog{font-family:var(--rb-font-ui)}
+.re-profile-status{display:flex;gap:12px;align-items:center;padding:16px;border:1px solid var(--rb-line);border-radius:12px;margin-bottom:20px;overflow-wrap:anywhere}
+.re-profile-status strong,.re-profile-status span:not(.re-profile-status-dot){display:block}.re-profile-status div>span{font-size:14px;color:var(--rb-muted);margin-top:4px}
+.re-profile-status-dot{flex:none;width:9px;height:9px;background:var(--rb-muted);border-radius:50%}
+.re-profile-status[data-status=active] .re-profile-status-dot{background:var(--rb-gold)}
+.re-profile-status[data-status=missing]{border-color:var(--rb-error);background:var(--rb-error-tint)}
+.re-profile-status[data-status=missing] .re-profile-status-dot{background:var(--rb-error)}
+.re-profile-status[data-status=missing] strong{color:var(--rb-error)}
+.re-profile-cards{display:grid;gap:10px;margin-top:20px}
+.re-profile-card{display:flex;gap:14px;align-items:center;justify-content:space-between;text-align:left;padding:16px;min-height:68px;border:1px solid var(--rb-line);border-radius:12px;background:var(--rb-surface);color:var(--rb-text);font:inherit;cursor:pointer;min-width:0}
+.re-profile-card strong,.re-profile-card small{display:block}.re-profile-card strong{font-size:17px}.re-profile-card small{font-size:14px;line-height:1.45;color:var(--rb-muted);margin-top:5px}
+.re-profile-card>span:first-child{min-width:0;overflow-wrap:anywhere}.re-profile-card>span:last-child{font-size:24px;color:var(--rb-gold)}
+.re-profile-reset{margin-top:24px;padding-top:18px;border-top:1px solid var(--rb-line)}.re-profile-reset summary{cursor:pointer;color:var(--rb-muted)}
+.re-profile-access{margin:20px 0}.re-profile-access h3{margin:0 0 10px}.re-profile-access p{font-size:14px;line-height:1.5;color:var(--rb-muted)}
+.re-app .re-error,.vm-stand-sheet .vm-sheet-body .re-error{color:var(--rb-error);background:var(--rb-error-tint);border:1px solid var(--rb-error);padding:16px;border-radius:10px;font-size:15px;line-height:1.5}
+.vm-stand-sheet .vm-sheet-body .re-error p,.re-app .re-error p{color:inherit;font-size:14px;margin:8px 0 14px}
+.re-guest-access-error .re-btn{color:var(--rb-error);border-color:var(--rb-error)}
+@media(min-width:600px){.re-header-inner{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:16px}.re-header-actions{grid-column:3}.re-header-inner>.re-header-place{grid-column:2;grid-row:1;text-align:right}.re-profile-entry{flex-direction:row;gap:7px;padding:8px 12px;font-size:14px}.re-profile-entry svg{width:21px;height:21px}}
 
 /* A welcoming home with a short, purposeful choice of actions. */
 .re-home-welcome{margin-bottom:26px}
@@ -162,3 +187,5 @@ noscript{display:block;padding:24px}
 .re-screen .re-notice-banner{padding:0;margin:24px 0}.re-screen .re-notice-banner:empty{margin:0}
 
 .re-btn:not(.re-btn-secondary):not(.re-btn-muted):active{background:var(--rb-gold-pressed);border-color:var(--rb-gold-pressed);color:var(--rb-night)}
+
+.rb-n-dialog .re-guest-access-error{color:var(--rb-error,#FFB4AB);background:#321D1C;border:1px solid #8C514C;border-radius:12px;padding:16px}.rb-n-dialog .re-guest-access-error p{color:inherit}.rb-n-dialog .re-guest-access-error button{color:#FFB4AB;border:1px solid currentColor;background:transparent;min-height:44px;padding:10px 16px;border-radius:10px;font:inherit;margin-top:8px}
