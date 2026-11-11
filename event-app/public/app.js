@@ -28,7 +28,7 @@
   const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:options=>account.ensure(options),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
   function updateProfileEntry(){
     const entry=root.querySelector('.re-profile-entry');entry.hidden=!appReady||!activeEventId;entry.dataset.status=account?.state.status||'unknown';
-    entry.setAttribute('aria-label','Mein Profil'+(account?.state.status==='missing'?' · Erneut anmelden':''));entry.querySelector('.re-profile-attention').hidden=account?.state.status!=='missing';
+    entry.setAttribute('aria-label','Mein Profil'+(account?.state.status==='missing'?(experience?' · Erneut anmelden':' · Gastzugang nicht aktiv'):''));entry.querySelector('.re-profile-attention').hidden=account?.state.status!=='missing';
   }
   async function restartGuest(){await live.logout();analytics.reset();state={name:'',saved:[]};save();if(experience)go('welcome');else account.invalidate();}
   account=createGuestAccount({readProfile:()=>live.checkSession(),signIn:name=>live.signIn(name),getName:()=>state.name,isOpen:()=>!!experience,preview,

@@ -32,7 +32,7 @@ export function createGuestAccount({readProfile,signIn,getName,onName,onChange=(
  function draw(){
   if(!node?.open)return;
   const body=node.querySelector('.vm-sheet-body'),scroll=body.scrollTop,flags=features()||{};
-  const status='<section class="re-profile-status" data-status="'+state.status+'"><span class="re-profile-status-dot" aria-hidden="true"></span><div><strong>'+esc(labels[state.status])+'</strong>'+(state.status==='active'?'<span>'+esc(state.profile.name)+'</span>':state.status==='missing'?'<span>Hier kannst du dich anmelden oder deinen Gastzugang erneuern.</span>':state.error?'<span>'+esc(state.error)+'</span>':'')+'</div></section>';
+  const status='<section class="re-profile-status" data-status="'+state.status+'"><span class="re-profile-status-dot" aria-hidden="true"></span><div><strong>'+esc(labels[state.status])+'</strong>'+(state.status==='active'?'<span>'+esc(state.profile.name)+'</span>':state.status==='missing'?'<span>'+ (isOpen()?'Hier kannst du dich anmelden oder deinen Gastzugang erneuern.':'Dein Gastzugang ist auf diesem Gerät nicht aktiv.')+'</span>':state.error?'<span>'+esc(state.error)+'</span>':'')+'</div></section>';
   let content='';
   if(section==='privacy')content='<button type="button" class="re-back" data-profile-action="overview">‹ Mein Profil</button><h3>Datenschutz & Freigaben</h3><p>Hier findest du deine Entscheidungen und die Bereiche, in denen du sie ändern kannst. Neue Freigaben werden nur nach deiner ausdrücklichen Auswahl erteilt.</p><div class="re-profile-cards">'+card('Freiwillige Messung','Deine Auswahl ansehen oder ändern.','analysis')+(flags.wall?card('Meine Wall-Beiträge & Freigaben','Status ansehen und eigene Beiträge oder zusätzliche Freigaben zurückziehen.','wall'):'')+(flags.encounters?card('Begegnungen verwalten','Deine freiwillige Sichtbarkeit beim Spielen, Tanzen oder Kennenlernen.','encounters'):'')+'</div>';
   else content='<div class="re-profile-cards">'+card('Deine Angaben','Vorname, Interessen und eine freiwillige Beschreibung.','details')+(flags.encounters?card('Begegnungsangaben','Deine Angaben für Spielen, Tanzen und Kennenlernen.','encounters'):'')+card('Mitteilungen','Hinweiston und Mitteilungen im Hintergrund einrichten.','notifications')+card('Datenschutz & Freigaben','Deine Entscheidungen und eigenen Beiträge verwalten.','privacy')+(flags.contacts?card('Meine Kontakte','Beidseitig bestätigte Begegnungen wiederfinden.','contacts'):'')+'</div>';
@@ -66,7 +66,7 @@ export function createGuestAccount({readProfile,signIn,getName,onName,onChange=(
  }
  function bodyTop(){const body=node?.querySelector('.vm-sheet-body');if(body)body.scrollTop=0;}
  async function requestSignIn(){
-  if(!isOpen())throw Object.assign(new Error('Dieser Abend ist geschlossen. Neue Gastzugänge sind gerade nicht möglich.'),{status:409});
+  if(!isOpen()){open({loginOnly:true});throw Object.assign(new Error('Dieser Abend ist geschlossen. Neue Gastzugänge sind gerade nicht möglich.'),{status:409});}
   publish({status:'missing',profile:null});
   const promise=new Promise((resolve,reject)=>waiters.push({resolve,reject}));open({loginOnly:true});bodyTop();node.querySelector('[name=name]')?.focus();return promise;
  }
