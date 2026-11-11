@@ -24,4 +24,6 @@ Erfolgreiche Dateiauslieferung und Worker-Deployment müssen getrennt von einer 
 
 ## Veröffentlichung und Rückweg
 
+Code veröffentlicht: Anwendungsquelle auf GitHub `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a`, identischer vollständiger Dateibaum zum lokal deployten Commit `9e6571d75cc02fe99f894e55f3757630c441c70b`. Aktives Backstage `fd5d3df6-18d5-4a03-b7c0-56db7b79fb05`, aktive Gäste-App `1db431e8-2b4c-47cb-b410-fe4d8ba5c564`. 22 ausgelieferte Dateien (App, Vorschau, Originalbilder, Unterstrich und lokale Schriften) exakt abgeglichen. Worker-Bindungen unverändert. Privater Datenabruf weiterhin HTTP 503; die sichtbare Live-Abnahme bleibt offen. Im Online-Browser lädt der neue Einstieg `app.js?v=190-arrival1` und zeigt wegen der nicht verfügbaren Daten die bestehende Fehlermeldung „Der Abend kann gerade nicht geladen werden.“ Changelog-PDF V1.7 erstellt, gerendert visuell geprüft und zusätzlich neben den vorhandenen Versionen abgelegt.
+
 Beide bestehenden Worker gehören zusammen: Gäste-App und synchronisierte Backstage-Vorschau. Vorheriger Stand: Backstage `ca0bb36b-b4a9-44c0-aa28-22ff69a160ce`, Gäste-App `5a5d6b90-4795-4469-9b2a-f4a1d8cae938`. Vorher-/Nachher-Bindungen und ausgelieferte Dateien werden abgeglichen. Website bleibt auf `c5178a1b099fad1d7baee4013921d891925b1038`. Bei einem gezielten Code-Rückweg keine Inhalte oder Daten zurücksetzen.

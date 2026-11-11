@@ -1,5 +1,13 @@
 # Rudelbar veröffentlichen
 
+## Gäste-Einstieg V1 vom 11. November 2026
+
+Anwendungsquelle `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a` auf GitHub. Der über die verbundene GitHub-Anmeldung gesicherte Dateibaum ist exakt identisch zum lokal veröffentlichten Commit `9e6571d75cc02fe99f894e55f3757630c441c70b`; lokaler main wurde nach diesem vollständigen Vergleich auf den GitHub-Commit abgeglichen. Backstage `fd5d3df6-18d5-4a03-b7c0-56db7b79fb05`, Gäste-App `1db431e8-2b4c-47cb-b410-fe4d8ba5c564`. 258 Tests, isolierter Gesamtabend und lokale Browser-/Designabnahme einschließlich synchronisierter Vorschau erfolgreich. 22 ausgelieferte Dateien stimmen exakt mit der Quelle überein; alle abgefragten Bindungen unverändert. Website bleibt auf ihrer separat freigegebenen Quelle.
+
+Die technische Codeveröffentlichung ist abgeschlossen. **Die Online-Abnahme des sichtbaren Abends ist blockiert:** Bereits vor dem Deployment meldete Backstage ein ausgeschöpftes Sanity-API-Limit; der private Gästezugang liefert weiterhin HTTP 503. Keine vollständige Live-Abnahme behaupten, bis der Datenabruf wieder funktioniert. Keine Daten, Rollen, Schema oder Tarife geändert. [Umfang, Grenzen und Rückweg](guest-arrival-2026-11-11.md). Changelog V1.7 erhält die früheren PDFs.
+
+Zusammengehöriger vorheriger Codestand: Backstage `ca0bb36b-b4a9-44c0-aa28-22ff69a160ce`, Gäste-App `5a5d6b90-4795-4469-9b2a-f4a1d8cae938`. Eine Code-Rücknahme setzt keine Inhalte zurück und hebt das Anbieterlimit nicht auf.
+
 ## Eine bearbeitbare Quelle, getrennte Ziele
 
 `christopherharmszd/rudelbar-2.0` enthält den Quellcode. `main` baut die Testwebsite. Das Repository `christopherharmszd/rudelbar-pages` enthält die Steuerung für https://rudelbar.de/ und baut einen fest freigegebenen Quellcode-Commit. Alte fertige Website-Dateien werden dort nicht mehr von Hand gepflegt.

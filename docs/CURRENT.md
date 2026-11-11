@@ -1,3 +1,11 @@
+# Gäste-Einstieg V1 · Code veröffentlicht, Online-Abend blockiert · 11. November 2026
+
+Willkommen, Namenseingabe und Listen-Startseite folgen dem ausdrücklich ausgewählten Entwurf V1, mit echten Markenschriften und leichterer Gewichtung. Goldene Unterstreichungen, vorhandenes Logo/Wagenfoto, persönliche Begrüßung, kuratierte konfigurierte Zugänge und ein bestehender Entdecken-Bereich für weitere Funktionen. Keine neue App, kein Datenmodellumbau. [Fachliche Ergänzung des Inhabers](guest-platform-target-2026-11-11.md) berücksichtigt und als Zielbild dokumentiert.
+
+Anwendungsquelle `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a` auf GitHub; vollständiger Dateibaum identisch zum lokal veröffentlichten Commit `9e6571d75cc02fe99f894e55f3757630c441c70b`. Backstage `fd5d3df6-18d5-4a03-b7c0-56db7b79fb05`, Gäste-App `1db431e8-2b4c-47cb-b410-fe4d8ba5c564`. 258 Tests, isolierter Gesamtabend und lokale Browserabnahme bei 320/390 px und Desktop einschließlich eigener Kategorie, ausgeschalteter Funktionen, Karte als Startseite und Backstage-Vorschau erfolgreich. 22 ausgelieferte Dateien exakt abgeglichen; Bindungen und Website-Quelle unverändert. Changelog V1.7 ergänzt die erhaltenen Vorversionen.
+
+**Vollständige Online-Abnahme offen:** Schon vor diesem Release zeigte Backstage das ausgeschöpfte Sanity-API-Limit. Der bestehende private Gästezugang liefert weiterhin HTTP 503. Code-Auslieferung ist bestätigt; der sichtbare Live-Abend ist dadurch noch nicht abgenommen. Kein Tarif, keine realen Daten und keine Konten geändert. Echte iPhone-/Android-Abnahme bleibt ebenfalls offen. [Umfang, Prüfungen und Rückweg](guest-arrival-2026-11-11.md).
+
 # App neu starten · veröffentlicht am 11. November 2026
 
 „Mein Profil“ bietet direkt unter dem Gaststatus „App neu starten“. Eine Bestätigung erklärt den Reset: nur Gastzugang, Vorname, Merkzettel und Mitteilungseinrichtung des aktuellen Abends auf diesem Gerät; offene Entwürfe werden verworfen. Gesendete Inhalte bleiben erhalten, können aber mit dem beendeten Gastzugang nicht mehr selbst verwaltet werden. Installation, Betriebssystem-Erlaubnis, andere Abende und Kontaktzugang bleiben erhalten. Danach lädt dieselbe URL mit privatem Zugang unverändert neu und zeigt wieder den Einstieg.
@@ -65,12 +73,12 @@ Die freigegebenen Darstellungsänderungen an Terminen, Aktuelles und Abschlussfo
 
 | Dienst | Aktive Version | Geprüfte Quelle / Aufgabe |
 | --- | --- | --- |
-| `rudelbar-cms-staging` | `8cb9b8fe-b44c-41ea-ad82-a60ba61bee50` | `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c` · aktuelles Backstage/Backend |
-| `rudelbar-app-staging` | `13d2b20c-d8aa-4d0a-b105-c4f04a2eb805` | `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c` · echte Gäste-App |
+| `rudelbar-cms-staging` | `fd5d3df6-18d5-4a03-b7c0-56db7b79fb05` | `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a` · Backstage/Backend; Sanity-Abruf blockiert |
+| `rudelbar-app-staging` | `1db431e8-2b4c-47cb-b410-fe4d8ba5c564` | `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a` · Gäste-App; Abenddaten derzeit HTTP 503 |
 | `rudelbar-cms` | `31c09e26-84ac-4e41-b1a7-e2ae86616fd3` | `a241031bfc0e9c975e6f45ea09550520fa994a40` auf `fix/legacy-cms-audit-2026-11-05` · ausdrücklich beibehaltener Notfallzugang |
 | `rudelbar-gtm-feedback` | `8c78a709-1f27-4618-962b-a2d2e5f8bfda` | eigenständige Feedback-Anwendung mit eigener D1-Datenbank; unverändert erhalten |
 
-Die beiden App-Worker wurden am 11. November veröffentlicht; Versionen, Bindungen, ausgelieferte Dateien und Ansichten wurden geprüft. Die unabhängigen Dienste behalten den am 7. November geprüften Stand. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
+Die beiden App-Worker wurden am 11. November veröffentlicht; Versionen, Bindungen und ausgelieferte Dateien wurden geprüft. Die lokale Ansicht ist abgenommen; der vollständige Live-Abend bleibt aktuell durch das Sanity-Limit blockiert, siehe den obersten Eintrag. Die unabhängigen Dienste behalten den am 7. November geprüften Stand. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
 
 ## Daten und Zugänge
 
