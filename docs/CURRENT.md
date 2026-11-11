@@ -1,3 +1,9 @@
+# App neu starten · veröffentlicht am 11. November 2026
+
+„Mein Profil“ bietet direkt unter dem Gaststatus „App neu starten“. Eine Bestätigung erklärt den Reset: nur Gastzugang, Vorname, Merkzettel und Mitteilungseinrichtung des aktuellen Abends auf diesem Gerät; offene Entwürfe werden verworfen. Gesendete Inhalte bleiben erhalten, können aber mit dem beendeten Gastzugang nicht mehr selbst verwaltet werden. Installation, Betriebssystem-Erlaubnis, andere Abende und Kontaktzugang bleiben erhalten. Danach lädt dieselbe URL mit privatem Zugang unverändert neu und zeigt wieder den Einstieg.
+
+Quelle `f0e7cd13b876e25e808d974e10eee1c06b4bfc2f`: Backstage `ca0bb36b-b4a9-44c0-aa28-22ff69a160ce`, Gäste-App `5a5d6b90-4795-4469-9b2a-f4a1d8cae938`. 258 Tests, Syntaxprüfung aller 27 Gastmodule, lokaler Reset/Abbruch/Wiedereinstieg und erneut ausgeschalteter Hinweiston erfolgreich. 16 Online-Dateien abgeglichen; Bindungen unverändert. Online-Dialog bei 390 px ohne Überlauf geprüft und abgebrochen; kein echter Gast wurde zurückgesetzt. Changelog V1.6 ergänzt die Vorversionen. Website, Inhalte, Rollen und Schema unverändert. Echte Geräteabnahme bleibt offen.
+
 # Leinwand-Button · korrigiert am 11. November 2026
 
 Der zuvor unsichtbare Link „Leinwand öffnen“ ist korrigiert: Die goldene Textlink-Regel gilt nicht mehr für als Buttons gestaltete Links. Online bestätigt: Text `#0D0D0D` auf `#FDC300`. Quelle `18aead41a8460cff6c0d41fdbdcc7e2803c13095`, Backstage `1b72f858-6ba9-4ce6-b206-2e972a2a4669`. 238 Backendtests erfolgreich, veröffentlichte CSS-/Team-Datei exakt abgeglichen und Bindungen unverändert. Keine Inhalts- oder Website-Änderung; Gäste-Worker nicht neu veröffentlicht. Changelog V1.5 ergänzt V1.4. Dieser Punkt der offenen Rückmeldungen ist erledigt.
