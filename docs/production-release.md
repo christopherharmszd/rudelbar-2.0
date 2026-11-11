@@ -58,6 +58,13 @@ Quelle `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c`: Backstage/Live `8cb9b8fe-b44c
 
 [Befund, Nachweis, Rückweg und separat gesammeltes Feedback](wall-session-2026-11-11.md). PDF-Changelog V1.3 hält diesen begrenzten Fix fest. Die Ursache des konkreten iPhone-Sitzungsverlusts ist nicht abschließend nachgewiesen; echte Geräteabnahme bleibt offen.
 
+
+## Profil und Gastzugang vom 11. November 2026
+
+Quelle `d83a495a66f4e36064ee5c397c993a42d3fe9e51`: Backstage/Live `2e52e7b5-2611-4b25-8aa7-ed4c04df8eb2`, Gäste-App `b686b404-884e-4b60-bf7b-827647516459`. Zentraler Profilbereich neben der Glocke, bestätigter Gaststatus und gemeinsame ausdrückliche Wiederanmeldung mit erhaltenem Wall-Entwurf. 256 Tests, isolierter Gesamtabend und Browserprüfung erfolgreich; 32 tatsächliche Online-Dateien abgeglichen. Bindungen, Datenbankschema, Konten und reale Inhalte unverändert. Website weiterhin separat auf ihrer freigegebenen Quelle.
+
+[Umfang, Nachweise, Rückweg und separat offene Rückmeldungen](guest-profile-2026-11-11.md). Neue versionierte Changelog-PDF V1.4; ältere Fassungen bleiben erhalten. Bestehende Freigabeentscheidungen werden weder pauschal ersetzt noch durch das bloße Öffnen erteilt. Echte Geräteabnahme bleibt offen.
+
 ## CMS und regelmäßiger Website-Bau
 
 Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennte Handlungen. Die Redaktion schreibt nach Sanity. Der vorhandene GitHub-Zeitplan baut statische Seiten regelmäßig neu; GitHub kann Läufe verzögern. Es gibt keinen direkten GitHub-Aufruf und keinen zu rotierenden Build-PAT mehr. Aktuelle Inhalte werden auf der Website zusätzlich beim Laden abgefragt.
