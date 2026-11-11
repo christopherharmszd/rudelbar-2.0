@@ -189,3 +189,56 @@ noscript{display:block;padding:24px}
 .re-btn:not(.re-btn-secondary):not(.re-btn-muted):active{background:var(--rb-gold-pressed);border-color:var(--rb-gold-pressed);color:var(--rb-night)}
 
 .rb-n-dialog .re-guest-access-error{color:var(--rb-error,#FFB4AB);background:#321D1C;border:1px solid #8C514C;border-radius:12px;padding:16px}.rb-n-dialog .re-guest-access-error p{color:inherit}.rb-n-dialog .re-guest-access-error button{color:#FFB4AB;border:1px solid currentColor;background:transparent;min-height:44px;padding:10px 16px;border-radius:10px;font:inherit;margin-top:8px}
+
+/* Selected arrival concept V1; deliberately lighter type, A12–A14. */
+.re-arrival-back{display:none}
+.re-arrival .re-header{background:var(--rb-night);border:0}
+.re-arrival .re-header-inner{position:relative;display:flex;justify-content:center;min-height:160px;max-width:760px;padding:20px 22px}
+.re-arrival .re-brand{padding:0;min-height:0}
+.re-arrival .re-brand img{width:132px;height:132px;object-fit:contain}
+.re-arrival .re-brand>span,.re-arrival .re-header-place{display:none}
+.re-arrival .re-header-actions{position:absolute;top:22px;right:18px;gap:4px;align-items:flex-start}
+.re-arrival .re-profile-entry{border:0;padding:5px;min-width:54px;font-size:12px;font-weight:400;flex-direction:column}
+.re-arrival[data-view="welcome"] .re-header-inner{min-height:160px;padding-block:14px}
+.re-arrival[data-view="name"] .re-arrival-back{display:flex;align-items:center;justify-content:center;position:absolute;left:18px;top:34px;width:48px;height:48px;background:none;border:0;color:var(--rb-text)}
+.re-arrival .re-screen{max-width:560px;padding:24px 24px 32px}
+.re-arrival[data-view="welcome"] .re-screen{padding-top:0}
+.re-arrival-title{font-family:var(--rb-font-heading);font-size:clamp(32px,8.5vw,42px);font-weight:600;line-height:1.18;letter-spacing:-.7px;text-wrap:initial;max-width:100%}
+.re-gold-underline{width:176px;height:34px;object-fit:cover;margin:4px 0 8px}
+.re-arrival-lead{font-size:20px;line-height:1.45;color:var(--rb-text)}
+.re-arrival-date{margin-top:8px;font-size:16px;color:var(--rb-muted);line-height:1.45}
+.re-arrival .re-btn{font:500 20px/1.35 var(--rb-font-ui);min-height:58px;border-radius:8px;padding:14px 18px}
+.re-arrival .re-welcome{display:flex;flex-direction:column;align-items:stretch;gap:24px;padding:0}
+.re-arrival .re-photo{aspect-ratio:1.55;object-fit:cover;border-radius:0}
+.re-arrival .re-welcome h1{font-size:clamp(32px,8.5vw,42px);max-width:13ch}
+.re-arrival .re-welcome-copy .re-btn{margin-top:32px;max-width:none}
+.re-arrival-claim{text-align:center;font-size:16px;letter-spacing:.6px;color:var(--rb-gold);margin-top:22px}
+.re-arrival-name{padding-top:14px}
+.re-arrival-name .re-form{margin-top:44px;gap:32px}
+.re-arrival-name .re-field{gap:10px}
+.re-arrival-name .re-field>label{font-size:20px;font-weight:500}
+.re-arrival-name input{font-size:22px;min-height:64px;padding:16px;background:transparent;border:1px solid var(--rb-text);border-radius:7px}
+.re-arrival-privacy{font-size:17px;line-height:1.55;color:var(--rb-muted)}
+.re-arrival-privacy a,.re-arrival-privacy button{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:4px 0;border:0;background:none;color:var(--rb-text);font:inherit;text-decoration:underline;text-underline-offset:4px}
+.re-arrival-name .re-form>.re-btn{margin-top:12px}
+.re-arrival .re-home-welcome{margin:0 0 32px}
+.re-arrival .re-home-welcome h1{font-size:clamp(32px,8.5vw,42px);max-width:100%;margin:0;line-height:1.18}
+.re-home-invitation{margin-bottom:32px}
+.re-home-invitation h2{font:600 27px/1.25 var(--rb-font-heading);letter-spacing:-.3px;max-width:20ch}
+.re-home-invitation p{font-size:18px;line-height:1.5;margin-top:10px;color:var(--rb-muted)}
+.re-home-invitation .re-btn{margin-top:22px}
+.re-home-rows:empty{display:none}
+.re-arrival .re-home-rows .re-tile,.re-arrival .re-home-inbox .re-tile{border:0;border-top:1px solid var(--rb-control-border);border-radius:0;padding:18px 0;min-height:76px;background:transparent;gap:16px}
+.re-arrival .re-tile-title{font:500 20px/1.3 var(--rb-font-ui);letter-spacing:0}
+.re-arrival .re-tile-copy{gap:3px}
+.re-arrival .re-tile-sub{font-size:16px;line-height:1.4}
+.re-arrival .re-tile-sub:empty{display:none}
+.re-arrival .re-icon,.re-arrival .re-tile>svg{color:var(--rb-text)}
+.re-arrival .re-icon{width:32px}
+.re-arrival .re-icon svg{width:27px;height:27px;stroke-width:1.6}
+.re-arrival .re-tile>svg{width:20px;height:20px;stroke-width:1.6}
+.re-home-inbox{margin-top:26px}
+.re-arrival .re-privacy-control{margin-top:18px;font-size:15px;color:var(--rb-muted)}
+@media(hover:hover){.re-arrival .re-home-rows .re-tile:hover,.re-arrival .re-home-inbox .re-tile:hover{background:var(--rb-surface)}}
+@media(min-width:720px){.re-arrival .re-header-inner{min-height:164px;padding-block:26px}.re-arrival .re-brand img{width:144px;height:144px}.re-arrival .re-header-actions{top:36px;right:28px}.re-arrival .re-profile-entry{flex-direction:row;gap:7px;font-size:16px}.re-arrival .re-screen{padding:32px 32px 48px}.re-arrival[data-view="welcome"] .re-screen{max-width:960px;padding-top:20px}.re-arrival .re-welcome{display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:40px}.re-arrival .re-photo{aspect-ratio:1.15;border-radius:4px}.re-arrival-name{padding-top:24px}.re-arrival-name .re-form{margin-top:52px}.re-arrival-name .re-form>.re-btn{margin-top:28px}}
+@media(max-width:359px){.re-arrival .re-screen{padding-left:20px;padding-right:20px}.re-arrival .re-header-actions{right:10px}.re-arrival .re-brand img{width:116px;height:116px}.re-arrival .re-header-inner{min-height:144px}.re-arrival .re-profile-entry{min-width:48px;font-size:11px}.re-arrival .re-arrival-lead{font-size:19px}.re-arrival .re-tile-title{font-size:19px}.re-arrival .re-welcome{gap:22px}}
