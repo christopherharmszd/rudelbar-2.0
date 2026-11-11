@@ -1,6 +1,8 @@
-# Gesicherter Zwischenstand · mobile Korrekturen · 10. November 2026
+# Mobile Korrekturen · Prüfung am 11. November 2026
 
-Auf ausdrücklichen Wunsch des Inhabers pausiert. Arbeitsbranch: `work/mobile-fixes-2026-11-10`. Die folgenden Korrekturen sind im Code vorbereitet und automatisiert geprüft, **noch nicht veröffentlicht**. Der laufende Stand von Backstage und Gäste-App bleibt die unten dokumentierte Brand-Veröffentlichung. Wiederaufnahme: [Checkpoint mobile Korrekturen](checkpoint-mobile-2026-11-10.md).
+Die am 10. November gesicherte Arbeit wurde auf ausdrücklichen Auftrag wieder aufgenommen. Deckende App-Symbole und Teilen-Vorschau, dreistufige Mitteilungseinrichtung sowie die Fotoauswahl und Darstellung der Memory Wall sind umgesetzt. 243 Tests und der isolierte Gesamtabend sind erfolgreich. Gäste- und Team-Wizard sowie tatsächlicher JPEG-Upload, PNG-Vorschau und Entfernen mit erhaltenem Text wurden im Browser geprüft. Mobile Breite 390 px, keine Überbreite in den geprüften Ansichten. Der lokale Server wendet jetzt dieselben Sicherheits-Header wie die veröffentlichten Apps an.
+
+**Veröffentlichung noch ausstehend.** Der laufende Stand bleibt bis zum dokumentierten Release die Brand-Veröffentlichung unten. Echte iPhone-Kamera, Mediathek, Home-Bildschirm-Icon, Messenger-Cache und Push-Zustellung benötigen eine erneute Geräteprüfung. [Entscheidungen und Nachweise](mobile-fixes-2026-11-11.md); [historischer Pausepunkt](checkpoint-mobile-2026-11-10.md).
 
 # App-Brand-Umstellung und interner Testabend · 10. November 2026
 

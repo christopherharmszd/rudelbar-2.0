@@ -6,7 +6,7 @@ import {openModeration} from './moderation-ui.js';
 import {openGameRounds} from '/abend-preview/game-rounds.js?v=1';
 import {uploadImage} from './image-picker.js?v=1';
 import {signInPath} from './session-paths.js';
-import {createNotificationCenter} from './notifications.js';
+import {createNotificationCenter} from './notifications.js?v=190-app2';
 const root=document.querySelector('#live-app'),params=new URLSearchParams(location.search),eventParam=params.get('abend')||'',stationParam=params.get('station')||'';
 const state={context:null,requests:[],selected:'',detail:null,station:stationParam,status:'open',drafts:{},busy:false,photoPicking:false,connected:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

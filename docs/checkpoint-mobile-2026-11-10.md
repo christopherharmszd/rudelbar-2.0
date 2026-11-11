@@ -1,5 +1,7 @@
 # Pause: mobile Korrekturen
 
+**Historischer Pausepunkt. Am 11. November auf ausdrücklichen Auftrag wieder aufgenommen. Aktueller Prüf- und Veröffentlichungsstand: [mobile Korrekturen](mobile-fixes-2026-11-11.md).**
+
 Stand 10. November 2026. Der Inhaber hat ausdrücklich „speichern und Feierabend“ angeordnet. Keine weitere Entwicklung oder Veröffentlichung bis zur Wiederaufnahme.
 
 ## Gesicherter Stand

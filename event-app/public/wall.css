@@ -35,7 +35,7 @@
 /* Photo controls stay distinct on touch screens; previews keep their own space. */
 .rw-photo-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 0}
 .rw-photo-choices .re-btn{margin:0;min-width:0;font-size:16px;cursor:pointer}
-.rw-live-dialog .re-form{gap:18px}
+.rw-live-dialog .re-form{display:grid;gap:18px}
 .rw-live-dialog .rb-n-sound{align-items:flex-start;margin:0;font-size:14px;line-height:1.55;color:var(--rb-text)}
 .rw-live-dialog .rb-n-sound input{width:21px;height:21px;min-width:21px;min-height:21px;flex:none;margin:2px 0 0}
 .rw-live-dialog .rw-composer-preview{display:block;width:100%;max-height:280px;object-fit:contain;border:1px solid var(--rb-line);border-radius:10px}
