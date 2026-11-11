@@ -21,7 +21,15 @@ Zusätzlich belegt: Die vorzeitigen Rückgaben beim Lesen von Wall-, Gesprächs-
 
 249 Tests erfolgreich, einschließlich sechs neuer Prüfungen für gleichzeitige Anmeldung, explizite Erneuerung/erneuten Versuch, fehlenden Vornamen sowie gültige Cookie-Ablaufzeiten nach dem Lesen einer Wall-Mitteilung. Isolierter Gesamtabend erfolgreich. Im Browser wurden zwei direkte Einreichungen, der 401-Zustand, erneutes Anmelden mit erhaltenem Foto/Text sowie der anschließende echte lokale Foto-Upload geprüft. Rotdarstellung und fokussierte Aktion mit den berechneten Farben bestätigt. Eine bereits geöffnete alte App-Version benötigt zum Laden des korrigierten Codes ein Neuladen; deren alter Entwurf wird dadurch nicht nachträglich über Reload hinweg gespeichert.
 
-Veröffentlichungsnachweis folgt nach erfolgreichem Online-Abgleich. Keine Änderung an Konten, Berechtigungen, Inhaltsbeständen oder Datenbankschema.
+Veröffentlicht aus Quelle `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c`, Quellbaum `550ac918eef1f064350fb7c8e01ecd69cf1c981c`:
+
+- Backstage/Live `8cb9b8fe-b44c-41ea-ad82-a60ba61bee50`.
+- Gäste-App `13d2b20c-d8aa-4d0a-b105-c4f04a2eb805`.
+- 24 tatsächliche Online-Dateien stimmen per SHA-256 mit der Quelle überein; sämtliche abgefragten Bindungen identisch zum vorherigen Stand. Privater Online-Einstieg lädt ohne beobachtete Browserfehler.
+- Website weiterhin Quelle `c5178a1b099fad1d7baee4013921d891925b1038`. Keine Änderung an Konten, Berechtigungen, Inhaltsbeständen oder Datenbankschema.
+- Changelog `Rudelbar_Changelog_2026-11-11_V1.3.pdf`: eine Seite, gerendert visuell geprüft; ältere Fassungen erhalten. Lokaler Fehlerbeleg unter `outputs/wall-session-fix-2026-11-11/` im Aufgabenordner, geschützte Prüfprotokolle unter `.qa/`.
+
+Gezielter Code-Rückweg: vorherige zusammengehörige Versionen Backstage `65daf458-d986-4f25-b411-ebfea6ac7d4c`, Gäste-App `ef116ae3-5b35-499d-ae99-180ff9ff5635`. Keine Rücksetzung der Inhalte oder Gastdaten.
 
 ## Gesammeltes Feedback: noch nicht umgesetzt
 

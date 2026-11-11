@@ -1,6 +1,6 @@
-# Aktuelle Fehleranalyse: zweiter Wall-Beitrag · 11. November 2026
+# Memory-Wall-Sitzungsfix · veröffentlicht am 11. November 2026
 
-Verlorener Gastzugang bei weiterhin geöffnetem Wall-Formular isoliert nachgestellt; Anmeldehinweis im iPhone-Screenshot bestätigt. Zwei Beiträge funktionieren mit gültiger Sitzung. Gezielte Korrektur mit rotem, fokussiertem Fehlerhinweis und expliziter Wiederanmeldung bei erhaltenem Foto-/Textentwurf lokal geprüft; 249 Tests und isolierter Gesamtabend erfolgreich. Zusätzlich ungültige Cookie-Ablaufzeit beim Lesen einer Wall-Mitteilung nachgewiesen und korrigiert. **Noch nicht veröffentlicht.** Die konkrete Ursache des ursprünglich verlorenen iPhone-Zugangs bleibt ungeklärt. Andere UX-, Live-Eingangs- und Textänderungen werden auf ausdrückliche Präzisierung zunächst nur gesammelt. [Befund und getrennte offene Aufgaben](wall-session-2026-11-11.md).
+Verlorener Gastzugang bei weiterhin geöffnetem Wall-Formular isoliert nachgestellt; Anmeldehinweis im iPhone-Screenshot bestätigt. Zwei Beiträge funktionieren mit gültiger Sitzung. Gezielte Korrektur mit rotem, fokussiertem Fehlerhinweis und expliziter Wiederanmeldung bei erhaltenem Foto-/Textentwurf lokal geprüft; 249 Tests und isolierter Gesamtabend erfolgreich. Zusätzlich ungültige Cookie-Ablaufzeit beim Lesen einer Wall-Mitteilung nachgewiesen und korrigiert. Quelle `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c` ist auf beiden Workern veröffentlicht; 24 Online-Dateien per SHA-256 abgeglichen und alle Worker-Bindungen identisch zum vorherigen Stand. Neuer PDF-Changelog V1.3 erstellt und gerendert geprüft. Die konkrete Ursache des ursprünglich verlorenen iPhone-Zugangs bleibt ungeklärt. Andere UX-, Live-Eingangs- und Textänderungen werden auf ausdrückliche Präzisierung zunächst nur gesammelt. [Befund und getrennte offene Aufgaben](wall-session-2026-11-11.md).
 
 # Mobile Korrekturen · veröffentlicht am 11. November 2026
 
@@ -51,8 +51,8 @@ Die freigegebenen Darstellungsänderungen an Terminen, Aktuelles und Abschlussfo
 
 | Dienst | Aktive Version | Geprüfte Quelle / Aufgabe |
 | --- | --- | --- |
-| `rudelbar-cms-staging` | `65daf458-d986-4f25-b411-ebfea6ac7d4c` | `9a4eb55b4fa579f8302464e38b501d85746985c6` · aktuelles Backstage/Backend |
-| `rudelbar-app-staging` | `ef116ae3-5b35-499d-ae99-180ff9ff5635` | `9a4eb55b4fa579f8302464e38b501d85746985c6` · echte Gäste-App |
+| `rudelbar-cms-staging` | `8cb9b8fe-b44c-41ea-ad82-a60ba61bee50` | `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c` · aktuelles Backstage/Backend |
+| `rudelbar-app-staging` | `13d2b20c-d8aa-4d0a-b105-c4f04a2eb805` | `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c` · echte Gäste-App |
 | `rudelbar-cms` | `31c09e26-84ac-4e41-b1a7-e2ae86616fd3` | `a241031bfc0e9c975e6f45ea09550520fa994a40` auf `fix/legacy-cms-audit-2026-11-05` · ausdrücklich beibehaltener Notfallzugang |
 | `rudelbar-gtm-feedback` | `8c78a709-1f27-4618-962b-a2d2e5f8bfda` | eigenständige Feedback-Anwendung mit eigener D1-Datenbank; unverändert erhalten |
 

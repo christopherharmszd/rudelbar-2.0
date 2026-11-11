@@ -52,6 +52,12 @@ Quelle `9a4eb55b4fa579f8302464e38b501d85746985c6`: Backstage/Live `65daf458-d986
 
 [Umfang, Belege, offene Geräteprüfung und vorherige Worker-Versionen](mobile-fixes-2026-11-11.md). Ein neuer PDF-Changelog V1.2 hält diesen Stand fest; vorherige Fassungen werden nicht überschrieben. Die App-Bilder haben neue Dateinamen; vorhandene Betriebssystem-/Messenger-Caches sind nur am tatsächlichen Gerät zu beurteilen.
 
+## Memory-Wall-Sitzungsfix vom 11. November 2026
+
+Quelle `6c0b9c52977bc73da0f5e1bcb9d21be7b0f32b4c`: Backstage/Live `8cb9b8fe-b44c-41ea-ad82-a60ba61bee50`, Gäste-App `13d2b20c-d8aa-4d0a-b105-c4f04a2eb805`. Gültige Cookie-Ablaufzeit nach Mitteilungsbestätigung; rote, fokussierte Fehlermeldung mit expliziter Wiederanmeldung und Erhalt des offenen Wall-Entwurfs. 249 Tests, vollständige isolierte Ablaufprüfung einschließlich Cookie-Regression und 24 Online-Dateivergleiche erfolgreich. Bindungen unverändert; keine Migration. Website-Quelle bleibt unverändert.
+
+[Befund, Nachweis, Rückweg und separat gesammeltes Feedback](wall-session-2026-11-11.md). PDF-Changelog V1.3 hält diesen begrenzten Fix fest. Die Ursache des konkreten iPhone-Sitzungsverlusts ist nicht abschließend nachgewiesen; echte Geräteabnahme bleibt offen.
+
 ## CMS und regelmäßiger Website-Bau
 
 Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennte Handlungen. Die Redaktion schreibt nach Sanity. Der vorhandene GitHub-Zeitplan baut statische Seiten regelmäßig neu; GitHub kann Läufe verzögern. Es gibt keinen direkten GitHub-Aufruf und keinen zu rotierenden Build-PAT mehr. Aktuelle Inhalte werden auf der Website zusätzlich beim Laden abgefragt.
