@@ -30,7 +30,7 @@ export function cleanEvent(input,eventId,previous){
 export async function eventList(client){
   const [web,own,configs,releases,people,runtime]=await Promise.all([(client.website||client).list('rudelEvent'),client.list(APP_EVENT_TYPE),client.list(EXPERIENCE_TYPE),client.list(RELEASE_TYPE),client.list(PERSON_TYPE),client.runtimeDb?releaseMetadata(client.runtimeDb):[]]);
   let currentResourcesVersion=null;
-  if(runtime.some(r=>r.sourceResourcesVersion)){
+  if(!client.runtimeOnly&&runtime.some(r=>r.sourceResourcesVersion)){
    const [state,catalog]=await Promise.all([client.getDocument('drafts.'+RESOURCE_STATE_ID),catalogFor(client)]);
    currentResourcesVersion={resourceRevision:state?._rev||'',sourcesVersion:await resourceSourcesVersion(sourceObjects(catalog,people.map(p=>({...p,revision:p._rev||''}))))};
   }
@@ -45,13 +45,23 @@ export async function eventList(client){
     return {...e,teamIds:(e.teamIds||[]).filter(id=>!deletedIds.has(id)),operatingTeamIds,_id:e.eventId,app:{state:active?.state||release?.state||(config?.published?'open':'closed'),hasRelease,hasDraft:config?.draft===true&&(!hasRelease||(active?.sourceRevision??release?.sourceRevision)!==config._rev),hasSourceChanges:!!active?.sourceResourcesVersion&&JSON.stringify(active.sourceResourcesVersion)!==JSON.stringify(currentResourcesVersion),revision:active?'runtime-'+active.revision:release?._rev||'',versionId:active?.versionId||'',updatedAt:active?.changedAt||release?.changedAt||config?._updatedAt||''}};
   }).sort((a,b)=>String(b.date).localeCompare(String(a.date))||a.title.localeCompare(b.title));
 }
-export async function loadEvent(client,id){const event=(await eventList(client)).find(e=>e.eventId===id);if(!event)fail('Veranstaltung nicht gefunden.',404);return event;}
+export async function loadEvent(client,id){
+ if(client.runtimeOnly){
+  const own=await client.event(id);
+  if(own){if(own.archived)fail('Veranstaltung nicht gefunden.',404);return {...strip(own),revision:own._rev||'',source:own.source||'app'};}
+  const published=await client.website.getDocument(id),draft=await client.website.getDocument('drafts.'+id),doc=draft||published;
+  if(!doc||doc._type!=='rudelEvent'||doc.archived)fail('Veranstaltung nicht gefunden.',404);
+  return {...strip(doc),eventId:id,visibility:'public',teamIds:[],source:'website',websitePublished:!!published,revision:''};
+ }
+ const event=(await eventList(client)).find(e=>e.eventId===id);if(!event)fail('Veranstaltung nicht gefunden.',404);return event;
+}
 export async function configurationFor(client,id){
   const draft=await client.getDocument(`drafts.${experienceId(id)}`),published=await client.getDocument(experienceId(id));
   const source=draft||published,config=source?withoutDeletedPeople(source,await peopleFor(client,{includeDeleted:true})):null;
   return {experience:config?{...strip(config),program:programFor(config),stations:stationsFor(config),revision:draft?._rev||''}: {...defaultExperience(id),revision:''},draft:!!draft,published:!!published};
 }
 export async function snapshotFor(client,event){
+  if(client.runtimeOnly)return await createReleaseStore(client.runtimeDb).read(event.eventId)||{eventId:event.eventId,state:'closed',config:null};
   const [release,published]=await Promise.all([client.getDocument(`drafts.${releaseDocId(event.eventId)}`),client.getDocument(experienceId(event.eventId))]);
   const active=client.runtimeDb?await createReleaseStore(client.runtimeDb).read(event.eventId):null;
   return active?{...release,...active,_rev:release?._rev}:release||{eventId:event.eventId,state:published?'open':'closed',config:published?strip(published):null};
@@ -79,14 +89,14 @@ export function visitorPayload(config,event,people,partners=[]){
 export async function getVisitorExperience(client,{eventId='',accessCode=''}={}){
   try{
     if(eventId)validId(eventId);
-    const all=await eventList(client);
-    const event=eventId?all.find(e=>e.eventId===eventId):all.find(e=>e.visibility==='public'&&e.app.state==='open'&&e.app.hasRelease)||all.find(e=>e.visibility==='public'&&e.app.hasRelease)||all.find(e=>e.visibility==='public');
+    const all=eventId&&client.runtimeOnly?[]:await eventList(client);
+    const event=eventId?(client.runtimeOnly?await loadEvent(client,eventId):all.find(e=>e.eventId===eventId)):all.find(e=>e.visibility==='public'&&e.app.state==='open'&&e.app.hasRelease)||all.find(e=>e.visibility==='public'&&e.app.hasRelease)||all.find(e=>e.visibility==='public');
     if(!event||(event.visibility==='private'&&(!accessCode||accessCode!==event.accessCode)))return {status:404,error:'Dieser Abend ist nicht verfügbar. Bitte nutze den Gäste-Link deiner Veranstaltung.'};
     const release=await snapshotFor(client,event);
     if(release.state!=='open')return {status:200,state:'closed',event:{id:event.eventId,title:event.title,venue:event.venue,wallEnabled:release.config?.wall?.enabled===true,raffleEnabled:release.config?.raffle?.enabled===true,contactsEnabled:release.config?.encounters?.contactsEnabled===true},experience:null};
     if(!release.config)return {status:404,error:'Für diesen Abend sind noch keine Inhalte freigegeben.'};
     return {status:200,state:'open',experience:{...visitorPayload(release.config,{...event,...release.eventSnapshot},await peopleFor(client),await partnersFor(client)),revision:release.versionId||release._rev||release.sourceRevision||'',...(release.versionId?{releaseId:release.versionId}:{})}};
-  }catch(error){return {status:error.status===400?400:503,error:error.status===400?error.message:'Der Abend kann gerade nicht geladen werden.'};}
+  }catch(error){return {status:[400,404].includes(error.status)?error.status:503,error:error.status===400?error.message:error.status===404?'Dieser Abend ist nicht verfügbar. Bitte nutze den Gäste-Link deiner Veranstaltung.':'Der Abend kann gerade nicht geladen werden.'};}
 }
 import {createReleaseStore,releaseMetadata} from './release-store.mjs';
 import {RESOURCE_STATE_ID,sourceObjects,resourceSourcesVersion} from '../../shared/resources.mjs';

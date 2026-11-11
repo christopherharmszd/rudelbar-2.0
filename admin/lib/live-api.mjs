@@ -2,6 +2,7 @@ import {APP_ICONS} from '../../shared/app-icons.mjs';
 import {createLiveService,liveCsrf} from './live-service.mjs';
 import {validId} from '../../shared/experience.mjs';
 import {createAccounts,accountCookie} from './accounts.mjs';
+import {liveSignalSocket} from './live-signals.mjs';
 const cookieName=id=>'rb_team_'+String(id||'').replace(/-/g,'');
 const cookie=request=>{const id=new URL(request.url).searchParams.get('s')||'';if(!/^[a-f0-9-]{36}$/.test(id))return '';const name=cookieName(id)+'=';return (request.headers.get('cookie')||'').split(';').map(v=>v.trim()).find(v=>v.startsWith(name))?.slice(name.length)||'';};
 const sameOrigin=request=>request.headers.get('origin')===new URL(request.url).origin;
@@ -16,6 +17,7 @@ export async function liveApi(request,env,{client,json,session,data,service:prov
   let actor,csrf;
   if(user&&eventId){validId(eventId);actor=user.accountId?await service.accountActor(eventId,user):await service.publisher(eventId);actor.expiresAt=user.exp;actor.authVersion=user.ver;csrf=user.csrf;}
   else {const token=cookie(request);actor=await service.operator(token);csrf=await liveCsrf(token);if(eventId&&eventId!==actor.eventId)return json(403,{error:'Dieser Zugang gehört zu einem anderen Abend.'});}
+  if(path==='/api/live/updates'&&request.method==='GET')return liveSignalSocket(env,request,{eventId:actor.eventId,audience:'team',viewer:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId,scopes:[...(actor.accountId?['u:'+actor.accountId]:[]),...(actor.personId?['p:'+actor.personId]:[])],expiresAt:actor.expiresAt});
   if(request.method!=='GET'&&(!sameOrigin(request)||request.headers.get('x-csrf-token')!==csrf))return json(403,{error:'Bitte die Ansicht neu öffnen und erneut versuchen.'});
   if(path==='/api/live/session'&&request.method==='GET')return json(200,{...await service.staffContext(actor),csrf});
   if(path==='/api/live/manifest'&&request.method==='GET')return json(200,{id:'/team',name:'Rudelbar Team',short_name:'Rudelbar Team',start_url:actor.accountId||actor.publisher?'/team?abend='+actor.eventId:'/team?s='+actor.grantId,scope:'/',display:'standalone',background_color:'#0D0D0D',theme_color:'#0D0D0D',icons:APP_ICONS},{'Content-Type':'application/manifest+json'});

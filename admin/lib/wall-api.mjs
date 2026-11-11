@@ -2,12 +2,14 @@ import {createWallArchive} from './wall-archive.mjs';
 import {createLiveService} from './live-service.mjs';
 import {createWallService} from './wall-service.mjs';
 import {fail,id,json,readJson} from './wall-policy.mjs';
+import {liveSignalSocket} from './live-signals.mjs';
 export function wallFor(env,client,options={}){const live=createLiveService(env,client,options);return {wall:createWallService(env,{context:live.internalContext,visitor:live.internalVisitor,notifyOwner:eventId=>live.wallNotices.dispatch(eventId)}),live};}
 export async function guestWallFetch(request,env,client,options={}){
  try{const url=new URL(request.url),eventId=id(url.searchParams.get('abend')),accessCode=url.searchParams.get('zugang')||'',{wall,live}=wallFor(env,client,options),token=request.headers.get('x-rudelbar-guest-token')||'';let person=null;if(token)try{person=await live.internalVisitor(eventId,token);}catch(error){if(request.method!=='GET')throw error;}
   const action=url.pathname.replace(/^\/api\/guest\/wall\/?/,'');
   if(request.method!=='GET'&&request.headers.get('origin')!==url.origin)fail('Ungültige Herkunft.',403);
   if(action==='state'&&request.method==='GET')return json(await wall.publicState(eventId,accessCode,person,{before:Number(url.searchParams.get('before')||0),stage:url.searchParams.get('stage')==='1'}));
+  if(action==='updates'&&request.method==='GET'){const state=await wall.state(eventId,accessCode,person);if(!state.open)fail('Die Wall ist geschlossen.',410);return liveSignalSocket(env,request,{eventId,audience:'public',viewer:'wall:'+crypto.randomUUID(),expiresAt:Date.now()+3600000});}
   if(action==='socket'&&request.method==='GET'){if(request.headers.get('origin')!==url.origin)fail('Ungültige Herkunft.',403);const s=await wall.state(eventId,accessCode,person);if(!s.open)fail('Die Wall ist geschlossen.',410);if(!env.WALL_FEED)fail('Die Live-Verbindung wird noch eingerichtet.',503);const ns=env.LOCAL_PREVIEW?env.WALL_FEED:env.WALL_FEED.jurisdiction('eu'),room=ns.get(ns.idFromName(eventId)),headers=new Headers(request.headers);headers.set('x-wall-viewer',person?.profile_id||'');return await room.fetch(new Request('https://wall.internal/socket',{headers}));}
   const photo=action.match(/^media\/([a-z0-9-]+)\/(preview|original)$/i);if(photo&&request.method==='GET')return await wall.media(eventId,photo[1],photo[2],{person,accessCode});
   if(!person)fail('Bitte melde dich zuerst mit deinem Vornamen an.',401);

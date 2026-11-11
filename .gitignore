@@ -26,3 +26,6 @@ admin/public/notification-setup.js
 
 # Generated dependency of the shared notification center.
 admin/public/guest-access.js
+
+# Generated shared live-update client.
+admin/public/live-updates.js

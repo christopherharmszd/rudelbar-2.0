@@ -1,3 +1,9 @@
+# Architekturumbau · lokal geprüft, noch nicht veröffentlicht · 12. November 2026
+
+Der freigegebene Umbau trennt Laufzeitabrufe von Sanity: explizite D1-Projektion, ein gemeinsamer Änderungsverteiler pro aktivem Abend, geteilte Browserverbindung und feste Sanity-Abrufbudgets. 275 Tests sowie isolierte Cloudflare-Runtime-, Serviceketten-, Mengen- und Gesamtabendprüfungen erfolgreich. 150 verbundene Geräte benötigen einen Kontrollabruf je Intervall; 1.500 lokale Fotoeinreichungen erzeugten nach zwei initialen Quellabfragen keine weiteren Sanity-Zugriffe. Die Versuche sind keine Kosten-/Kapazitätszusage für den realen Betrieb.
+
+**Noch nicht live:** Die echten Worker, Datenbanken und Inhalte wurden nicht verändert. Sanity liefert weiterhin HTTP 402 wegen ausgeschöpfter Monatsquote. Der Inhaber möchte vorerst keinen Tarif buchen; ein Upgrade bleibt seine spätere Entscheidung. Erstübernahme, echte Migrationen, Deployment und Online-Abnahme bleiben offen. Cloudflare-Anmeldung wurde mit bestehenden, nicht erweiterten Berechtigungen erneuert. Die öffentliche Website bleibt unverändert. [Umsetzung, Prüfungen, Budgetgrenzen und genaue Wiederaufnahme](runtime-architecture-2026-11-11.md).
+
 # Gäste-Einstieg V1 · Code veröffentlicht, Online-Abend blockiert · 11. November 2026
 
 Willkommen, Namenseingabe und Listen-Startseite folgen dem ausdrücklich ausgewählten Entwurf V1, mit echten Markenschriften und leichterer Gewichtung. Goldene Unterstreichungen, vorhandenes Logo/Wagenfoto, persönliche Begrüßung, kuratierte konfigurierte Zugänge und ein bestehender Entdecken-Bereich für weitere Funktionen. Keine neue App, kein Datenmodellumbau. [Fachliche Ergänzung des Inhabers](guest-platform-target-2026-11-11.md) berücksichtigt und als Zielbild dokumentiert.

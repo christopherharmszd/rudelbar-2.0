@@ -1,3 +1,4 @@
+import {watchLiveUpdates,cancelLiveUpdates,liveUpdatesHealthy} from './live-updates.js';
 import {guestError} from './guest-access.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const entrySummary=(m,open)=>{
@@ -29,7 +30,7 @@ export function createGuestRaffle({api,ensureSession,isOpen,preview=false,mark=a
   });
   node.addEventListener('submit',async e=>{if(e.target.id!=='raffle-enter')return;e.preventDefault();if(busy||!e.target.reportValidity())return;const fd=new FormData(e.target),a=data.available.find(a=>a.id===selected);busy=true;try{await api('/raffles','POST',{operation:'enter',configId:selected,agree:fd.has('agree'),rulesVersion:a.rulesVersion,age:fd.has('age')?a.minAge:0,publicConsent:fd.has('publicConsent'),code:fd.get('code')||''});body.replaceChildren();await load();}catch(e){error=e.message;}finally{busy=false;draw();}});
   node.addEventListener('rudelbar-access-restored',async()=>{error='';await load();draw();});
-  node.addEventListener('close',()=>{closed=true;clearInterval(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);node.showModal();draw();if(preview){body.innerHTML='<p>Die Vorschau zeigt nur die Vorbereitung. Es werden keine echten Lose, Ziehungen oder Gewinnrechte angelegt.</p>';return;}try{if(isOpen())await ensureSession();await load();}catch(e){error=e.message;draw();}timer=setInterval(()=>{if(!busy&&document.visibilityState==='visible')load();},5000);
+  node.addEventListener('close',()=>{closed=true;cancelLiveUpdates(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);node.showModal();draw();if(preview){body.innerHTML='<p>Die Vorschau zeigt nur die Vorbereitung. Es werden keine echten Lose, Ziehungen oder Gewinnrechte angelegt.</p>';return;}try{if(isOpen())await ensureSession();await load();}catch(e){error=e.message;draw();}timer=watchLiveUpdates(()=>{if(!busy&&document.visibilityState==='visible')load();}, {topics:["raffle", "inbox"]});
  }
  return {open,hasOwn:async()=>{try{return (await own()).actions.length>0;}catch{return false;}}};
 }

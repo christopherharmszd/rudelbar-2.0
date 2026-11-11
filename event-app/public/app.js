@@ -1,6 +1,7 @@
 (async () => {
   const root=document.querySelector('.re-app'),screen=root.querySelector('#re-screen'),nav=root.querySelector('#re-nav');
   const query=new URLSearchParams(location.search),templatePreview=query.get('templatePreview'),preview=query.get('preview')||templatePreview,eventId=preview||query.get('abend'),accessCode=query.get('zugang')||'';
+  const {watchLiveUpdates}=await import(preview?'/abend-preview/live-updates.js':'/live-updates.js');
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const icon=name=>`<i data-lucide="${name}" aria-hidden="true"></i>`;
   const button=(label,action,extra='',secondary=false)=>`<button type="button" class="re-btn ${secondary?'re-btn-secondary':''}" data-action="${action}" ${extra}>${label}</button>`;
@@ -15,7 +16,7 @@
   const {stationInteraction}=await import(preview?'/abend-preview/station-actions.js':'/station-actions.js');
   const {resetGuestApp}=await import(preview?'/abend-preview/guest-reset.js':'/guest-reset.js');
   const {createGuestAccount}=await import(preview?'/abend-preview/guest-access.js':'/guest-access.js');
-  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-reset1':'/guest-live.js?v=190-reset1');
+  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-runtime1':'/guest-live.js?v=190-runtime1');
   const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e),onOpenChat:id=>social?.open({conversationId:id}),onOpenWall:()=>memoryWall?.open({mine:true}),onOpenRaffle:()=>raffle?.open(),onOpenPair:id=>encounters?.chat(id),getExtraInbox:()=>[social?.tiles(),encounters?.tiles()].filter(Boolean).join(''),loadExtraInbox:()=>Promise.all([social?.list(),encounters?.list()]),onAuthRequired:()=>account?.invalidate()});
   const {createGuestSocial}=await import(preview?'/abend-preview/guest-social.js':'/guest-social.js');
   social=createGuestSocial({api:live.api,ensureSession:options=>account.ensure(options),preview,mark:(id,seq)=>live.mark(id,seq),onName:name=>{state.name=name;save();render();account?.check();}});
@@ -23,7 +24,7 @@
   encounters=createGuestEncounters({api:live.api,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,getEventId:()=>activeEventId,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestRaffle}=await import(preview?'/abend-preview/guest-raffle.js':'/guest-raffle.js');
   raffle=createGuestRaffle({api:live.api,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
-  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-reset1':'/guest-wall.js?v=190-reset1');
+  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-runtime1':'/guest-wall.js?v=190-runtime1');
   memoryWall=createGuestWall({getEventId:()=>activeEventId,accessCode,ensureSession:options=>account.ensure(options),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestAnalytics}=await import(preview?'/abend-preview/guest-analytics.js':'/guest-analytics.js');
   const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:options=>account.ensure(options),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
@@ -161,7 +162,7 @@
       const refreshEndpoint=`/api/experience?abend=${encodeURIComponent(experience.eventId)}${accessCode?'&zugang='+encodeURIComponent(accessCode):''}`;
       let checking=false;
       const check=async()=>{if(checking||document.visibilityState==='hidden')return;checking=true;try{const r=await fetch(refreshEndpoint,{cache:'no-store'}),data=await r.json();if(data.state==='closed')showClosed(data.event);else if(r.ok&&data.experience){const changed=experience?.revision!==data.experience.revision;experience=data.experience;if(changed&&!['welcome','name'].includes(view))render();}}catch{}finally{checking=false;}};
-      setInterval(check,30000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
+      watchLiveUpdates(check,{topics:['configuration'],fallbackMs:60000,enabled:()=>!!state.name});
     }
     view=state.name?'home':'welcome';history.replaceState({view,selected:''},'',location.href);render();account.check().then(()=>{if(account.state.status==='active'){live.startNotices();analytics.refresh();}});if(query.get('kontext')==='raffle')raffle.open();else if(query.get('wall')==='1')memoryWall.open({mine:true});else if(query.get('postfach')==='1'||query.get('anfrage')){if(query.get('anfrage'))live.openConversation(query.get('anfrage'));else go('messages');}
   }catch(error){nav.hidden=true;root.querySelector('.re-header-place').textContent='Gemeinsam. Überall.';screen.innerHTML=heading('Wir sind gleich wieder da.','Ein kurzer Moment.',error.message)+button('Erneut versuchen','reload');icons();}

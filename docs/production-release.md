@@ -1,5 +1,9 @@
 # Rudelbar veröffentlichen
 
+## Architekturumbau vom 12. November 2026: noch keine neue Veröffentlichung
+
+Die Laufzeitumstellung ist lokal geprüft und als Entwicklungsstand gesichert. Keine echten Migrationen, keine Veröffentlichung und kein Tarifwechsel vorgenommen. Aktive Worker-Versionen bleiben die unten dokumentierten vom Gäste-Einstieg V1. Vor Aktivierung die vollständige Sicherungs-/Migrations-/Synchronisierungsfolge in [Runtime-Architektur](runtime-architecture-2026-11-11.md#wiederaufnahme-und-kontrollierte-aktivierung) abarbeiten. Eine vollständig vorbereitete D1-Projektion und die private Zugriffskontrolle sind Freigabevoraussetzungen. Sanity ist derzeit gesperrt; der Inhaber lässt das Upgrade zunächst offen. Nicht stillschweigend auf den alten unbegrenzten Sanity-Abfragebetrieb zurückschalten.
+
 ## Gäste-Einstieg V1 vom 11. November 2026
 
 Anwendungsquelle `e1a80d36f3b6fe16c3a31d7d2ed7c9d7effd0d7a` auf GitHub. Der über die verbundene GitHub-Anmeldung gesicherte Dateibaum ist exakt identisch zum lokal veröffentlichten Commit `9e6571d75cc02fe99f894e55f3757630c441c70b`; lokaler main wurde nach diesem vollständigen Vergleich auf den GitHub-Commit abgeglichen. Backstage `fd5d3df6-18d5-4a03-b7c0-56db7b79fb05`, Gäste-App `1db431e8-2b4c-47cb-b410-fe4d8ba5c564`. 258 Tests, isolierter Gesamtabend und lokale Browser-/Designabnahme einschließlich synchronisierter Vorschau erfolgreich. 22 ausgelieferte Dateien stimmen exakt mit der Quelle überein; alle abgefragten Bindungen unverändert. Website bleibt auf ihrer separat freigegebenen Quelle.

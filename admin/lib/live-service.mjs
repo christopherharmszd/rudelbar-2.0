@@ -42,12 +42,16 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
   const first=(sql,args=[])=>database().prepare(sql).bind(...args).first();
   const all=async(sql,args=[])=>((await database().prepare(sql).bind(...args).all()).results||[]);
   const run=(sql,args=[])=>database().prepare(sql).bind(...args).run();
+  const contexts=new Map();
   async function context(eventId){
     validId(eventId);
     if(getContext)return getContext(eventId);
+    if(client?.runtimeOnly&&contexts.has(eventId))return contexts.get(eventId);
+    const work=(async()=>{
     const event=await loadEvent(client,eventId),release=await snapshotFor(client,event),people=await peopleFor(client);
     const staffing=release.config?._staffIds||[];
     return {event:{...event,teamIds:[...new Set([...event.teamIds,...staffing])].filter(pid=>people.some(p=>p.personId===pid&&!p.archived&&!p.deletedAt))},release,people,stations:release.config?stationsFor(release.config).map(s=>({...s,enabled:s.enabled!==false&&sectionAllowsStation(release.config,s)})):[]};
+    })();if(client?.runtimeOnly)contexts.set(eventId,work);try{return await work;}catch(error){contexts.delete(eventId);throw error;}
   }
   const notices=createNotifications(env,{context,defer,transport});
   const recipient=actor=>({id:actor.accountId?'u:'+actor.accountId:actor.publisher?'publisher':'p:'+actor.personId,eventId:actor.eventId,audience:'team',publisher:actor.publisher,personId:actor.personId,grantId:actor.accountSessionId||actor.grantId,expiresAt:actor.expiresAt,authVersion:actor.authVersion,stations:stations(actor).map(s=>s.id)});

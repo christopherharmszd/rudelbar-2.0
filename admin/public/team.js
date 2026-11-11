@@ -1,3 +1,4 @@
+import {watchLiveUpdates} from './live-updates.js';
 import {liveApiPath} from './live-api-path.js';
 import {openEncounterTeam} from './encounter-team.js';
 import {openRaffleTeam} from './raffle-team.js';
@@ -6,7 +7,7 @@ import {openModeration} from './moderation-ui.js';
 import {openGameRounds} from '/abend-preview/game-rounds.js?v=1';
 import {uploadImage} from './image-picker.js?v=1';
 import {signInPath} from './session-paths.js';
-import {createNotificationCenter} from './notifications.js?v=190-app2';
+import {createNotificationCenter} from './notifications.js?v=190-runtime1';
 const root=document.querySelector('#live-app'),params=new URLSearchParams(location.search),eventParam=params.get('abend')||'',stationParam=params.get('station')||'';
 const state={context:null,requests:[],selected:'',detail:null,station:stationParam,status:'open',drafts:{},busy:false,photoPicking:false,connected:false};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,7 +15,7 @@ const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
 const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
 const closed=['done','declined','cancelled'];
 let toastTimer,sessionKey=params.get('s')||'',interactionVersion=0,backgroundLoading=false;
-const notices=createNotificationCenter({api,openRequest:id=>selectRequest(id),role:'team',storageKey:'rudelbar:notifications:team:'+(eventParam||params.get('s')||'')});
+const notices=createNotificationCenter({api,openRequest:id=>selectRequest(id),role:'team',updatesUrl:()=>liveApiPath('/updates',{eventId:eventParam,sessionKey}),storageKey:'rudelbar:notifications:team:'+(eventParam||params.get('s')||'')});
 function selectRequest(id){interactionVersion++;state.selected=id;state.detail=null;state.station='';state.status='all';render();api('/requests/'+id).then(detail=>{if(state.selected===id&&(!state.detail||detail.request.revision>=state.detail.request.revision)){state.detail=detail;render();notices.mark(id,detail.activitySeq);window.scrollTo({top:0,behavior:'instant'});}}).catch(error=>toast(error.message,true));}
 function toast(text,error=false){const n=document.querySelector('#toast');n.textContent=text;n.className='visible'+(error?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>n.className='',error?8500:3200);}
 async function api(path,method='GET',body){const r=await fetch(liveApiPath(path,{eventId:eventParam,sessionKey}),{method,credentials:'same-origin',cache:'no-store',headers:{...(state.context?{'X-CSRF-Token':state.context.csrf}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});const data=await r.json();if(!r.ok){if(r.status===401||r.status===403){state.context=null;login(data.error);}throw new Error(data.error||'Gerade nicht erreichbar.');}return data;}
@@ -99,5 +100,4 @@ async function backgroundRefresh(){
   state.context=context;state.requests=listing.requests;if(detail)state.detail=detail;render();if(detail)notices.mark(selected,detail.activitySeq);
  }catch(error){if(state.context)toast(error.message,true);}finally{backgroundLoading=false;}
 }
-setInterval(backgroundRefresh,5000);
-document.addEventListener('visibilitychange',backgroundRefresh);
+watchLiveUpdates(backgroundRefresh,{topics:['inbox','configuration'],enabled:()=>!!state.context});

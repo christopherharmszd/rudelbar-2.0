@@ -1,10 +1,11 @@
+import {connectLiveUpdates,stopLiveUpdates,watchLiveUpdates} from './live-updates.js';
 import {guestError} from './guest-access.js';
 import {notificationPlatform,notificationSetupContent} from './notification-setup.js?v=2';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bell='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>';
 const read=(key,fallback='')=>{try{return localStorage.getItem(key)||fallback;}catch{return fallback;}};
 const store=(key,value)=>{try{localStorage.setItem(key,String(value));}catch{}};
-export function createNotificationCenter({api,initialize=async()=>{},openRequest,role='guest',storageKey,disabled=false,scope='evening'}){
+export function createNotificationCenter({api,initialize=async()=>{},openRequest,role='guest',storageKey,disabled=false,scope='evening',updatesUrl}){
  const key=suffix=>(typeof storageKey==='function'?storageKey():storageKey)+suffix;
  const state={started:false,starting:false,ready:false,count:0,items:[],configured:false,enabled:false,lastStatus:0,endpoint:'',publicKey:'',busy:false,error:'',info:'',mode:'inbox',step:0,sound:read(key(':sound'))==='1'};
  let registration,dialog,toast,toastTimer,polling=false,baseline=null,stopped=false,audio,opening=false,badgeCount=-1;
@@ -47,7 +48,7 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
    if(baseline!==null&&latest>baseline&&latest>already){store(key(':last-alert-clock-v2'),latest);announce(state.items[0]);}baseline=Math.max(baseline||0,latest);mount();renderDialog();
   }catch{}finally{polling=false;}
  }
- async function start(){if(disabled||state.started||state.starting||stopped)return;state.starting=true;try{await initialize();state.started=true;await poll();if(supported())await settings();state.ready=true;mount();}catch{}finally{state.starting=false;}}
+ async function start(){if(disabled||state.started||state.starting||stopped)return;state.starting=true;try{await initialize();state.started=true;await poll();if(supported())await settings();state.ready=true;mount();if(updatesUrl)connectLiveUpdates(typeof updatesUrl==='function'?updatesUrl():updatesUrl);}catch{}finally{state.starting=false;}}
  async function mark(id,seq){if(document.visibilityState==='hidden'||dialog?.open)return;if(!id||!Number.isSafeInteger(seq))return;try{await api('/notifications/read','POST',{id,seq});await poll();}catch{}}
  async function action(name){
   if(name==='setup'){await open({setup:true});return;}
@@ -75,6 +76,6 @@ export function createNotificationCenter({api,initialize=async()=>{},openRequest
  document.addEventListener('click',event=>{const node=event.target.closest('[data-notice]');if(!node)return;event.preventDefault();const name=node.dataset.notice;if(name==='request'){dialog?.close();toast?.remove();openRequest(node.dataset.id);return;}action(name);});
  document.addEventListener('change',event=>{if(event.target.matches('[data-notice-sound]')){state.sound=event.target.checked;store(key(':sound'),state.sound?'1':'0');if(state.sound)play();renderDialog();}});
  navigator.serviceWorker?.addEventListener('message',event=>{if(event.data?.type==='rudelbar-push')poll();if(event.data?.type==='rudelbar-open-request'&&event.data.id)openRequest(event.data.id);});
- setInterval(()=>{if(state.started)poll();},role==='team'?5000:8000);document.addEventListener('visibilitychange',()=>{if(state.started)poll();});
- return {start,mount,mark,open,poll,async disconnect(){if(state.endpoint)try{await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});}catch{}this.stop();},stop(){stopped=true;state.started=false;state.items=[];state.count=0;dialog?.close();toast?.remove();document.querySelectorAll('[data-notice-slot],[data-notice-banner]').forEach(node=>node.replaceChildren());},resume(){stopped=false;state.sound=read(key(':sound'))==='1';},get items(){return state.items;}};
+ watchLiveUpdates(poll,{topics:['inbox'],enabled:()=>state.started&&!stopped&&!disabled});
+ return {start,mount,mark,open,poll,async disconnect(){if(state.endpoint)try{await api('/notifications/unsubscribe','POST',{endpoint:state.endpoint});}catch{}this.stop();},stop(){if(updatesUrl)stopLiveUpdates();stopped=true;state.started=false;state.items=[];state.count=0;dialog?.close();toast?.remove();document.querySelectorAll('[data-notice-slot],[data-notice-banner]').forEach(node=>node.replaceChildren());},resume(){stopped=false;state.sound=read(key(':sound'))==='1';},get items(){return state.items;}};
 }

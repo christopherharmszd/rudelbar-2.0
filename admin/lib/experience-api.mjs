@@ -14,14 +14,18 @@ import {changePersonLifecycle} from './people-lifecycle.mjs';
 import {changeCatalogLifecycle} from './catalog-lifecycle.mjs';
 import {createMemberOnboarding} from './member-onboarding.mjs';
 import {createPlanning} from './planning.mjs';
+import {synchronizeRuntimeContent} from './runtime-content.mjs';
+import {sanityBudgetStatus} from './sanity-budget.mjs';
 import {reviewEvening} from './evening-review.mjs';
 import {catalogCsvApi} from './catalog-csv-api.mjs';
-import {editsContent,readsEvents,managesEvent,seesEvent,requirePermission} from './permissions.mjs';
+import {editsContent,readsEvents,managesEvent,seesEvent,managesUsers,requirePermission} from './permissions.mjs';
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status});};
 export async function experienceApi(request,env,{client,json,session,authorized,data}){
   const path=new URL(request.url).pathname,user=await session(request,env);
   if(!user)return json(401,{error:'Bitte anmelden.'});
   if(request.method!=='GET'){const auth=await authorized(request,env);if(auth.error)return auth.error;}
+  if(path==='/api/abend/runtime/synchronize'&&request.method==='POST'){requirePermission(managesUsers(user));return json(200,await synchronizeRuntimeContent(env,client));}
+  if(path==='/api/abend/runtime/status'&&request.method==='GET'){requirePermission(managesUsers(user));return json(200,{projection:await env.LIVE_DB.prepare('SELECT ready,synced_at FROM app_runtime_content_state WHERE id=1').first(),budget:await sanityBudgetStatus(env)});}
   if(path==='/api/abend/members'&&request.method==='POST')return json(201,await createMemberOnboarding(env,client).submit(user,await data(request),new URL(request.url).origin));
   const onboardingMatch=path.match(/^\/api\/abend\/members\/([a-f0-9-]{36})$/);
   if(onboardingMatch&&request.method==='GET')return json(200,await createMemberOnboarding(env,client).get(user,onboardingMatch[1]));

@@ -1,3 +1,4 @@
+import {watchLiveUpdates,cancelLiveUpdates,liveUpdatesHealthy} from './live-updates.js';
 import {createLatestLoader} from './latest-loader.js';
 import {createSessionApi} from './session-api.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,10 +50,10 @@ export async function openRaffleTeam({eventId}){
   const body=sheet.querySelector('.vm-sheet-body');let stopped=false,halted=false,refreshing=false,lastSuccess=Date.now();
   function drawMoment(value){if(stopped)return;const top=value.results[0];body.innerHTML='<small>Ein gemeinsamer Glücksmoment.</small><h1 style="font-size:clamp(2rem,6vw,5rem)">'+esc(top?.name||'Gleich wird es spannend.')+'</h1><p style="font-size:clamp(1.2rem,3vw,2.5rem)">'+esc(top?.prizeName||'Das Team bereitet eure Ziehung vor.')+'</p><p>Gemeinsam. Überall. Rudelbar.</p><small>Dieses Ergebnis wurde bereits gespeichert. Die Anzeige führt keine neue Ziehung durch.</small>';}
   function unavailable(){if(!stopped)body.innerHTML='<p role="status">Der Gewinnmoment wird gerade neu verbunden oder ist nicht mehr verfügbar.</p>';}
-  async function refresh(){if(stopped||halted||refreshing)return;refreshing=true;try{const next=await sessionApi(path('show',configId));if(stopped)return;lastSuccess=Date.now();drawMoment(next);}catch(e){unavailable();if([401,403,404,409,410].includes(e.status)){halted=true;clearInterval(timer);document.removeEventListener('visibilitychange',visible);}}finally{refreshing=false;}}
-  const visible=()=>{if(document.visibilityState==='hidden')unavailable();else{if(Date.now()-lastSuccess>15000)unavailable();refresh();}};
-  const timer=setInterval(()=>{if(Date.now()-lastSuccess>15000)unavailable();if(document.visibilityState==='visible')refresh();},5000);
-  sheet.onclick=e=>{if(e.target.closest('[data-show-close]'))sheet.close();};sheet.onclose=()=>{stopped=true;clearInterval(timer);document.removeEventListener('visibilitychange',visible);sheet.remove();};document.addEventListener('visibilitychange',visible);document.body.append(sheet);drawMoment(result);sheet.showModal();
+  async function refresh(){if(stopped||halted||refreshing)return;refreshing=true;try{const next=await sessionApi(path('show',configId));if(stopped)return;lastSuccess=Date.now();drawMoment(next);}catch(e){unavailable();if([401,403,404,409,410].includes(e.status)){halted=true;cancelLiveUpdates(timer);document.removeEventListener('visibilitychange',visible);}}finally{refreshing=false;}}
+  const visible=()=>{if(document.visibilityState==='hidden')unavailable();else{if(Date.now()-lastSuccess>15000&&!liveUpdatesHealthy())unavailable();refresh();}};
+  const timer=watchLiveUpdates(()=>{if(Date.now()-lastSuccess>15000&&!liveUpdatesHealthy())unavailable();if(document.visibilityState==='visible')refresh();}, {topics:["raffle", "configuration"]});
+  sheet.onclick=e=>{if(e.target.closest('[data-show-close]'))sheet.close();};sheet.onclose=()=>{stopped=true;cancelLiveUpdates(timer);document.removeEventListener('visibilitychange',visible);sheet.remove();};document.addEventListener('visibilitychange',visible);document.body.append(sheet);drawMoment(result);sheet.showModal();
  }
 
  node.addEventListener('change',async e=>{if(e.target.name!=='campaign'||busy||loader.loading||command)return;selected=e.target.value;data=null;page=0;proof=null;issuedCode='';error='';try{await load();}catch(e){error=e.message;draw();}});
@@ -66,5 +67,5 @@ export async function openRaffleTeam({eventId}){
   busy=true;error='';if(command.action==='draw')try{sessionStorage.setItem(pendingKey,JSON.stringify({...command,configId:selected}));}catch{}draw();
   try{await api(command.action,'POST',command.input);if(command.action==='draw')try{sessionStorage.removeItem(pendingKey);}catch{}info=command.action==='draw'?'Die Ziehung ist festgeschrieben.':command.action==='redeem'?'Die einmalige Ausgabe ist bestätigt.':'Die Änderung ist protokolliert.';command=null;await load();}catch(e){error=e.message;if(command.action==='draw'){if([400,409,410,413,429].includes(e.status)){try{sessionStorage.removeItem(pendingKey);}catch{}command=null;await load().catch(()=>{});}else command.unknown=true;}}finally{busy=false;draw();}
  });
- node.addEventListener('close',()=>{closed=true;loader.invalidate();clearInterval(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);draw();node.showModal();try{await load();}catch(e){error=e.message;draw();}timer=setInterval(()=>{if(!busy&&!loader.loading&&!command&&document.visibilityState==='visible'&&!node.querySelector('input:focus,select:focus,textarea:focus'))load().catch(()=>{});},10000);
+ node.addEventListener('close',()=>{closed=true;loader.invalidate();cancelLiveUpdates(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);draw();node.showModal();try{await load();}catch(e){error=e.message;draw();}timer=watchLiveUpdates(()=>{if(!busy&&!loader.loading&&!command&&document.visibilityState==='visible'&&!node.querySelector('input:focus,select:focus,textarea:focus'))load().catch(()=>{});}, {topics:["raffle", "configuration"]});
 }

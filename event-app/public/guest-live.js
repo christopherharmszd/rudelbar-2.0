@@ -1,14 +1,15 @@
+import {watchLiveUpdates} from './live-updates.js';
 import {stationInteraction} from './station-actions.js';
 import {createGuestSession} from './guest-session.js';
 import {normalizeGuestError,guestError} from './guest-access.js';
-import {createNotificationCenter} from './notifications.js?v=190-reset1';
+import {createNotificationCenter} from './notifications.js?v=190-runtime1';
 export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update,onAction,onOpenChat,onOpenWall,onOpenRaffle,onOpenPair,getExtraInbox,loadExtraInbox,onAuthRequired=()=>{}}){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
  const state={page:'',selected:'',requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
  const activeStatuses=['new','queued','in_progress'];
  let viewVersion=0,conversationLoad=0,refreshing=false;
- const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',storageKey:()=> 'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
+ const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',updatesUrl:()=>'/api/guest/updates?abend='+encodeURIComponent(getEventId()),storageKey:()=> 'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
  const btn=(label,action,extra='',secondary=false)=>`<button type="button" class="re-btn ${secondary?'re-btn-secondary':''}" data-live-action="${action}" ${extra}>${label}</button>`;
  const back=()=>`<button type="button" class="re-back" data-live-action="home">${icon('chevron-left')}Dein Abend</button>`;
  const time=t=>new Intl.DateTimeFormat('de-DE',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Berlin'}).format(new Date(t));
@@ -85,6 +86,6 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
    const focused=document.activeElement,typing=focused?.name==='reply',caret=typing?focused.selectionStart:null,scroll=window.scrollY;update();if(typing){const input=screen.querySelector('[name=reply]');input?.focus({preventScroll:true});if(input&&caret!==null)input.setSelectionRange(caret,caret);}window.scrollTo({top:scroll,behavior:'instant'});
   }catch{}finally{refreshing=false;}
  }
- setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
+ watchLiveUpdates(refresh,{topics:['inbox','configuration']});
  return {api,checkSession:guestSession.check,signIn:guestSession.signIn,openNoticeSettings:()=>notices.open({setup:true}),mark:(id,seq)=>notices.mark(id,seq),ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await api('/logout','POST',{});notices.stop();guestSession.invalidate();state.requests=[];state.detail=null;state.replyDraft='';}};
 }

@@ -1,3 +1,4 @@
+import {watchLiveUpdates,cancelLiveUpdates,liveUpdatesHealthy} from './live-updates.js';
 import {guestError} from './guest-access.js';
 export const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const esc=escapeHtml;
@@ -17,5 +18,5 @@ export function openPairChat({contextId,transport,markNotice=async()=>{},contact
   busy=true;try{if(a==='confirm'){await transport('end',{contextId,block:action==='block'});node.close();return;}if(a==='older'){const page=await transport('read',{contextId,before:older[0]?.seq||data.before});older=[...page.messages,...older];data.more=page.more;draw();}}catch(e){error=e.message;}finally{busy=false;draw();}
  });
  node.addEventListener('submit',async e=>{e.preventDefault();if(busy||!e.target.reportValidity())return;busy=true;error='';try{if(e.target.hasAttribute('data-report')){const fd=new FormData(e.target);await transport('report',{contextId,messageId:reportId,clientKey:crypto.randomUUID(),reason:fd.get('reason'),comment:fd.get('comment')});action='';error='Die Meldung ist beim Schutz-Team angekommen. Bei dringenden Problemen sprich das Team direkt vor Ort an.';return;}pendingKey||=crypto.randomUUID();pendingBody=draft;data=await transport('send',{contextId,body:draft,clientKey:pendingKey});draft='';pendingKey='';form.reset();draw();}catch(e){error=e.message;}finally{busy=false;draw();}});
- node.addEventListener('close',()=>{closed=true;clearInterval(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);node.showModal();load();timer=setInterval(()=>{if(!busy&&document.visibilityState==='visible')load();},5000);return node;
+ node.addEventListener('close',()=>{closed=true;cancelLiveUpdates(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);node.showModal();load();timer=watchLiveUpdates(()=>{if(!busy&&document.visibilityState==='visible')load();}, {topics:["inbox"]});return node;
 }

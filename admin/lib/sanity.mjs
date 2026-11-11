@@ -1,12 +1,18 @@
 const API_VERSION = "v2025-02-19";
 
-export function createSanity({ projectId, dataset, token }) {
+export function createSanity({ projectId, dataset, token, memoizeReads=false, beforeRequest }) {
   if (!/^[a-z0-9-]+$/i.test(projectId) || !/^[a-z0-9_-]+$/i.test(dataset)) {
     throw new Error("Ungültige Sanity-Konfiguration.");
   }
   const base = `https://${projectId}.api.sanity.io/${API_VERSION}`;
+  const reads = new Map();
 
   async function request(path, options = {}) {
+    const read=!options.method||options.method==='GET';
+    if(read&&memoizeReads&&reads.has(path))return structuredClone(await reads.get(path));
+    if(!read)reads.clear();
+    const work=(async()=>{
+    await beforeRequest?.();
     const response = await fetch(`${base}${path}`, {
       ...options,
       headers: { Authorization: `Bearer ${token}`, ...options.headers },
@@ -14,6 +20,17 @@ export function createSanity({ projectId, dataset, token }) {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error(response.status === 409 ? "Der Eintrag wurde inzwischen geändert. Bitte neu laden." : data.error?.description || data.message || `Sanity: HTTP ${response.status}`), {status: response.status === 409 ? 409 : 502});
     return data;
+    })();
+    if(read&&memoizeReads)reads.set(path,work);
+    try{return structuredClone(await work);}catch(error){if(read)reads.delete(path);throw error;}
+  }
+
+  async function documents(types){
+    if(!Array.isArray(types)||!types.length||types.length>20||types.some(type=>!/^[a-z][a-z0-9]+$/i.test(type)))throw new Error('Ungültige Inhaltstypen.');
+    const query=encodeURIComponent('*[_type in $types]'),parameter=encodeURIComponent(JSON.stringify(types));
+    const data=await request(`/data/query/${dataset}?perspective=raw&query=${query}&%24types=${parameter}&tag=rudelbar.runtime.bootstrap`);
+    if(!Array.isArray(data.result))throw new Error('Die Betriebsdaten konnten nicht vollständig gelesen werden.');
+    return data.result;
   }
 
   async function list(type) {
@@ -136,5 +153,5 @@ export function createSanity({ projectId, dataset, token }) {
     return (await request(`/data/query/${dataset}?perspective=raw&query=${query}&%24id=${encodeURIComponent(JSON.stringify(assetId))}&%24url=${encodeURIComponent(JSON.stringify(url))}`)).result||[];
   }
 
-  return { list, getDocument, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage,commitPrivate,listImages,imageUsage };
+  return { list, getDocument, documents, savePrivate, saveDraft, publish, unpublish, archive, restore, deleteForever, uploadImage,commitPrivate,listImages,imageUsage };
 }

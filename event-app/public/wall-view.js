@@ -1,5 +1,6 @@
 import {wallScene,wallComposition} from './wall-model.js';
 import {drawQR} from './assets/qr.mjs';
+import {watchLiveUpdates,hasLiveUpdates,connectLiveUpdates,stopLiveUpdates} from './live-updates.js';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function wallCard(post,media,{large=false}={}){return '<article class="rw-card '+(post.hasPhoto?'has-photo':'words-only')+' '+(large?'is-large':'')+'" data-wall-post="'+post.id+'">'+(post.hasPhoto?'<img src="'+esc(media(post.id))+'" alt="Moment von '+esc(post.name)+'" loading="'+(large?'eager':'lazy')+'">':'')+'<div class="rw-caption"><p>'+esc(post.text)+'</p><span>'+esc(post.name)+'</span></div></article>';}
 export function renderWallStage(data,media,guestUrl,{aspect=16/9}={}){
@@ -26,10 +27,9 @@ export function mountWallQR(root,url){const canvas=root.querySelector('[data-wal
 // Invalidation first clears media already displayed. Refetch re-checks approval,
 // consent, current release and expiry. A broken/stale connection blanks the view.
 export function connectWall({stateUrl,socketUrl,onState,onUnavailable,fetcher=fetch}){
- let stopped=false,loading=false,again=false,socket,timer,reconnect,lastSuccess=0;
- async function refresh(){if(stopped)return;if(loading){again=true;return;}loading=true;try{const response=await fetcher(stateUrl(),{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Wall not available');const state=await response.json();if(stopped)return;lastSuccess=Date.now();onState(state);}catch{if(!stopped)onUnavailable();}finally{loading=false;if(again){again=false;refresh();}}}
- function start(){if(stopped)return;try{socket=new WebSocket(socketUrl());socket.onmessage=e=>{if(e.data==='refresh'||e.data==='invalidate'){if(e.data==='invalidate')onUnavailable();refresh();}};socket.onclose=()=>{if(stopped)return;onUnavailable();if(!stopped)reconnect=setTimeout(start,2000);};socket.onerror=()=>socket.close();}catch{onUnavailable();if(!stopped)reconnect=setTimeout(start,3000);}}
- refresh();start();timer=setInterval(()=>{if(document.visibilityState!=='hidden')refresh();if(Date.now()-lastSuccess>15000)onUnavailable();},5000);
- const visible=()=>{if(document.visibilityState==='visible')refresh();};document.addEventListener('visibilitychange',visible);
- return {refresh,stop(){stopped=true;clearInterval(timer);clearTimeout(reconnect);socket?.close();document.removeEventListener('visibilitychange',visible);}};
+ let stopped=false,loading=false,again=false,owned='',expiryTimer;
+ async function refresh(){if(stopped||document.visibilityState==='hidden')return;if(loading){again=true;return;}loading=true;try{const response=await fetcher(stateUrl(),{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Wall not available');const state=await response.json();if(!stopped){clearTimeout(expiryTimer);onState(state);const expiry=Math.min(...(state.posts||[]).map(p=>p.expiresAt));if(Number.isFinite(expiry))expiryTimer=setTimeout(()=>{onUnavailable();refresh();},Math.max(1,Math.min(2147483647,expiry-Date.now()+1)));}}catch{if(!stopped)onUnavailable();}finally{loading=false;if(again){again=false;refresh();}}}
+ const dispose=watchLiveUpdates(refresh,{topics:['wall','configuration'],onUnavailable});
+ refresh();if(!hasLiveUpdates()){const url=new URL(socketUrl(),location.href);url.protocol=location.protocol;url.pathname=url.pathname.replace(/\/socket$/,'/updates');owned=url.pathname+url.search;connectLiveUpdates(owned);}
+ return {refresh,stop(){stopped=true;clearTimeout(expiryTimer);dispose();if(owned&&location.pathname.includes('wall'))stopLiveUpdates();}};
 }

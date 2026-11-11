@@ -1,3 +1,4 @@
+import {watchLiveUpdates,cancelLiveUpdates,liveUpdatesHealthy} from './live-updates.js';
 import {createLatestLoader} from './latest-loader.js';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export async function openEncounterTeam({api}){
@@ -11,5 +12,5 @@ export async function openEncounterTeam({api}){
  }
 
  node.addEventListener('click',async e=>{const b=e.target.closest('[data-et]');if(!b)return;const a=b.dataset.et;if(a==='close'){node.close();return;}if(busy||loader.loading)return;busy=true;error='';try{if(a==='back'){selected='';detail=null;}if(a==='select'){selected=b.dataset.id;detail=null;}if(a==='open'){const offerId=b.dataset.id;openKeys.has(offerId)||openKeys.set(offerId,crypto.randomUUID());await api('/encounters','POST',{action:'open',offerId,operationKey:openKeys.get(offerId)});openKeys.delete(offerId);}if(a==='start'||a==='end')await api('/encounters','POST',{action:a,sessionId:selected,revision:detail.session.revision});await load();}catch(e){error=e.message;}finally{busy=false;draw();}});
- node.addEventListener('close',()=>{closed=true;loader.invalidate();clearInterval(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);draw();node.showModal();await load();timer=setInterval(()=>{if(!busy&&!loader.loading&&document.visibilityState==='visible')load();},5000);
+ node.addEventListener('close',()=>{closed=true;loader.invalidate();cancelLiveUpdates(timer);node.remove();if(previous?.isConnected)previous.focus({preventScroll:true});});document.body.append(node);draw();node.showModal();await load();timer=watchLiveUpdates(()=>{if(!busy&&!loader.loading&&document.visibilityState==='visible')load();}, {topics:["encounters", "inbox"]});
 }

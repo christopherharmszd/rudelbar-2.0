@@ -21,12 +21,13 @@ export default {
         return json(status,result);
       }
       if(url.pathname.startsWith('/api/contacts/')){
+       if(url.pathname==='/api/contacts/updates'&&request.method==='GET'){const headers=new Headers(request.headers);headers.delete('cookie');headers.delete('authorization');headers.set('x-rudelbar-contact-token',contactToken(request));return env.CONTENT.fetch(new Request(request,{headers}));}
        if(!['GET','POST'].includes(request.method))return json(405,{error:'Diese Aktion ist nicht verfügbar.'});if(request.method==='POST'&&request.headers.get('origin')!==url.origin)return json(403,{error:'Ungültige Herkunft.'});
        const input=request.method==='POST'?await body(request):{},operation=url.pathname.startsWith('/api/contacts/notifications')?'notifications':url.pathname.replace('/api/contacts/','');if(!['request','consume','available','mine','end','close','logout','list','social','notifications'].includes(operation))return json(404,{error:'Nicht gefunden.'});if(request.method==='GET'&&!['available','mine','list','social','notifications'].includes(operation))return json(405,{error:'Bitte das Formular verwenden.'});
        const eventId=input.eventId?validId(input.eventId):'',args={...input,eventId,operation,contactToken:contactToken(request),sessionToken:eventId?tokenFor(request,eventId):''};if(operation==='notifications'){args.action=url.pathname.replace('/api/contacts/notifications','').replace(/^\//,'')||'list';if(request.method==='GET'&&args.action!=='list')return json(405,{error:'Bitte das Formular verwenden.'});}if(request.method==='GET'&&operation==='social'){args.action='read';args.contextId=url.searchParams.get('contextId');}
        const {status=200,sessionToken,expiresAt,...result}=await env.CONTENT.guestAction('guestContactsAction',args),headers={};if(status===200&&sessionToken)headers['Set-Cookie']='rb_contacts='+sessionToken+'; HttpOnly; Secure; SameSite=Strict; Path=/api/contacts; Max-Age='+Math.max(1,Math.floor((expiresAt-Date.now())/1000));if(status===200&&['close','logout'].includes(operation))headers['Set-Cookie']='rb_contacts=; HttpOnly; Secure; SameSite=Strict; Path=/api/contacts; Max-Age=0';return json(status,result,headers);
       }
-      if(url.pathname.startsWith('/api/guest/wall/')||url.pathname.startsWith('/api/guest/encounter-media/')){
+      if(url.pathname==='/api/guest/updates'||url.pathname.startsWith('/api/guest/wall/')||url.pathname.startsWith('/api/guest/encounter-media/')){
        if(!['GET','POST','PUT'].includes(request.method))return json(405,{error:'Diese Aktion ist nicht verfügbar.'});
        if(request.method!=='GET'&&request.headers.get('origin')!==url.origin)return json(403,{error:'Ungültige Herkunft.'});
        const wallEvent=idForWall(url.searchParams.get('abend')),headers=new Headers(request.headers);headers.delete('cookie');headers.delete('authorization');headers.set('x-rudelbar-guest-token',tokenFor(request,wallEvent));
