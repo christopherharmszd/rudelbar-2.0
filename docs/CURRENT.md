@@ -1,8 +1,8 @@
-# Mobile Korrekturen · Prüfung am 11. November 2026
+# Mobile Korrekturen · veröffentlicht am 11. November 2026
 
 Die am 10. November gesicherte Arbeit wurde auf ausdrücklichen Auftrag wieder aufgenommen. Deckende App-Symbole und Teilen-Vorschau, dreistufige Mitteilungseinrichtung sowie die Fotoauswahl und Darstellung der Memory Wall sind umgesetzt. 243 Tests und der isolierte Gesamtabend sind erfolgreich. Gäste- und Team-Wizard sowie tatsächlicher JPEG-Upload, PNG-Vorschau und Entfernen mit erhaltenem Text wurden im Browser geprüft. Mobile Breite 390 px, keine Überbreite in den geprüften Ansichten. Der lokale Server wendet jetzt dieselben Sicherheits-Header wie die veröffentlichten Apps an.
 
-**Veröffentlichung noch ausstehend.** Der laufende Stand bleibt bis zum dokumentierten Release die Brand-Veröffentlichung unten. Echte iPhone-Kamera, Mediathek, Home-Bildschirm-Icon, Messenger-Cache und Push-Zustellung benötigen eine erneute Geräteprüfung. [Entscheidungen und Nachweise](mobile-fixes-2026-11-11.md); [historischer Pausepunkt](checkpoint-mobile-2026-11-10.md).
+Quelle `9a4eb55b4fa579f8302464e38b501d85746985c6` ist auf beiden Workern veröffentlicht. 23 tatsächlich ausgelieferte Dateien stimmen per SHA-256 mit der Quelle überein; Bindungen unverändert. Privater Testabend, neuer Wizard und Fotoformular wurden online geprüft. Echte iPhone-Kamera, Mediathek, Home-Bildschirm-Icon, Messenger-Cache und Push-Zustellung benötigen eine erneute Geräteprüfung. Neuer zweitseitiger PDF-Changelog V1.2 vom 11. November erstellt und gerendert geprüft; V1.1 bleibt erhalten. [Entscheidungen und Nachweise](mobile-fixes-2026-11-11.md); [historischer Pausepunkt](checkpoint-mobile-2026-11-10.md).
 
 # App-Brand-Umstellung und interner Testabend · 10. November 2026
 
@@ -47,12 +47,12 @@ Die freigegebenen Darstellungsänderungen an Terminen, Aktuelles und Abschlussfo
 
 | Dienst | Aktive Version | Geprüfte Quelle / Aufgabe |
 | --- | --- | --- |
-| `rudelbar-cms-staging` | `24bab839-2457-41cb-ac9f-58e75e8c8651` | `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` · aktuelles Backstage/Backend |
-| `rudelbar-app-staging` | `b207c53b-e54c-4851-9734-212d48d191ae` | `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` · echte Gäste-App |
+| `rudelbar-cms-staging` | `65daf458-d986-4f25-b411-ebfea6ac7d4c` | `9a4eb55b4fa579f8302464e38b501d85746985c6` · aktuelles Backstage/Backend |
+| `rudelbar-app-staging` | `ef116ae3-5b35-499d-ae99-180ff9ff5635` | `9a4eb55b4fa579f8302464e38b501d85746985c6` · echte Gäste-App |
 | `rudelbar-cms` | `31c09e26-84ac-4e41-b1a7-e2ae86616fd3` | `a241031bfc0e9c975e6f45ea09550520fa994a40` auf `fix/legacy-cms-audit-2026-11-05` · ausdrücklich beibehaltener Notfallzugang |
 | `rudelbar-gtm-feedback` | `8c78a709-1f27-4618-962b-a2d2e5f8bfda` | eigenständige Feedback-Anwendung mit eigener D1-Datenbank; unverändert erhalten |
 
-Die beiden App-Worker wurden am 10. November veröffentlicht; Versionen, Bindungen, ausgelieferte Dateien und Ansichten wurden geprüft. Die unabhängigen Dienste behalten den am 7. November geprüften Stand. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
+Die beiden App-Worker wurden am 11. November veröffentlicht; Versionen, Bindungen, ausgelieferte Dateien und Ansichten wurden geprüft. Die unabhängigen Dienste behalten den am 7. November geprüften Stand. `rudelbar-event-demo` wurde nach ausdrücklicher Auswahl entfernt. Der historische Namensbestandteil `staging` ist bei Backstage und Gäste-App kein Löschkriterium.
 
 ## Daten und Zugänge
 

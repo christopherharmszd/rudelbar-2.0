@@ -46,6 +46,12 @@ Quelle `83a3527ae2f4bebc6b47a9ac9ee65a73331f0882` ist auf den beiden bestehenden
 
 234 Tests, isolierte Gesamtprüfung und Dateihashes der tatsächlichen Online-Ausgabe erfolgreich. Die öffentliche Website bleibt auf ihrem separat freigegebenen Quellcode-Stand. [Entscheidungen und Nachweise](app-brand-2026-11-10.md).
 
+## Mobile App-Korrekturen vom 11. November 2026
+
+Quelle `9a4eb55b4fa579f8302464e38b501d85746985c6`: Backstage/Live `65daf458-d986-4f25-b411-ebfea6ac7d4c`, Gäste-App `ef116ae3-5b35-499d-ae99-180ff9ff5635`. Deckende Symbole/Teilen-Bild, gemeinsame Mitteilungseinrichtung und Memory-Wall-Fotokorrekturen. 243 Tests, isolierter Gesamtabend und Browserprüfungen erfolgreich; 23 tatsächliche Online-Dateien mit der Quelle abgeglichen. Alle abgefragten Bindungen vor/nach dem Release identisch; keine Migration. Website unverändert auf `c5178a1b099fad1d7baee4013921d891925b1038`.
+
+[Umfang, Belege, offene Geräteprüfung und vorherige Worker-Versionen](mobile-fixes-2026-11-11.md). Ein neuer PDF-Changelog V1.2 hält diesen Stand fest; vorherige Fassungen werden nicht überschrieben. Die App-Bilder haben neue Dateinamen; vorhandene Betriebssystem-/Messenger-Caches sind nur am tatsächlichen Gerät zu beurteilen.
+
 ## CMS und regelmäßiger Website-Bau
 
 Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennte Handlungen. Die Redaktion schreibt nach Sanity. Der vorhandene GitHub-Zeitplan baut statische Seiten regelmäßig neu; GitHub kann Läufe verzögern. Es gibt keinen direkten GitHub-Aufruf und keinen zu rotierenden Build-PAT mehr. Aktuelle Inhalte werden auf der Website zusätzlich beim Laden abgefragt.

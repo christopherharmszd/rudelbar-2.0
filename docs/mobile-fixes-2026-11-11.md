@@ -36,4 +36,14 @@ Echte iPhone-/Android-Abnahme bleibt offen, besonders native Kamera/Mediathek, I
 
 ## Veröffentlichung
 
-Noch ausstehend. Vor Veröffentlichung aktive Worker-Versionen, Bindungen und öffentliche Website-Quelle geprüft. Die vorhandenen beiden App-Worker werden gemeinsam aktualisiert. Keine Datenbankmigration.
+Quelle `9a4eb55b4fa579f8302464e38b501d85746985c6`, Quellbaum `d05da0ed4a0910f334758b8f8f09fc9fd316ce1f`. Lokal und auf GitHub identischer Baum, auf `main` übernommen.
+
+- Backstage/Live: `65daf458-d986-4f25-b411-ebfea6ac7d4c`.
+- Gäste-App: `ef116ae3-5b35-499d-ae99-180ff9ff5635`.
+- 23 Online-Dateien stimmen per SHA-256 mit der Quelle überein: Browsermodule, Stile, App-Symbole, Teilen-Bild, Original-Logo sowie die Backstage-Gästevorschau.
+- Veröffentlichter privater Testabend offen, neuer Wizard bei 390 px ohne Überbreite, Mitteilungen erlauben erst im zweiten Schritt; keine iPhone-Anleitung auf Desktop. Echtes Online-Fotoformular enthält getrennte Kamera-/Mediathekeingänge und 21×21-px-Checkboxen.
+- Sämtliche vor und nach dem Release abgefragten Worker-Bindungen identisch. Keine Datenbankmigration; Medien, Zugangswerte, Zeitplan und Servicebindung erhalten.
+- Öffentliche Website weiterhin Quelle `c5178a1b099fad1d7baee4013921d891925b1038`. Kein Quellcode-Diff in `app/` oder den Website-Workflows.
+- Changelog `Rudelbar_Changelog_2026-11-11_V1.2.pdf`: zwei Seiten, gerendert und visuell kontrolliert. Frühere PDF-Stände bleiben erhalten. Geschützte Protokolle liegen lokal unter `.qa/`; Browserbelege und PDF im Aufgabenordner.
+
+Für einen gezielten Code-Rückweg vorherige zusammengehörige Versionen verwenden: Backstage `24bab839-2457-41cb-ac9f-58e75e8c8651`, Gäste-App `b207c53b-e54c-4851-9734-212d48d191ae`. Keine Inhalte oder Konten zurücksetzen.
