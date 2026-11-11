@@ -1,3 +1,7 @@
+# Leinwand-Button · korrigiert am 11. November 2026
+
+Der zuvor unsichtbare Link „Leinwand öffnen“ ist korrigiert: Die goldene Textlink-Regel gilt nicht mehr für als Buttons gestaltete Links. Online bestätigt: Text `#0D0D0D` auf `#FDC300`. Quelle `18aead41a8460cff6c0d41fdbdcc7e2803c13095`, Backstage `1b72f858-6ba9-4ce6-b206-2e972a2a4669`. 238 Backendtests erfolgreich, veröffentlichte CSS-/Team-Datei exakt abgeglichen und Bindungen unverändert. Keine Inhalts- oder Website-Änderung; Gäste-Worker nicht neu veröffentlicht. Changelog V1.5 ergänzt V1.4. Dieser Punkt der offenen Rückmeldungen ist erledigt.
+
 # Mein Profil und Gastzugang · veröffentlicht am 11. November 2026
 
 „Mein Profil“ steht dauerhaft neben der Glocke und bündelt Anmeldung/Status, Angaben, Mitteilungen und bestehende Datenschutz-/Freigabewege. „Mein Abend“ bleibt der Merkzettel. Gespeicherte Namen ersetzen keinen gültigen Gastzugang; Wiederanmeldung ist ausdrücklich und erhält den offenen Wall-Fotoentwurf. 256 Tests, isolierter Gesamtabend und Browserprüfung bei 320/390 px erfolgreich. Quelle `d83a495a66f4e36064ee5c397c993a42d3fe9e51` auf beiden Workern veröffentlicht; 32 Online-Dateien abgeglichen, Bindungen unverändert. Vorhandenen Gastzugang und Online-Profil geprüft. Website, echte Abendinhalte, Konten und Rechte unverändert. Changelog-PDF V1.4 ergänzt die erhaltenen Vorversionen. Echte Geräteabnahme und übrige gesammelte Wall-/Live-/Textpunkte bleiben offen. [Umfang, Nachweise und Rückweg](guest-profile-2026-11-11.md).

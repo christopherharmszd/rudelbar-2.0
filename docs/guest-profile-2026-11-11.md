@@ -34,7 +34,7 @@ Geschützte Protokolle liegen lokal unter `.qa/profile-*`; Online-Screenshot und
 
 ## Getrennte offene Aufgaben
 
-- Goldschrift auf Goldfläche bei „Leinwand öffnen“.
+- Nachtrag: Goldschrift auf Goldfläche bei „Leinwand öffnen“ am 11. November separat korrigiert; aktueller Nachweis in `docs/CURRENT.md`.
 - Kürzerer Wall-Teilen-Dialog mit deutlicher Bestätigung und Abschluss.
 - Weitergehende zentrale Einwilligungsverwaltung über den jetzigen gemeinsamen Einstieg hinaus.
 - Vollständiger gemeinsamer Live-Eingang einschließlich Wall-Moderation.

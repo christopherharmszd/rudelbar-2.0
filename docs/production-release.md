@@ -74,3 +74,7 @@ Speichern, Veröffentlichen, von Website nehmen und Archivieren bleiben getrennt
 Öffentliche Startseite, betroffene Detailseiten, Bilder, Impressum/Datenschutz und `/redaktion` prüfen. Die Redaktion einschließlich Anmeldung und interner Schnittstellen behält `noindex, nofollow`; öffentliche Seiten bleiben indexierbar. `noindex` ersetzt keinen Anmeldeschutz.
 
 Bei Website-Problemen den vorherigen freigegebenen Quellcode-SHA im Produktionsworkflow wiederherstellen und erneut bauen. Das setzt keine CMS-Inhalte zurück. Worker nur gezielt mit einer kompatiblen Fassung zurücknehmen; Datenbanken und inzwischen geänderte Rechte nicht zurücksetzen. Nameserver und Mail-DNS bleiben von Code-Releases unberührt.
+
+## Leinwand-Button vom 11. November 2026
+
+Quelle `18aead41a8460cff6c0d41fdbdcc7e2803c13095` ist auf Backstage `1b72f858-6ba9-4ce6-b206-2e972a2a4669` veröffentlicht. Die gemeinsame Wall-CSS-Quelle grenzt die Goldfarbe normaler Links gegen Button-Links ab; der Team-Einstieg lädt die neue Stilversion. Online-Schriftfarbe und Hintergrund visuell sowie per berechnetem Stil geprüft. Beide geänderten ausgelieferten Dateien stimmen mit der Quelle überein. 238 Backendtests erfolgreich, Bindungen unverändert. Keine Datenänderung. Gäste-Worker bleibt `b686b404-884e-4b60-bf7b-827647516459`, öffentliche Website auf ihrer bisherigen Quelle. Rückweg für diesen begrenzten Fix: Backstage `2e52e7b5-2611-4b25-8aa7-ed4c04df8eb2`. Changelog V1.5 ergänzt die unveränderten Vorversionen.
