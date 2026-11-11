@@ -8,15 +8,18 @@ Isoliert nachgestellt: zwei direkte Beiträge funktionieren mit gültigem Gastzu
 
 Damit ist der fehlerhafte Umgang mit einem verlorenen Gastzugang belegt. Nicht belegt ist, wodurch der konkrete iPhone-Gastzugang verloren ging oder ob ein Deployment, Browserzustand oder ein anderer Vorgang beteiligt war. Der neue Mitteilungs-Wizard ist nicht als Ursache nachgewiesen.
 
+Zusätzlich belegt: Die vorzeitigen Rückgaben beim Lesen von Wall-, Gesprächs- und Begegnungsmitteilungen enthielten keine Sitzungsablaufzeit. Der Gäste-Worker konnte dadurch `Max-Age=NaN` für das vorhandene Cookie ausgeben. Ein neuer Test schlägt am ursprünglichen Code genau mit dieser Ausgabe fehl. Das Verhalten des konkreten iPhones bei dieser fehlerhaften Antwort ist nicht nachgewiesen.
+
 ## Begrenzte Korrektur
 
+- Mitteilungsbestätigungen liefern die authentifizierte Ablaufzeit mit. Der Gäste-Worker setzt Cookies ausschließlich bei einer endlichen Ablaufzeit und lässt andernfalls das vorhandene Cookie unangetastet. Die ursprüngliche serverseitige Gültigkeit wird nicht verlängert.
 - Explizites Erneuern der Gastanmeldung; gleichzeitige Anmeldeaufrufe teilen denselben laufenden Auftrag. 401 im gemeinsamen API-Zugang verwirft den veralteten Bereitschaftsstatus.
 - Wall-Fehler direkt vor der Absendeaktion, mit Alert-Semantik und Fokus. Text `#FFB4AB` auf `#321D1C` gemäß der bereits erlaubten Fehlerfarben; konkrete Aktion „Erneut anmelden“.
 - Foto, Vorschau, Text und gewählte Freigaben bleiben während der erneuten Anmeldung im geöffneten Dialog erhalten. Danach sendet der Gast bewusst erneut. Eine neue Versandkennung verhindert die Wiederverwendung einer zum alten Zugang gehörenden Fotoreservierung.
 - Sichtbarer Übertragungsstatus. Kein automatisches Absenden oder stilles Erteilen von Freigaben.
 - Keine Wiederzuordnung früherer privater Beiträge allein über einen gleichen Vornamen. Ein tatsächlich gelöschter oder widerrufener anonymer Zugang lässt sich dadurch nicht wiederherstellen.
 
-246 Tests erfolgreich, einschließlich drei neuer Prüfungen für gleichzeitige Anmeldung, explizite Erneuerung/erneuten Versuch und fehlenden Vornamen. Isolierter Gesamtabend erfolgreich. Im Browser wurden zwei direkte Einreichungen, der 401-Zustand, erneutes Anmelden mit erhaltenem Foto/Text sowie der anschließende echte lokale Foto-Upload geprüft. Rotdarstellung und fokussierte Aktion mit den berechneten Farben bestätigt. Eine bereits geöffnete alte App-Version benötigt zum Laden des korrigierten Codes ein Neuladen; deren alter Entwurf wird dadurch nicht nachträglich über Reload hinweg gespeichert.
+249 Tests erfolgreich, einschließlich sechs neuer Prüfungen für gleichzeitige Anmeldung, explizite Erneuerung/erneuten Versuch, fehlenden Vornamen sowie gültige Cookie-Ablaufzeiten nach dem Lesen einer Wall-Mitteilung. Isolierter Gesamtabend erfolgreich. Im Browser wurden zwei direkte Einreichungen, der 401-Zustand, erneutes Anmelden mit erhaltenem Foto/Text sowie der anschließende echte lokale Foto-Upload geprüft. Rotdarstellung und fokussierte Aktion mit den berechneten Farben bestätigt. Eine bereits geöffnete alte App-Version benötigt zum Laden des korrigierten Codes ein Neuladen; deren alter Entwurf wird dadurch nicht nachträglich über Reload hinweg gespeichert.
 
 Veröffentlichungsnachweis folgt nach erfolgreichem Online-Abgleich. Keine Änderung an Konten, Berechtigungen, Inhaltsbeständen oder Datenbankschema.
 

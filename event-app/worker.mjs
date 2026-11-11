@@ -59,7 +59,7 @@ export default {
       if(url.pathname==='/api/guest/conversations'){action='conversation';args.operation=request.method==='GET'?(url.searchParams.get('conversationId')||url.searchParams.get('referenceId')?'read':'list'):input.operation;for(const key of ['conversationId','referenceId','kind','before'])if(url.searchParams.has(key))args[key]=url.searchParams.get(key);}
       if(!action)return json(404,{error:'Nicht gefunden.'});
       const {status=200,sessionToken:createdToken,expiresAt,...result}=await env.CONTENT.guestAction(action,args);
-      const rootToken=createdToken||(action==='guestNotice'&&status===200?sessionToken:'');
+      const rootToken=Number.isFinite(expiresAt)?createdToken||(action==='guestNotice'&&status===200?sessionToken:''):'';
       const headers=rootToken?{'Set-Cookie':`${name}=${rootToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${Math.max(1,Math.floor((expiresAt-Date.now())/1000))}`}:{ };
       const response=json(status,result,headers);if(rootToken)response.headers.append('Set-Cookie',`${name}=; HttpOnly; Secure; SameSite=Strict; Path=/api/guest; Max-Age=0`);return response;
     }catch(error){return json(error.status||503,{error:error.status?error.message:'Der Abend kann gerade nicht geladen werden.'});}

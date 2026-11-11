@@ -193,9 +193,9 @@ export function createLiveService(env,client,{getContext,defer,transport}={}){
     }
     return {expiresAt:person.expires_at,...result,...await notices.settings(who)};
    }
-   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&['raffle-','dating-','dance-','play-','contact-'].some(prefix=>input.id?.startsWith(prefix)))return contextNotices.mark(person,input);
-   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('wall-'))return wallNotices.mark(person,input);
-   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('chat-'))return conversations.mark(person,{conversationId:input.id,seq:input.seq});
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&['raffle-','dating-','dance-','play-','contact-'].some(prefix=>input.id?.startsWith(prefix)))return {expiresAt:person.expires_at,...await contextNotices.mark(person,input)};
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('wall-'))return {expiresAt:person.expires_at,...await wallNotices.mark(person,input)};
+   if(action==='mark'&&env.RUDELBAR_CONNECTED_SOCIAL==='1'&&input.id?.startsWith('chat-'))return {expiresAt:person.expires_at,...await conversations.mark(person,{conversationId:input.id,seq:input.seq})};
    return {expiresAt:person.expires_at,...await notices[action](who,input)};
   }
   async function guestIdentity({eventId,sessionToken}){await visitor(eventId,sessionToken);const ctx=await context(eventId);return {accessCode:ctx.event.accessCode||''};}

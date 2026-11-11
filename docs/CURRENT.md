@@ -1,6 +1,6 @@
 # Aktuelle Fehleranalyse: zweiter Wall-Beitrag · 11. November 2026
 
-Verlorener Gastzugang bei weiterhin geöffnetem Wall-Formular isoliert nachgestellt; Anmeldehinweis im iPhone-Screenshot bestätigt. Zwei Beiträge funktionieren mit gültiger Sitzung. Gezielte Korrektur mit rotem, fokussiertem Fehlerhinweis und expliziter Wiederanmeldung bei erhaltenem Foto-/Textentwurf lokal geprüft; 246 Tests und isolierter Gesamtabend erfolgreich. **Noch nicht veröffentlicht.** Die konkrete Ursache des ursprünglich verlorenen iPhone-Zugangs bleibt ungeklärt. Andere UX-, Live-Eingangs- und Textänderungen werden auf ausdrückliche Präzisierung zunächst nur gesammelt. [Befund und getrennte offene Aufgaben](wall-session-2026-11-11.md).
+Verlorener Gastzugang bei weiterhin geöffnetem Wall-Formular isoliert nachgestellt; Anmeldehinweis im iPhone-Screenshot bestätigt. Zwei Beiträge funktionieren mit gültiger Sitzung. Gezielte Korrektur mit rotem, fokussiertem Fehlerhinweis und expliziter Wiederanmeldung bei erhaltenem Foto-/Textentwurf lokal geprüft; 249 Tests und isolierter Gesamtabend erfolgreich. Zusätzlich ungültige Cookie-Ablaufzeit beim Lesen einer Wall-Mitteilung nachgewiesen und korrigiert. **Noch nicht veröffentlicht.** Die konkrete Ursache des ursprünglich verlorenen iPhone-Zugangs bleibt ungeklärt. Andere UX-, Live-Eingangs- und Textänderungen werden auf ausdrückliche Präzisierung zunächst nur gesammelt. [Befund und getrennte offene Aufgaben](wall-session-2026-11-11.md).
 
 # Mobile Korrekturen · veröffentlicht am 11. November 2026
 

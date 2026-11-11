@@ -37,6 +37,17 @@ test('external permission can be withdrawn after closure or notice changes witho
  }finally{s.close();}
 });
 
+test('acknowledging Wall feedback retains the authenticated guest session expiry',async()=>{
+ const s=await setup();try{
+  const session=await s.live.session({eventId:'evening',name:'Lokaler Prüfgast'}),person=await s.live.internalVisitor('evening',session.sessionToken),post=(await s.wall.submit(person,input())).post;
+  await s.wall.moderate(s.admin,'evening',{id:post.id,status:'approved',revision:1});
+  const connected=createLiveService({...s.env,RUDELBAR_CONNECTED_SOCIAL:'1'},null,{getContext:async()=>s.ctx}),inbox=await connected.wallNotices.list(person);
+  const read=await connected.guestNotice({eventId:'evening',sessionToken:session.sessionToken,action:'mark',input:{id:inbox.items[0].id,seq:inbox.items[0].seq}});
+  assert.equal(read.expiresAt,person.expires_at);assert.equal((await connected.wallNotices.list(person)).count,0);
+  assert.equal((await s.live.internalVisitor('evening',session.sessionToken)).id,person.id);
+ }finally{s.close();}
+});
+
 test('Wall feedback uses the shared guest clock, limits ownership and read markers, and delivers generic push only while the current device and evening remain active',async()=>{
  const s=await setup();try{
   const {createWallNotices}=await import('../lib/wall-notices.mjs'),payloads=[],env={...s.env,RUDELBAR_CONNECTED_SOCIAL:'1',VAPID_PUBLIC_KEY:crypto.randomUUID(),VAPID_PRIVATE_KEY:crypto.randomUUID(),VAPID_SUBJECT:'https://example.test'};
