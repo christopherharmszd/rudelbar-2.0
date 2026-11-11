@@ -1,9 +1,10 @@
 import {stationInteraction} from './station-actions.js';
+import {createGuestSession} from './guest-session.js';
 import {createNotificationCenter} from './notifications.js?v=190-app2';
 export function createGuestLive({root,screen,getExperience,getEventId,getName,accessCode,preview,navigate,update,onAction,onOpenChat,onOpenWall,onOpenRaffle,onOpenPair,getExtraInbox,loadExtraInbox}){
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>`<i data-lucide="${n}" aria-hidden="true"></i>`;
- const state={page:'',selected:'',ready:false,requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
+ const state={page:'',selected:'',requests:[],detail:null,loading:false,sending:false,error:'',drafts:{},replyDraft:'',pendingKeys:{}};
  const activeStatuses=['new','queued','in_progress'];
  let viewVersion=0,conversationLoad=0,refreshing=false;
  const notices=createNotificationCenter({api,initialize:async()=>{if(getExperience())await ensureSession();},openRequest:id=>loadConversation(id),role:'guest',storageKey:'rudelbar:notifications:guest:'+getEventId(),disabled:!!preview});
@@ -16,9 +17,10 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   if(preview)throw new Error('Die Vorschau zeigt die Formulare. Senden ist in der geöffneten Gäste-App möglich.');
   const [route,...rest]=path.split('&'),url='/api/guest'+route+(method==='GET'?'?abend='+encodeURIComponent(getEventId())+(rest.length?'&'+rest.join('&'):''):'');
   const response=await fetch(url,{method,credentials:'same-origin',cache:'no-store',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify({...body,eventId:getEventId(),accessCode}):undefined}),data=await response.json();
-  if(!response.ok){const error=new Error(data.error||'Gerade nicht erreichbar.');error.status=response.status;throw error;}return data;
+  if(!response.ok){if(response.status===401)guestSession.invalidate();const error=new Error(data.error||'Gerade nicht erreichbar.');error.status=response.status;throw error;}return data;
  }
- async function ensureSession(){if(state.ready)return;if(!getName()){navigate('name');throw new Error('Verrätst du uns zuerst deinen Vornamen?');}await api('/session','POST',{name:getName()});state.ready=true;}
+ const guestSession=createGuestSession({getName,connect:name=>api('/session','POST',{name}),onMissingName:()=>navigate('name')});
+ const ensureSession=guestSession.ensure;
  function heading(kicker,title,lead=''){return `<div class="re-kicker">${esc(kicker)}</div><h1>${esc(title)}</h1>${lead?`<p class="re-lead">${esc(lead)}</p>`:''}`;}
  function field(name,label,value='',extra=''){return `<div class="re-field"><label for="live-${name}">${label}</label><input id="live-${name}" name="${name}" value="${esc(value)}" ${extra}></div>`;}
  function stationPage(id){
@@ -82,5 +84,5 @@ export function createGuestLive({root,screen,getExperience,getEventId,getName,ac
   }catch{}finally{refreshing=false;}
  }
  setInterval(refresh,8000);document.addEventListener('visibilitychange',refresh);
- return {api,mark:(id,seq)=>notices.mark(id,seq),ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();await api('/logout','POST',{});state.ready=false;state.requests=[];state.detail=null;state.replyDraft='';}};
+ return {api,mark:(id,seq)=>notices.mark(id,seq),ensureSession,renderPage,startNotices(){notices.resume();return notices.start();},mountNotices:()=>notices.mount(),openConversation:loadConversation,setView(page,id){if(page!==state.page||(id||'')!==state.selected)viewVersion++;state.page=page;state.selected=id||'';},onEnter(page){if(page==='messages')loadList();},requestCount:()=>state.requests.length,async logout(){await notices.disconnect();await api('/logout','POST',{});guestSession.invalidate();state.requests=[];state.detail=null;state.replyDraft='';}};
 }

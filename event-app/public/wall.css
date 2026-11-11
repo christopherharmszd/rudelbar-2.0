@@ -43,4 +43,10 @@
 .rw-live-dialog .row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin-bottom:18px}
 .rw-live-dialog .rw-action{min-width:0;flex:1;padding:10px 8px;font-size:14px}
 .rw-live-dialog .vm-sheet-body{scroll-padding-top:18px}
+.rw-live-dialog .vm-sheet-body .re-error{color:var(--rb-error);background:var(--rb-error-tint);border:1px solid var(--rb-error);border-radius:10px;padding:16px;font-size:16px;line-height:1.5}
+.rw-live-dialog .vm-sheet-body .re-error p{color:inherit;font-size:14px;margin:8px 0 14px}
+.rw-live-dialog .vm-sheet-body .re-error .re-btn{color:var(--rb-error);border-color:var(--rb-error);min-height:44px}
+.rw-live-dialog .rw-submit-feedback:focus{outline:2px solid var(--rb-text);outline-offset:3px}
+.rw-live-dialog .vm-sheet-body .rw-send-status{color:var(--rb-text);font-size:14px;line-height:1.5}
+.rw-live-dialog .rw-send-status:empty{display:none}
 @media(max-width:380px){.rw-photo-choices{grid-template-columns:1fr}}

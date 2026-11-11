@@ -13,7 +13,7 @@
   let activeEventId=eventId||'',mapView=null;const mapCamera={zoom:1,panX:0,panY:0};
   const {mountGuestMap}=await import(preview?'/abend-preview/guest-map.js':'/guest-map.js');
   const {stationInteraction}=await import(preview?'/abend-preview/station-actions.js':'/station-actions.js');
-  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-app2':'/guest-live.js?v=190-app2');
+  const {createGuestLive}=await import(preview?'/abend-preview/guest-live.js?v=190-app3':'/guest-live.js?v=190-app3');
   const live=createGuestLive({root,screen,getExperience:()=>experience,getEventId:()=>activeEventId,getName:()=>state.name,accessCode,preview,navigate:(v,id)=>go(v,id),update:()=>render(),onAction:e=>analytics.track(e),onOpenChat:id=>social?.open({conversationId:id}),onOpenWall:()=>memoryWall?.open({mine:true}),onOpenRaffle:()=>raffle?.open(),onOpenPair:id=>encounters?.chat(id),getExtraInbox:()=>[social?.tiles(),encounters?.tiles()].filter(Boolean).join(''),loadExtraInbox:()=>Promise.all([social?.list(),encounters?.list()])});
   const {createGuestSocial}=await import(preview?'/abend-preview/guest-social.js':'/guest-social.js');
   social=createGuestSocial({api:live.api,ensureSession:()=>live.ensureSession(),preview,mark:(id,seq)=>live.mark(id,seq),onName:name=>{state.name=name;save();render();}});
@@ -21,7 +21,7 @@
   encounters=createGuestEncounters({api:live.api,ensureSession:()=>live.ensureSession(),isOpen:()=>!!experience,getEventId:()=>activeEventId,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestRaffle}=await import(preview?'/abend-preview/guest-raffle.js':'/guest-raffle.js');
   raffle=createGuestRaffle({api:live.api,ensureSession:()=>live.ensureSession(),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
-  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-app2':'/guest-wall.js?v=190-app2');
+  const {createGuestWall}=await import(preview?'/abend-preview/guest-wall.js?v=190-app3':'/guest-wall.js?v=190-app3');
   memoryWall=createGuestWall({getEventId:()=>activeEventId,accessCode,ensureSession:()=>live.ensureSession(),isOpen:()=>!!experience,preview,mark:(id,seq)=>live.mark(id,seq)});
   const {createGuestAnalytics}=await import(preview?'/abend-preview/guest-analytics.js':'/guest-analytics.js');
   const analytics=createGuestAnalytics({getEventId:()=>activeEventId,ensureSession:()=>live.ensureSession(),preview,esc,placement:query.get('von')||'',isOpen:()=>!!experience});
